@@ -1,0 +1,2569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PROTAC Builder API (Batch)</title>
+
+  <!-- Icons + Styles -->
+  <link rel="icon" type="image/png" href="/static/images/ProtacBuilder_favicon.png">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/COPYstyles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ChemDoodleWeb.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui-1.11.4.css') }}">
+
+  <!-- JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="{{ url_for('static', filename='js/ChemDoodleWeb.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ChemDoodleWeb-uis.js') }}"></script>
+
+  <style>
+
+
+
+
+
+  .code-wrap { position: relative; }
+  .code-block{
+    color:#ffffff !important;
+    background: rgba(2, 6, 23, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    padding: 14px 14px;
+    max-height: 260px;
+    overflow: auto;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+    line-height: 1.35;
+    font-size: 12.5px;
+  }
+  .code-block::selection { background: rgba(250, 204, 21, 0.25); }
+
+
+  .copy-btn:hover{
+    border-color: rgba(56, 189, 248, 0.9) !important;
+    color: #ffffff;
+  }
+.code-wrap{
+  margin-top: 6px;
+}
+
+.code-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+}
+
+.code-label{
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.code-block{
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* copy button no longer absolute */
+.copy-btn{
+  position: static;
+  padding: 2px 10px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+
+    /* ================= API Welcome Modal (Neon) ================= */
+.api-welcome-modal .modal-content{
+  background: rgba(15,23,42,0.98);
+  border: 1px solid rgba(56,189,248,0.65);
+  border-radius: 18px;
+  box-shadow: 0 0 30px rgba(56,189,248,0.25);
+  color:#e5e7eb;
+}
+
+.api-welcome-modal .modal-header,
+.api-welcome-modal .modal-footer{
+  border-color: rgba(51,65,85,0.9);
+}
+
+.api-welcome-modal .modal-title{
+  color:#38bdf8;
+  font-weight: 900;
+}
+
+.guide-card{
+  border: 1px solid rgba(51,65,85,0.9);
+  background: rgba(2,6,23,0.45);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.guide-title{
+  font-weight: 900;
+  color: #7dd3fc;
+  margin-bottom: 10px;
+}
+
+.guide-steps{
+  margin: 0;
+  padding-left: 18px;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.guide-note{
+  margin-top: 10px;
+  border: 1px solid rgba(34,197,94,0.25);
+  background: rgba(34,197,94,0.08);
+  padding: 10px;
+  border-radius: 12px;
+  color: #bbf7d0;
+}
+
+.counter-box{
+  text-align:center;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(56,189,248,0.25);
+  background: rgba(0,0,0,0.25);
+}
+
+.big-number{
+  font-size: 3.25rem;
+  font-weight: 900;
+  color: #22d3ee;
+  text-shadow: 0 0 18px rgba(34,211,238,0.55);
+  line-height: 1;
+}
+
+.copy-title{
+  font-weight: 800;
+  color: #38bdf8;
+  margin-bottom: 6px;
+}
+
+.code-wrap{
+  position: relative;
+}
+
+.code-block{
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(51,65,85,0.9);
+  border-radius: 12px;
+  padding: 12px;
+  max-height: 260px;
+  overflow:auto;
+  margin: 0;
+}
+
+
+
+
+    body { background:#020617; color:#e5e7eb; }
+    .api-panel{
+      background:rgba(15,23,42,0.92);
+      border:1px solid #38bdf8;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:0 0 25px rgba(56,189,248,0.35);
+      height:100%;
+    }
+    .section-title{ color:#38bdf8; font-weight:800; font-size:1.25rem; margin-bottom:6px; }
+    .help-text{ font-size:0.85rem; color:#cbd5f5; margin-bottom:10px; }
+    .sub-label{ font-size:0.8rem; color:#a5b4fc; margin-top:8px; margin-bottom:4px; }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:0.85rem;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .upload-box{
+      border:2px dashed #38bdf8;
+      padding:14px;
+      border-radius:14px;
+      background:rgba(2,6,23,0.55);
+    }
+    table{ width:100%; margin-top:14px; }
+    th,td{ padding:8px; border-bottom:1px solid #334155; font-size:0.9rem; vertical-align:top; }
+    th{ color:#7dd3fc; }
+    .btn-wide{ width:100%; }
+    .tiny{ font-size:0.8rem; opacity:0.92; }
+    .status-pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:0.8rem;
+      border:1px solid #334155;
+      background:rgba(2,6,23,0.5);
+      color:#cbd5e1;
+    }
+    .status-ok{ border-color:#22c55e; color:#bbf7d0; }
+    .status-bad{ border-color:#ef4444; color:#fecaca; }
+
+    /* Modal polish */
+    .modal-content{
+      background: rgba(15,23,42,0.98);
+      border: 1px solid #38bdf8;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(56,189,248,0.25);
+      color:#e5e7eb;
+    }
+    .modal-header{
+      border-bottom: 1px solid #334155;
+    }
+    .modal-footer{
+      border-top: 1px solid #334155;
+    }
+    .modal-title{
+      color:#38bdf8;
+      font-weight:800;
+    }
+    .form-control, .custom-select{
+      background: rgba(2,6,23,0.6);
+      border: 1px solid #334155;
+      color:#e5e7eb;
+      border-radius: 12px;
+    }
+    .preview-wrap{
+      border: 1px solid #334155;
+      background: rgba(2,6,23,0.4);
+      border-radius: 12px;
+      padding: 10px;
+      max-height: 260px;
+      overflow:auto;
+    }
+    .badge-suggest{
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.5);
+      color: #bbf7d0;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.75rem;
+    }
+ 
+    .ok-box{
+      border: 1px solid rgba(34,197,94,0.35);
+      background: rgba(34,197,94,0.08);
+      border-radius: 12px;
+      padding: 10px;
+      color: #bbf7d0;
+    }
+  </style>
+    <style>
+       /* ============================================
+        GLOBAL COLORS
+        ============================================ */
+        :root {
+            --teal: #4fb6c2;
+            --charcoal: #222626;
+            --yellow: #e8e85a;
+            --pink: #f0d1e4;
+            --cyan: #7ee3ff;
+
+            --button: #6d7285;
+            --button-hover: #031a6e;
+        }
+
+        /* ============================================
+        PAGE BASE
+        ============================================ */
+        body {
+            margin: 0;
+            background: var(--charcoal);
+            color: #f2f2f2;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Animated BG */
+        #molecule-bg {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #2a2a2a 0%, #1b1b1b 100%);
+            z-index: -2;
+        }
+        #molecule-bg::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image:
+                radial-gradient(circle, rgba(255,255,255,.06) 2px, transparent 2px),
+                radial-gradient(circle, rgba(255,255,255,.04) 1.5px, transparent 1.5px),
+                radial-gradient(circle, rgba(255,255,255,.03) 1px, transparent 1px);
+            background-size: 140px 140px, 90px 90px, 65px 65px;
+            animation: moleculeDrift 120s linear infinite;
+        }
+        @keyframes moleculeDrift {
+            from { transform: translate(0,0) rotate(0deg); }
+            to   { transform: translate(200px,100px) rotate(360deg); }
+        }
+
+        /* ============================================
+        NAV BAR
+        ============================================ */
+        #nav-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 70px;
+            pointer-events: none;
+            background-image: url('/static/images/noise.png');
+            opacity: .15;
+            z-index: 5;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 64px;
+
+            background: rgba(20,20,20,0.55);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,.05);
+            box-shadow: 0 2px 14px rgba(0,0,0,.35);
+
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 0 40px;
+
+            z-index: 999;
+            transition: .3s ease;
+        }
+        .top-nav.shrink {
+            height: 50px;
+            padding: 0 28px;
+        }
+
+        .top-nav a {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+
+            font-size: 15px;
+            font-weight: 650;
+
+            color: var(--cyan);
+            text-decoration: none;
+
+            transition: .25s ease;
+        }
+        .top-nav a:hover {
+            color: var(--yellow);
+            text-shadow: 0 0 6px rgba(232,232,90,.6);
+        }
+
+        /* Underline effect */
+        .top-nav a::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -2px;
+            width: 0%;
+            height: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, var(--cyan), var(--yellow));
+            border-radius: 2px;
+            transition: .25s ease;
+        }
+        .top-nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Icon wiggle */
+        .top-nav a .emoji {
+            transition: transform .25s ease;
+        }
+        .top-nav a:hover .emoji {
+            transform: rotate(8deg) scale(1.15);
+        }
+
+        /* Spacer below fixed header */
+        .header-spacer {
+            height: 90px;
+        }
+
+        /* ============================================
+        CONTAINER
+        ============================================ */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 22px;
+        }
+
+        .container p,
+        .container h1,
+        .container h2,
+        .container h3,
+        .container h4,
+        .container h5 {
+            text-align: center !important;
+        }
+
+        .container p {
+            max-width: 750px;
+            margin: 0 auto 20px auto;
+            line-height: 1.65;
+        }
+
+        /* Remove bullets */
+        .container ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0 auto 20px auto;
+        }
+        .container ul li {
+            text-align: center;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        /* Link styling */
+        .container a,
+        .intro-polished a {
+            color: #7ee3ff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(126,227,255,.25);
+            transition: .25s ease;
+        }
+        .container a:hover,
+        .intro-polished a:hover {
+            color: var(--yellow);
+            border-bottom-color: var(--yellow);
+            text-shadow: 0 0 8px rgba(232,232,90,.45);
+        }
+
+        /* ============================================
+        HERO BOX
+        ============================================ */
+        .hero-box {
+            background: var(--pink);
+            padding: 28px;
+            border-radius: 16px;
+            color: var(--charcoal);
+
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeSlide 1s ease forwards;
+        }
+        .hero-box h1 {
+            font-size: 32px;
+            font-weight: 900;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+        SECTION BOXES
+        ============================================ */
+        .section-box {
+            background: #2f3434;
+            border: 2px solid #3c4444;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+
+            animation: fadeSection .8s ease;
+        }
+        @keyframes fadeSection {
+            from { opacity: 0; transform: translateY(26px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+        BUTTON
+        ============================================ */
+        .button {
+            background: var(--button);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            display: inline-block;
+            transition: .25s ease;
+        }
+        .button:hover {
+            background: var(--button-hover);
+            box-shadow: 0 0 12px rgba(3,26,110,.6);
+        }
+
+        /* ============================================
+        RELATED GRID
+        ============================================ */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+            gap: 22px;
+            margin-top: 20px;
+        }
+        .related-card {
+            text-align: center;
+            padding: 24px;
+            background: #2f3434;
+            border: 2px solid #3c4444;
+            border-radius: 14px;
+            transition: .25s ease;
+        }
+        .related-card:hover {
+            transform: translateY(-6px);
+            background: #3d4444;
+            border-color: var(--teal);
+            box-shadow: 0 0 12px rgba(79,182,194,.5);
+        }
+
+        /* ============================================
+        FOOTER & FLOAT BUTTON
+        ============================================ */
+        #floating-back-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+
+            background: var(--teal);
+            padding: 14px;
+
+            border-radius: 50%;
+            font-size: 22px;
+            text-decoration: none;
+            color: #000;
+
+            transition: .2s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,.25);
+        }
+        #floating-back-btn:hover {
+            background: var(--yellow);
+        }
+
+        footer {
+            text-align: center;
+            color: #aaa;
+            padding-bottom: 40px;
+            margin-top: 50px;
+        }
+        footer span {
+            color: var(--yellow);
+        }
+
+        /* ============================================
+        SLIDER
+        ============================================ */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            max-width: 780px;
+            margin: 25px auto;
+        }
+        .slider {
+            overflow: hidden;
+            border-radius: 14px;
+            border: 2px solid #3c4444;
+            background: rgba(255,255,255,.03);
+            box-shadow: 0 0 18px rgba(0,0,0,.35);
+        }
+        .slide {
+            display: none;
+            opacity: 0;
+            transform: translateX(40px);
+            transition: .7s ease;
+        }
+        .slide.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .slide img {
+            width: 100%;
+            border-radius: 14px;
+        }
+        .caption {
+            text-align: center;
+            padding: 12px;
+            background: rgba(0,0,0,.25);
+            border-top: 1px solid rgba(255,255,255,.05);
+            color: #7ee3ff;
+        }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 15px;
+        }
+        .slider-btn {
+            background: var(--button);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: .25s ease;
+        }
+        .slider-btn:hover {
+            background: var(--button-hover);
+            box-shadow: 0 0 10px rgba(3,26,110,.5);
+        }
+
+        /* ============================================
+        INTRO SECTION
+        ============================================ */
+        .intro-polished {
+            text-align: center;
+            font-size: 18px;
+            max-width: 780px;
+            margin: 0 auto 18px auto;
+            line-height: 1.7;
+            color: #d9e6e8;
+        }
+
+        /* Tooltip */
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            background: #222626;
+            border: 1px solid var(--teal);
+            color: var(--yellow);
+
+            width: 240px;
+            padding: 10px;
+            border-radius: 6px;
+
+            position: absolute;
+            z-index: 50;
+            line-height: 1.4;
+
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity .25s ease;
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* ============================================
+        PROTAC ANATOMY (ANIMATED)
+        ============================================ */
+        .protac-anatomy {
+            margin: 40px auto;
+            padding: 30px 25px;
+            max-width: 1100px;
+            border: 3px solid var(--yellow);
+            border-radius: 14px;
+            background: rgba(34,38,38,0.65);
+            backdrop-filter: blur(6px);
+
+            opacity: 0;
+            animation: protacGlow 0.5s ease forwards;
+        }
+        @keyframes protacGlow {
+            from { opacity: 0; box-shadow: none; }
+            to   { opacity: 1; box-shadow: 0 0 25px rgba(232,232,90,.25); }
+        }
+
+        .protac-anatomy.run {
+            animation: protacGlow 1s ease forwards;
+        }
+
+        .protac-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--yellow);
+            margin-bottom: 25px;
+            opacity: 0;
+            animation: titleFade 1s ease forwards;
+            animation-delay: 3.4s;
+        }
+        @keyframes titleFade {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .protac-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 10px 15px;
+        }
+
+        /* MODULE BASE */
+        .module {
+            flex: 1;
+            text-align: center;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            background: #222626;
+            opacity: 0;
+        }
+        .warhead { border: 3px solid var(--teal); color: var(--teal); }
+        .linker  { border: 3px solid #9fe38c; color: #9fe38c; }
+        .ligase  { border: 3px solid var(--pink); color: var(--pink); }
+
+        /* Lines */
+        .connector-line {
+            width: 80px;
+            height: 4px;
+            background: rgba(253, 215, 162, 0.926);
+            border-radius: 1px;
+            opacity: 0;
+        }
+
+        /* Animations */
+        @keyframes floatInLeft {
+            from { transform: translateX(-200px) scale(.8); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes floatInRight {
+            from { transform: translateX(200px) scale(.8); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes dropIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to   { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes lineAppear {
+            from { transform: scaleX(0); opacity: 0; }
+            to   { transform: scaleX(1); opacity: 1; }
+        }
+
+        /* Apply animation timing */
+        .animate-warhead { animation: floatInLeft .9s ease-out forwards; animation-delay: .3s; }
+        .animate-ligase  { animation: floatInRight .9s ease-out forwards; animation-delay: 1s; }
+        .animate-linker  { animation: dropIn .8s ease-out forwards; animation-delay: 2s; }
+
+        .animate-line {
+            transform-origin: center;
+            animation: lineAppear .7s ease-out forwards;
+            animation-delay: 2.8s;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .protac-inner { flex-direction: column; }
+            .connector-line {
+                width: 4px;
+                height: 30px;
+            }
+        }
+
+
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 180, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparklePop 1.2s ease-out forwards;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 150, 0.8));
+        }
+
+        @keyframes sparklePop {
+            0% {
+                transform: scale(0.2) translate(0,0);
+                opacity: 1;
+            }
+            70% {
+                transform: scale(1.6) translate(
+                    calc((var(--x, 0) - 50) * 1px),
+                    calc((var(--y, 0) - 50) * 1px)
+                );
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+        }
+
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .tool-title {
+            color: #7ee3ff;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .link-glow {
+            color: #7ee3ff;
+            text-decoration: none;
+        }
+        .link-glow:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 6px rgba(126, 227, 255, 0.7);
+        }
+
+        .tool-divider {
+            border: none;
+            height: 1px;
+            margin: 22px 0;
+            background: linear-gradient(
+                to right,
+                rgba(255,255,255,0) 0%,
+                rgba(126,227,255,0.3) 50%,
+                rgba(255,255,255,0) 100%
+            );
+        }
+
+        .nice-list {
+            margin-top: 10px;
+            padding-left: 18px;
+        }
+
+        .highlight {
+            color: #ffd966;
+            font-weight: 600;
+        }
+
+
+        /* Overall grid */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        /* Card container */
+        .tool-card {
+            background: rgba(20, 30, 40, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.18);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+        }
+
+        /* Hover glow */
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 18px rgba(0, 255, 255, 0.4);
+            border-color: rgba(0, 255, 255, 0.45);
+        }
+
+        /* Icon */
+        .tool-icon {
+            font-size: 2.1rem;
+            margin-bottom: 10px;
+        }
+
+        /* Titles */
+        .tool-card h3 {
+            font-size: 1.3rem;
+            color: #7ee3ff;
+            margin-bottom: 10px;
+        }
+        .tool-card h3 span {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Paragraphs */
+        .tool-card p {
+            color: #cdeaff;
+            line-height: 1.45;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: #ffd86b;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .tool-btn {
+            display: inline-block;
+            margin-top: 12px;
+            color: #7ee3ff;
+            border: 1px solid #7ee3ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: 0.25s;
+        }
+        .tool-btn:hover {
+            background: rgba(126, 227, 255, 0.1);
+            box-shadow: 0 0 10px rgba(126,227,255,0.5);
+        }
+
+        /* Divider list section */
+        .nice-list {
+            padding-left: 16px;
+            margin-top: 10px;
+        }
+        .nice-list li {
+            margin-bottom: 4px;
+        }
+
+        /* Glow under unified pipeline card */
+        .ecosystem-glow {
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(
+                to right,
+                rgba(255,215,100,0) 0%,
+                rgba(255,215,100,0.45) 50%,
+                rgba(255,215,100,0) 100%
+            );
+            border-radius: 0 0 14px 14px;
+            pointer-events: none;
+        }
+
+
+
+        /* GLOWING FOOTER */
+.glow-footer {
+    margin-top: 60px;
+    padding: 40px 25px 25px 25px;
+
+    background: rgba(10, 15, 18, 0.75);
+    border-top: 3px solid transparent;
+
+    /* Animated color-shifting border */
+    border-image: linear-gradient(
+        90deg,
+        #4fb6c2,
+        #e8e85a,
+        #f0d1e4,
+        #7ee3ff,
+        #4fb6c2
+    ) 1;
+    animation: footerBorderShift 8s linear infinite;
+
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -8px 35px rgba(0,0,0,0.4);
+}
+
+/* Border animation */
+@keyframes footerBorderShift {
+    0% { border-image-slice: 1; }
+    100% { border-image-slice: 1; }
+}
+
+/* Inner grid */
+.footer-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 30px;
+    margin-bottom: 35px;
+
+    opacity: 0;
+    animation: fadeUp 1s ease forwards;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Column titles */
+.footer-col h4 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #e8e85a;
+    font-weight: 800;
+    text-shadow: 0 0 10px rgba(232,232,90,0.4);
+}
+
+/* Links */
+.footer-col a {
+    display: block;
+    margin-bottom: 8px;
+    color: #7ee3ff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: 0.25s;
+}
+
+/* Neon hover glow */
+.footer-col a:hover {
+    color: #e8e85a;
+    text-shadow: 0 0 8px rgba(232,232,90,0.6);
+    transform: translateX(3px);
+}
+
+/* Bottom line text */
+.footer-bottom {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #bfc8c9;
+    opacity: 0;
+    animation: fadeUp 1.4s ease forwards;
+}
+
+.footer-bottom span {
+    color: var(--yellow);
+}
+
+/* =============================== */
+/*        IMAGE SLIDER             */
+/* =============================== */
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 780px;
+    margin: 30px auto;
+}
+
+.slider {
+    overflow: hidden;
+    border-radius: 14px;
+    border: 2px solid rgba(126,227,255,0.25);
+    background: rgba(255,255,255,0.03);
+    box-shadow: 0 0 25px rgba(0, 200, 255, 0.2);
+}
+
+.slide {
+    display: none;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity .7s ease, transform .7s ease;
+}
+
+.slide.active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.slide img {
+    width: 100%;
+    border-radius: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.caption {
+    text-align: center;
+    padding: 12px;
+    color: #7ee3ff;
+    background: rgba(0,0,0,0.25);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    font-size: 14.5px;
+    text-shadow: 0 0 6px rgba(126,227,255,0.4);
+}
+
+/* Slider Controls */
+.slider-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.slider-btn {
+    background: #4fb6c2;
+    color: #1a1a1a;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.slider-btn:hover {
+    background: #e8e85a;
+    box-shadow: 0 0 16px rgba(232,232,90,0.5);
+    transform: translateY(-2px);
+}
+
+
+
+
+/* ======================================================= */
+/*      MULTI-COLOR GLOWING AURA BEHIND ANY CONTAINER      */
+/* ======================================================= */
+
+.glow-aura-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+/* FRONT glow (your existing golden glow stays intact) */
+.glow-aura-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: -18px;
+    border-radius: 16px;
+    z-index: -1;
+
+    background: radial-gradient(
+        circle,
+        rgba(255,215,90,0.45),
+        rgba(255,215,90,0.10),
+        transparent 70%
+    );
+
+    filter: blur(14px);
+    opacity: 0.85;
+}
+
+/* BACK animated color-shifting aura */
+.glow-aura-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: -40px;
+    border-radius: 22px;
+    z-index: -2;
+
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgba(0,255,180,0.30) 0%,
+        rgba(0,200,255,0.25) 30%,
+        rgba(255,140,150,0.30) 60%,
+        rgba(0,0,0,0) 85%
+    );
+
+    filter: blur(45px) brightness(1.5);
+    opacity: 0.75;
+
+    animation: auraPulse 8s ease-in-out infinite alternate,
+               auraShift 18s linear infinite;
+}
+
+/* Smooth pulsing */
+@keyframes auraPulse {
+    0%   { transform: scale(0.9); opacity: 0.70; }
+    50%  { transform: scale(1.1); opacity: 0.90; }
+    100% { transform: scale(1.0); opacity: 0.75; }
+}
+
+/* Slow rotating color shift for twinkle effect */
+@keyframes auraShift {
+    0% {
+        filter: blur(45px) hue-rotate(0deg);
+    }
+    33% {
+        filter: blur(48px) hue-rotate(90deg);
+    }
+    66% {
+        filter: blur(48px) hue-rotate(180deg);
+    }
+    100% {
+        filter: blur(45px) hue-rotate(360deg);
+    }
+}
+
+/* ================================================================
+   NEW HERO SECTION (KEEPING YOUR ORIGINAL LOOK)
+   ================================================================ */
+
+.hero-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 40px auto 60px auto;
+    padding: 50px 20px;
+    border-radius: 22px;
+
+    background: linear-gradient(
+        145deg,
+        rgba(255, 215, 240, 0.12),
+        rgba(126, 227, 255, 0.10)
+    );
+
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 24px rgba(255,255,255,0.05);
+
+    overflow: hidden;
+    text-align: center;
+}
+
+/* Soft animated glow ring behind */
+.hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 180%;
+    height: 180%;
+    transform: translate(-50%, -50%);
+
+    background: radial-gradient(
+        circle,
+        rgba(255,255,160,0.25),
+        rgba(255,160,255,0.18),
+        rgba(0,255,240,0.15),
+        transparent 70%
+    );
+
+    filter: blur(80px);
+    animation: heroGlowShift 14s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes heroGlowShift {
+    0% { transform: translate(-50%, -50%) scale(0.95); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+    100% { transform: translate(-50%, -50%) scale(1.0); }
+}
+
+/* ================================================================
+   HERO TITLE + TAGLINE BASE STYLES
+   ================================================================ */
+
+.hero-title {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #ffd6f9;
+    text-shadow: 0 0 12px rgba(255,180,240,0.45);
+    margin-bottom: 15px;
+}
+
+.hero-tagline {
+    font-size: 19px;
+    color: #d7f8ff;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.hero-tagline span {
+    color: #ffe17a;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255,215,100,.6);
+    display: inline-block;
+}
+
+/* ================================================================
+   HERO TEXT ANIMATIONS — Smooth, elegant, scientific
+   ================================================================ */
+
+/* Title animation: fade → lift → subtle scale-in */
+.animate-hero-title {
+    opacity: .5Í;
+    transform: translateY(20px) scale(0.97);
+    animation: heroTitleIn 1s ease forwards;
+}
+
+@keyframes heroTitleIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px) scale(0.97);
+        text-shadow: none;
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 10px rgba(255, 200, 255, 0.35);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 6px rgba(255, 200, 255, 0.22);
+    }
+}
+
+/* Tagline animation: softer, slower, with neon shimmer */
+.animate-hero-tagline {
+    opacity: 1;
+    transform: translateY(20px);
+    animation: heroTaglineIn 1.2s ease forwards;
+    animation-delay: 0.25s;
+}
+
+@keyframes heroTaglineIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px);
+        filter: blur(3px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+        text-shadow: 0 0 8px rgba(126, 227, 255, 0.5);
+    }
+    100% {
+        text-shadow: 0 0 4px rgba(126, 227, 255, 0.25);
+    }
+}
+
+/* Optional: highlight pulse (you had it disabled) */
+@keyframes heroHighlightPulse {
+    0%   { text-shadow: none; opacity: 0; transform: scale(0.9); }
+    60%  { opacity: 1; transform: scale(1.03); text-shadow: 0 0 10px rgba(255,215,100,0.65); }
+    100% { transform: scale(1.0); text-shadow: 0 0 6px rgba(255,215,100,0.45); }
+}
+
+
+
+
+/* Base nav container */
+.top-nav-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+}
+
+/* Brand */
+.top-nav-brand {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+/* Desktop menu */
+.top-nav-menu {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+}
+
+.top-nav-menu a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Hamburger Button */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    width: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.hamburger span {
+    width: 100%;
+    height: 3px;
+    background: #cbd5e1;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+/* Fullscreen Mobile Menu */
+@media (max-width: 768px) {
+    .top-nav-menu {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        flex-direction: column;
+        padding-top: 5rem;
+        padding-left: 1.5rem;
+        gap: 1.2rem;
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .top-nav-menu.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .top-nav-menu li {
+        width: 100%;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    /* Turn hamburger into X */
+    .hamburger.active span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    /* Hide desktop links */
+    .top-nav-menu a {
+        font-size: 1.1rem;
+        display: block;
+        padding: 0.6rem 0;
+    }
+}
+
+/* Add spacing below fixed nav */
+.header-spacer {
+    height: 68px;
+}
+
+.top-nav-menu {
+    margin-right: 2rem; /* prevents clipping */
+}
+
+/* FORCE MOBILE DROPDOWN TO BE BLACK */
+@media (max-width: 768px) {
+    .top-nav-menu,
+    .top-nav-menu * {
+        background: #000 !important;
+    }
+}
+
+.menu-toggle {
+  margin-right: 2rem !important;
+}
+
+
+.top-nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hamburger {
+    margin-left: auto !important;  /* pushes it to the right */
+    margin-right: 1.5rem !important; /* shifts it left from the screen edge */
+}
+
+.top-nav-menu.show::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+}
+
+/* Move the X horizontally when active */
+.hamburger.active {
+    transform: translateX(-10px); /* adjust as needed */
+}
+
+.nav-new {
+    color: #facc15 !important;
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+}
+
+/* Loading overlay */
+#loadingOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,0.72);
+  backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#loadingOverlay .loading-card{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(56,189,248,0.55);
+  background: rgba(15,23,42,0.95);
+  box-shadow: 0 0 30px rgba(56,189,248,0.25);
+  max-width: 520px;
+  width: calc(100% - 32px);
+}
+
+#loadingOverlay .spinner-border{
+  width: 2.2rem;
+  height: 2.2rem;
+  color: #38bdf8; /* bootstrap spinner uses currentColor */
+}
+
+#loadingOverlay .loading-title{
+  font-weight: 800;
+  color: #e5e7eb;
+  margin-bottom: 2px;
+}
+#loadingOverlay .loading-sub{
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+
+.btn-loading{
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+
+/* === FORCE PERFECT CENTERING (Bootstrap-safe) === */
+/* .modal.show {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.show .modal-dialog {
+  margin: 0;
+} */
+
+
+/* ===============================
+   COPY BUTTON — FORCE READABLE
+   =============================== */
+
+.copy-btn {
+  color: #020617 !important;          /* near-black */
+  background-color: #22c55e !important; /* emerald / success green */
+  border-color: #22c55e !important;
+  font-weight: 700;
+}
+
+.copy-btn:hover {
+  color: #020617 !important;
+  background-color: #16a34a !important; /* darker green on hover */
+  border-color: #16a34a !important;
+}
+
+.copy-btn:focus,
+.copy-btn:active {
+  color: #020617 !important;
+  background-color: #16a34a !important;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.35);
+}
+.copy-btn {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.03em;
+}
+
+/* FORCE PERFECT HORIZONTAL CENTERING */
+.api-welcome-modal .modal-dialog {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  transform: none !important;
+}
+
+.api-welcome-modal .modal-dialog {
+  position: relative;
+  left: 12px; /* ← visual correction */
+}
+
+
+/* === FORCE TRUE CENTERING FOR API MODAL === */
+#apiWelcomeModal .modal-dialog {
+  width: auto !important;
+  max-width: min(900px, calc(100vw - 32px)) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+
+    </style>
+
+
+<body data-page="api-builder">
+<div id="nav-bg"></div>
+
+
+<!-- Animated background -->
+<div id="molecule-bg"></div>
+
+<!-- TOP NAVIGATION -->
+<nav class="top-nav-container">
+    <div class="top-nav-brand">
+        PROTAC Builder
+    </div>
+
+    <button class="hamburger" id="hamburgerBtn">
+        <span></span><span></span><span></span>
+    </button>
+
+    <ul class="top-nav-menu" id="mobileMenu">
+        <li><a href="/builder">🧪 PROTAC Builder</a></li>
+        <li>
+            <a href="/api-builder" class="nav-new">
+                ⚙️ API Builder
+            </a>
+        </li>
+
+        <li><a href="/about">📘 About</a></li>
+        <li><a href="https://vlisemod.com" target="_blank">🧬 V-LiSEMOD</a></li>
+        <li><a href="/ligase-ligandalyzer">🔬 Ligandalyzer</a></li>
+        <li><a href="https://warheadhunter.com/" target="_blank">🔬 Warhead Hunter</a></li>
+        <li><a href="https://schurerlab.org" target="_blank">🏛️ Schürer Lab</a></li>
+    </ul>
+</nav>
+
+<div class="header-spacer"></div>
+
+
+
+
+
+<div class="container">
+
+    <!-- NEW HERO SECTION -->
+    <section class="hero-wrapper">
+
+        <!-- Animated glow ring -->
+        <div class="hero-glow"></div>
+
+        <!-- Inner hero content -->
+        <div class="hero-content">
+            <h1 class="hero-title animate-hero-title">PROTAC Builder API</h1>
+
+            <p class="hero-tagline animate-hero-tagline">
+                
+                <span>Upload Warhead + Ligase (any format) → convert server-side → edit U/V → batch-build from linker CSV.</span> 
+            </p>
+        </div>
+
+
+    </section>
+
+<div class="mt-4">
+
+ 
+  <!-- ================= WARHEAD + LIGASE (KEEP THIS TOP HALF) ================= -->
+  <div class="row">
+    <!-- WARHEAD -->
+    <div class="col-md-6 mb-3">
+      <div class="api-panel">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="section-title">Warhead</div>
+          <span id="warhead-status" class="status-pill status-bad">Not loaded</span>
+        </div>
+
+        <div class="help-text">
+          Upload any structure file. Then <b>manually mark the attachment site using U</b> in the editor.
+          When you click <b>Save Warhead</b>, the backend converts <b>U → [*:1]</b>.
+        </div>
+
+        <div class="upload-box mb-2">
+          <div class="tiny mb-2">
+            Accepted: .mol .sdf .mol2 .pdb .pdbqt .smi .txt
+          </div>
+          <input type="file" id="warhead-file" class="form-control mb-2"
+                 accept=".mol,.sdf,.mol2,.pdb,.pdbqt,.smi,.txt">
+          <button class="btn btn-info btn-wide" onclick="uploadStructure('warhead')">⬆️ Load Warhead File</button>
+
+          <div class="text-center my-2" style="color:#94a3b8;">OR paste SMILES</div>
+
+          <textarea id="warhead-smiles-paste" class="form-control mono" rows="2"
+            placeholder="Paste warhead SMILES here (optional)"></textarea>
+          <button class="btn btn-secondary btn-wide mt-2" onclick="pasteSmiles('warhead')">🧪 Load from SMILES</button>
+        </div>
+
+        <canvas id="warhead-editor" width="340" height="340"></canvas>
+
+        <button class="btn btn-success btn-wide mt-2" onclick="saveMappedSmiles('warhead')">
+          ✅ Save Warhead (U → [*:1])
+        </button>
+
+        <div class="sub-label">Mapped Warhead SMILES (what the batch builder uses)</div>
+        <div id="warhead-smiles" class="mono" style="min-height:48px;background:rgba(0,0,0,0.25);padding:10px;border-radius:12px;border:1px solid #334155;"></div>
+      </div>
+    </div>
+
+    <!-- LIGASE -->
+    <div class="col-md-6 mb-3">
+      <div class="api-panel">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="section-title">Ligase Recruiter</div>
+          <span id="ligase-status" class="status-pill status-bad">Not loaded</span>
+        </div>
+
+        <div class="help-text">
+          Upload any structure file. Then <b>manually mark the attachment site using V</b> in the editor.
+          When you click <b>Save Ligase</b>, the backend converts <b>V → [*:2]</b>.
+        </div>
+
+        <div class="upload-box mb-2">
+          <div class="tiny mb-2">
+            Accepted: .mol .sdf .mol2 .pdb .pdbqt .smi .txt
+          </div>
+          <input type="file" id="ligase-file" class="form-control mb-2"
+                 accept=".mol,.sdf,.mol2,.pdb,.pdbqt,.smi,.txt">
+          <button class="btn btn-info btn-wide" onclick="uploadStructure('ligase')">⬆️ Load Ligase File</button>
+
+          <div class="text-center my-2" style="color:#94a3b8;">OR paste SMILES</div>
+
+          <textarea id="ligase-smiles-paste" class="form-control mono" rows="2"
+            placeholder="Paste ligase recruiter SMILES here (optional)"></textarea>
+          <button class="btn btn-secondary btn-wide mt-2" onclick="pasteSmiles('ligase')">🧪 Load from SMILES</button>
+        </div>
+
+        <canvas id="ligase-editor" width="340" height="340"></canvas>
+
+        <button class="btn btn-success btn-wide mt-2" onclick="saveMappedSmiles('ligase')">
+          ✅ Save Ligase (V → [*:2])
+        </button>
+
+        <div class="sub-label">Mapped Ligase SMILES (what the batch builder uses)</div>
+        <div id="ligase-smiles" class="mono" style="min-height:48px;background:rgba(0,0,0,0.25);padding:10px;border-radius:12px;border:1px solid #334155;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LINKERS CSV (UPDATED: nicer + interactive) ================= -->
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <div class="api-panel">
+
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <div class="section-title">Linker Library (CSV)</div>
+          <span id="linker-status" class="status-pill status-bad">No file</span>
+        </div>
+
+        <div class="help-text">
+          Upload your linker CSV. After selection, a popup will appear so you can choose:
+          <b>Name column</b> + <b>Linker SMILES column</b> (supports <b>[*:1]/[*:2]</b> or legacy <b>[R1]/[R2]</b>).
+        </div>
+
+        <div class="upload-box">
+          <div class="tiny mb-2">
+            Tip: column names can be anything — you’ll select them in the popup.
+          </div>
+
+          <input
+            type="file"
+            id="linker-csv"
+            accept=".csv"
+            class="form-control mb-2"
+            onchange="onLinkerSelected(this)"
+          >
+
+          <div class="d-flex align-items-center justify-content-between">
+            <div id="linker-filename" class="tiny mono" style="opacity:0.85;"></div>
+            <div id="linker-picked" class="tiny" style="opacity:0.85;"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-lg btn-primary btn-wide mt-3" onclick="runBatchProtac()">
+          🚀 Generate PROTAC Library
+        </button>
+
+        <div class="tiny mt-2" style="color:#94a3b8;">
+          Bad linkers won’t crash the run — they’ll be skipped and reported in a failures log.
+        </div>
+
+        <div id="batch-warnings" class="mt-3" style="display:none;"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= RESULTS ================= -->
+  <div class="row">
+    <div class="col-md-12 mb-5">
+      <div class="api-panel">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="section-title">Generated PROTACs</div>
+          <div>
+            <button id="download-btn" class="btn btn-outline-light" style="display:none;" onclick="downloadResultsCSV()">
+              ⬇️ Download PBuilder-Smiles.csv
+            </button>
+            <button id="download-fail-btn" class="btn btn-outline-danger ml-2" style="display:none;" onclick="downloadFailuresCSV()">
+              ⬇️ Download Failures Log
+            </button>
+          </div>
+        </div>
+
+        <div id="result-meta" class="tiny" style="color:#cbd5e1;"></div>
+
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th style="width:220px;">PROTAC Name</th>
+              <th>PROTAC SMILES</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div id="failures-wrap" class="mt-3" style="display:none;">
+          <button class="btn btn-sm btn-outline-warning" data-toggle="collapse" data-target="#failures-collapse">
+            Show/Hide Failures
+          </button>
+          <div id="failures-collapse" class="collapse mt-2">
+            <div class="warn-box">
+              <div class="font-weight-bold mb-1">Some linkers were skipped.</div>
+              <div class="tiny">Fix those rows (bad SMILES / missing attachment points / valence issues) and re-run.</div>
+            </div>
+
+            <div class="preview-wrap mt-2">
+              <table class="table table-sm table-dark mb-0">
+                <thead>
+                  <tr>
+                    <th style="width:80px;">Row</th>
+                    <th style="width:220px;">Name</th>
+                    <th>Reason</th>
+                    <th>Linker SMILES</th>
+                  </tr>
+                </thead>
+                <tbody id="failures-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= MODAL: Choose CSV columns ================= -->
+<div class="modal fade" id="csvColumnModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"  role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Select CSV Columns</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#e5e7eb;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="help-text mb-2">
+          We parsed your CSV. Choose which column is the <b>Name/ID</b> and which column contains your <b>linker SMILES</b>.
+        </div>
+
+        <div id="inspect-error" class="warn-box mb-3" style="display:none;"></div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="sub-label">Name / ID column</div>
+            <select id="name-col-select" class="custom-select"></select>
+            <div class="tiny mt-2" id="name-col-suggest"></div>
+          </div>
+          <div class="col-md-6">
+            <div class="sub-label">Linker SMILES column</div>
+            <select id="smiles-col-select" class="custom-select"></select>
+            <div class="tiny mt-2" id="smiles-col-suggest"></div>
+          </div>
+        </div>
+
+        <div class="sub-label mt-3">Preview (first rows)</div>
+        <div class="preview-wrap">
+          <table class="table table-sm table-dark mb-0">
+            <thead id="preview-head"></thead>
+            <tbody id="preview-body"></tbody>
+          </table>
+        </div>
+
+        <div class="tiny mt-2" style="color:#94a3b8;">
+          Attachment points must be present in the linker column:
+          <span class="mono">[*:1]</span> and <span class="mono">[*:2]</span>
+          (or legacy <span class="mono">[R1]</span>/<span class="mono">[R2]</span> — we normalize those automatically).
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="confirmCsvColumns()">Confirm Columns</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS (needed for modal/collapse) -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script src="{{ url_for('static', filename='js/api-builder.js') }}"></script>
+
+
+
+
+
+
+
+
+
+<!-- GLOW FOOTER -->
+<footer class="glow-footer">
+
+    <div class="footer-inner">
+
+        <!-- COLUMN 1 — Explore -->
+        <div class="footer-col">
+            <h4>Explore</h4>
+
+            <!-- Local PROTAC Builder -->
+            <a href="/builder">PROTAC Builder</a>
+
+            <!-- Ligandalyzer -->
+            <a href="https://e3ligandalyzer.com/" target="_blank">
+                Ligase Explorer
+            </a>
+
+            <!-- Warhead Hunter -->
+            <a href="https://warheadhunter.com/" target="_blank">
+                Warhead Hunter
+            </a>
+
+            <!-- JMSum -->
+            <a href="https://jmsum.com" target="_blank">JMSum</a>
+
+            <!-- About Page -->
+            <a href="/about">About Project</a>
+        </div>
+
+        <!-- COLUMN 2 — Modules -->
+        <div class="footer-col">
+            <h4>Modules</h4>
+
+            <!-- PROTAC Builder -->
+            <a href="/builder">PROTAC Builder</a>
+
+            <!-- API PROTAC Builder -->
+            <a href="/api-builder">API PROTAC Builder</a>
+
+            <!-- V-LiSEMOD -->
+            <a href="https://vlisemod.com" target="_blank">V-LiSEMOD</a>
+
+            <!-- PyMACS -->
+            <a href="https://github.com/Joey305/pymacs" target="_blank">PyMACS (Dev)</a>
+
+            <!-- AutoDock Suite (Pegasus login) -->
+            <a href="https://butters.rove-vernier.ts.net" target="_blank">
+                AutoDock Suite (Live)
+            </a>
+
+            <!-- AF3 Analyzer -->
+            <a href="https://github.com/Joey305/af3-Auto-analysis" target="_blank">
+                AF3 Analyzer (Dev)
+            </a>
+        </div>
+
+        <!-- COLUMN 3 — Resources -->
+        <div class="footer-col">
+            <h4>Resources</h4>
+
+            <!-- Main GitHub Repo -->
+            <a href="https://github.com/schurerlab/protacbuilder" target="_blank">
+                GitHub Repo
+            </a>
+
+            <!-- Docs (placeholder until ready) -->
+            <a href="https://github.com/schurerlab/protacbuilder?tab=readme-ov-file#table-of-contents">Documentation</a>
+
+            <!-- API Reference (placeholder) -->
+            <a href="/api-docs">API Reference</a>
+
+        </div>
+
+        <!-- COLUMN 4 — Connect -->
+        <div class="footer-col">
+            <h4>Connect</h4>
+
+            <!-- Contact -->
+            <a href="mailto:jxs794@miami.edu?subject=Feedback%20About%20PROTAC%20Builder">Contact</a>
+
+            <!-- Feedback -->
+            <a href="mailto:jxs794@miami.edu?subject=PROTAC Builder Feedback">
+                Feedback
+            </a>
+
+            <!-- Contribute (GitHub or internal page) -->
+            <a href="mailto:jxs794@miami.edu?subject=Collaboration on PROTAC Builder Project">Contribute</a>
+        </div>
+
+    </div>
+
+    <!-- Bottom line -->
+    <div class="footer-bottom">
+        © <span id="year"></span> Schürer Lab — University of Miami  
+        <br>Designed for molecular discovery and open science.
+    </div>
+
+</footer>
+
+<script>
+// =============================
+// FOOTER BEHAVIOR + LINK LOGIC
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+
+    const footer = document.querySelector(".glow-footer");
+
+    // ---- 1. Fade-in when footer enters viewport ----
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    footer.classList.add("visible"); 
+                    observer.unobserve(footer);
+                }
+            });
+        },
+        { threshold: 0.1 }
+    );
+
+    observer.observe(footer);
+
+
+    // ---- 2. Footer Link Behavior ----
+    document.querySelectorAll(".glow-footer a").forEach(link => {
+        const href = link.getAttribute("href");
+
+        // Skip empty links
+        if (!href || href === "#") return;
+
+        // External links (http or https)
+        if (href.startsWith("http://") || href.startsWith("https://")) {
+            link.setAttribute("target", "_blank");
+            link.setAttribute("rel", "noopener noreferrer");
+        }
+
+        // Internal navigation
+        if (href.startsWith("/") && !href.includes("http")) {
+            link.addEventListener("click", e => {
+                e.preventDefault();
+                document.body.classList.add("fade-out");
+                setTimeout(() => window.location.href = href, 150);
+            });
+        }
+    });
+
+});
+</script>
+
+<!-- Optional Fade-Out CSS -->
+<style>
+    body.fade-out {
+        opacity: 0;
+        transition: opacity .25s ease-out;
+    }
+
+    /* Add visibility animation to footer */
+    .glow-footer { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
+    .glow-footer.visible { opacity: 1; transform: translateY(0); }
+</style>
+
+
+
+
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const hamburger = document.querySelector(".hamburger");
+    const menu = document.querySelector(".top-nav-menu");
+
+    // Toggle menu open / close
+    hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("active");
+        menu.classList.toggle("show");
+    });
+
+    // Close when clicking any link inside menu
+    document.querySelectorAll(".top-nav-menu a").forEach(link => {
+        link.addEventListener("click", () => {
+            hamburger.classList.remove("active");
+            menu.classList.remove("show");
+        });
+    });
+
+    // Close when clicking outside the nav
+    document.addEventListener("click", (e) => {
+        const clickInsideMenu = menu.contains(e.target);
+        const clickHamburger = hamburger.contains(e.target);
+
+        if (!clickInsideMenu && !clickHamburger) {
+            hamburger.classList.remove("active");
+            menu.classList.remove("show");
+        }
+    });
+});
+
+
+
+
+
+/* ================= Loading Overlay + Button State ================= */
+
+function setLoading(isLoading, msg){
+  const overlay = document.getElementById("loadingOverlay");
+  const btn = document.querySelector('button[onclick="runBatchProtac()"]'); // your Generate button
+
+  // Optional: message update
+  if (msg){
+    const title = overlay?.querySelector(".loading-title");
+    if (title) title.textContent = msg;
+  }
+
+  if (isLoading){
+    if (overlay){
+      overlay.style.display = "flex";
+    }
+    if (btn){
+      btn.classList.add("btn-loading");
+      btn.disabled = true;
+      btn.dataset.origText = btn.dataset.origText || btn.innerHTML;
+      btn.innerHTML = '⏳ Building…';
+    }
+  } else {
+    if (overlay){
+      overlay.style.display = "none";
+    }
+    if (btn){
+      btn.classList.remove("btn-loading");
+      btn.disabled = false;
+      if (btn.dataset.origText) btn.innerHTML = btn.dataset.origText;
+    }
+  }
+}
+
+
+</script>
+
+
+<!-- ================= LOADING OVERLAY ================= -->
+<div id="loadingOverlay" style="display:none;">
+  <div class="loading-card">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div class="loading-text">
+      <div class="loading-title">Building PROTAC library…</div>
+      <div class="loading-sub">This can take a moment. Please don’t refresh.</div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ================= API BUILDER WELCOME MODAL ================= -->
+<div class="modal fade api-welcome-modal" id="apiWelcomeModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">⚙️ PROTAC Builder — Batch API Guide</h5>
+          <div class="tiny" style="color:#cbd5e1;">
+            Web UI + CLI API are the same engine — pick your workflow.
+          </div>
+        </div>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#e5e7eb;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="row">
+
+          <!-- LEFT: Web workflow -->
+          <div class="col-lg-5 mb-3">
+            <div class="guide-card">
+              <div class="guide-title">🖥️ Use this page (Web workflow)</div>
+              <ol class="guide-steps">
+                <li><b>Load Warhead</b> (file or SMILES).</li>
+                <li>Mark attachment with <b>U</b> in the editor.</li>
+                <li>Click <b>Save Warhead</b> → converts <b>U → [*:1]</b>.</li>
+                <li><b>Load Ligase</b> (file or SMILES).</li>
+                <li>Mark attachment with <b>V</b> → <b>Save Ligase</b> → <b>V → [*:2]</b>.</li>
+                <li><b>Upload Linker CSV</b>, pick <b>Name</b> + <b>SMILES</b> columns.</li>
+                <li>Click <b>Generate PROTAC Library</b>.</li>
+              </ol>
+
+              <div class="guide-note">
+                ✅ Linker SMILES must contain <span class="mono">[*:1]</span> and <span class="mono">[*:2]</span>
+                (legacy <span class="mono">[R1]</span>/<span class="mono">[R2]</span> is auto-normalized).
+              </div>
+            </div>
+
+            <!-- usage counter -->
+            <div class="guide-card mt-3">
+              <div class="guide-title">📈 Usage</div>
+
+              <div class="counter-box">
+                <div class="big-number" id="api-counter">0</div>
+                <div class="tiny" style="color:#facc15; font-weight:600;">
+                  successful PROTAC build actions logged
+                </div>
+              </div>
+
+
+              <div class="tiny mt-2" style="color:#94a3b8;">
+                Seeded from the verified legacy builder log and incremented by new standalone successful builds.
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: API workflow + copy/paste -->
+          <div class="col-lg-7 mb-3">
+            <div class="guide-card">
+              <div class="guide-title">🧪 Prefer CLI / scripts? Use the API</div>
+
+              <div class="tiny" style="color:#cbd5e1; margin-bottom:10px;">
+                Endpoints:
+                <span class="mono">POST /api/protac/builder/cli</span> (ZIP download)
+                ·
+                <span class="mono">POST /api/protac/builder/batch</span> (JSON)
+              </div>
+
+              <div class="warn-box mb-3">
+                <b>Important:</b>
+                <ul>
+                  <li>Warhead must contain <span class="mono">[*:1]</span></li>
+                  <li>Ligase must contain <span class="mono">[*:2]</span></li>
+                  <li>Linker SMILES must contain <span class="mono">[*:1]</span> and <span class="mono">[*:2]</span></li>
+                </ul>
+
+
+                <div style="margin-top:10px;">
+                  Required files in your working directory:
+                  <br>
+
+                  <b><u><span class="mono">warhead.smiles</span></u></b>,
+                  <b><u><span class="mono">ligase.smiles</span></u></b>
+
+                  <div style="margin-top:8px; display:flex; align-items:center; gap:10px;">
+                    <a href="/api/protac/builder/template/linkers"
+                      class="btn btn-sm btn-outline-info"
+                      title="Download example linker CSV (NAME, SMILES) with linkers annotated from PROTAC-DB 3.0">
+                      ⬇ API_Linkers.csv (template)
+                    </a>
+
+                    <span id="api-linker-download-count"
+                          class="download-kpi"
+                          title="Total downloads">
+                      —
+                    </span>
+                  </div>
+
+                  <div class="tiny mt-1" style="color:#94a3b8;">
+                    Includes example headers and attachment point formatting using all of the Linkers available in the PROTAC DB 3.0.
+                  </div>
+
+                </div>
+              </div>
+
+
+
+              <!-- ================= cURL (FILES) ================= -->
+              <div class="copy-title">
+                Copy-paste (cURL — using <span class="mono">warhead.smiles</span> + <span class="mono">ligase.smiles</span>)
+              </div>
+
+              <div class="code-wrap">
+                <div class="code-header">
+                  <span class="code-label">cURL</span>
+                  <button class="btn btn-sm btn-outline-info copy-btn"
+                          onclick="copyCodeBlock('apiCurlFilesBlock', this)">
+                    📋 Copy
+                  </button>
+                </div>
+
+                <pre class="mono code-block" id="apiCurlFilesBlock">BASE_URL="https://protacbuilder.com"
+
+          curl -sS -X POST "$BASE_URL/api/protac/builder/cli" \
+            -F "target=&lt;warhead.smiles" \
+            -F "ligase=&lt;ligase.smiles" \
+            -F "library=@API_Linkers.csv" \
+            -o protac_run.zip \
+          && unzip -o protac_run.zip</pre>
+              </div>
+
+              <!-- ================= cURL (INLINE) ================= -->
+              <div class="copy-title mt-4">
+                Copy-paste (cURL — using raw SMILES strings)
+              </div>
+
+              <div class="code-wrap">
+                <div class="code-header">
+                  <span class="code-label">cURL</span>
+                  <button class="btn btn-sm btn-outline-info copy-btn"
+                          onclick="copyCodeBlock('apiCurlInlineBlock', this)">
+                    📋 Copy
+                  </button>
+                </div>
+
+                <pre class="mono code-block" id="apiCurlInlineBlock">BASE_URL="https://protacbuilder.com"
+
+          WARHEAD_SMILES='COC(=O)N[C@H](C(=O)NN(Cc1ccc(-c2ccccn2)cc1)C[C@H](O)[C@H](Cc1ccccc1)NC(=O)[C@@H](NC(=O)O[*:1])C(C)(C)C)C(C)(C)C'
+          LIGASE_SMILES='O=C1CCC(N2Cc3cccc(N[*:2])c3C2)C(=O)N1'
+
+          curl -sS -X POST "$BASE_URL/api/protac/builder/cli" \
+            -F "target=$WARHEAD_SMILES" \
+            -F "ligase=$LIGASE_SMILES" \
+            -F "library=@API_Linkers.csv" \
+            -o protac_run.zip \
+          && unzip -o protac_run.zip
+
+              </div>
+
+              <!-- ================= PYTHON ================= -->
+              <div class="copy-title mt-4">
+                Copy-paste (Python — ZIP download)
+              </div>
+
+              <div class="code-wrap">
+                <div class="code-header">
+                  <span class="code-label">Python</span>
+                  <button class="btn btn-sm btn-outline-info copy-btn"
+                          onclick="copyCodeBlock('apiPyBlock', this)">
+                    📋 Copy
+                  </button>
+                </div>
+
+                <pre class="mono code-block" id="apiPyBlock">import requests
+import zipfile
+import os
+
+BASE_URL = "https://protacbuilder.com"
+URL = f"{BASE_URL}/api/protac/builder/cli"
+
+WARHEAD_SMILES = (
+    "COC(=O)N[C@H](C(=O)NN(Cc1ccc(-c2ccccn2)cc1)"
+    "C[C@H](O)[C@H](Cc1ccccc1)NC(=O)"
+    "[C@@H](NC(=O)O[*:1])C(C)(C)C)C(C)(C)C"
+)
+
+LIGASE_SMILES = "O=C1CCC(N2Cc3cccc(N[*:2])c3C2)C(=O)N1"
+
+ZIP_NAME = "protac_run.zip"
+EXTRACT_DIR = "protac_results"
+
+# --- POST request ---
+with open("API_Linkers.csv", "rb") as f:
+    files = {"library": ("API_Linkers.csv", f, "text/csv")}
+    data = {
+        "target": WARHEAD_SMILES,
+        "ligase": LIGASE_SMILES,
+    }
+
+    response = requests.post(URL, data=data, files=files, timeout=300)
+    response.raise_for_status()
+
+# --- Save ZIP ---
+with open(ZIP_NAME, "wb") as out:
+    out.write(response.content)
+
+print(f"✅ Saved {ZIP_NAME}")
+
+# --- Unzip ---
+os.makedirs(EXTRACT_DIR, exist_ok=True)
+
+with zipfile.ZipFile(ZIP_NAME, "r") as zip_ref:
+    zip_ref.extractall(EXTRACT_DIR);
+    extracted_files = zip_ref.namelist();
+
+print(f"📂 Extracted to ./{EXTRACT_DIR}")
+for f in extracted_files:
+    print(f"  • {f}")
+
+</pre>
+              </div>
+
+              <div class="tiny mt-3" style="color:#94a3b8;">
+                CLI endpoint returns:
+                <span class="mono">PBuilder-Smiles.csv</span>,
+                <span class="mono">PBuilder-Failed-Linkers.csv</span>,
+                <span class="mono">PBuilder-Run.log</span>
+              </div>
+            </div>
+
+            <div class="tiny mt-3" style="color:#94a3b8;">
+              Click <b>Continue</b> to start building.
+            </div>
+          </div>
+
+
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-light" data-dismiss="modal">Continue</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .big-number{
+    font-size: 54px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: #7dd3fc;
+    text-shadow: 0 0 18px rgba(125, 211, 252, 0.25);
+  }
+  .pulse{
+    animation: pulseGlow 420ms ease-out;
+  }
+  @keyframes pulseGlow{
+    0% { transform: scale(1); text-shadow: 0 0 0 rgba(125,211,252,0); }
+    60% { transform: scale(1.06); text-shadow: 0 0 28px rgba(125,211,252,0.35); }
+    100% { transform: scale(1); text-shadow: 0 0 18px rgba(125,211,252,0.25); }
+  }
+
+
+  /* =========================================
+   USAGE COUNTER — ALWAYS-GLOWING NEON CYCLE
+   ========================================= */
+
+@keyframes usageColorCycle {
+  /* BLUE text → YELLOW glow (ALWAYS ON) */
+  0%, 100% {
+    color: #7dd3fc;
+    text-shadow:
+      0 0 10px rgba(250, 204, 21, 0.35),
+      0 0 22px rgba(250, 204, 21, 0.50),
+      0 0 44px rgba(250, 204, 21, 0.30),
+      0 0 70px rgba(250, 204, 21, 0.18);
+  }
+
+  /* YELLOW text → BLUE glow */
+  33% {
+    color: #facc15;
+    text-shadow:
+      0 0 10px rgba(125, 211, 252, 0.40),
+      0 0 22px rgba(125, 211, 252, 0.60),
+      0 0 44px rgba(125, 211, 252, 0.35),
+      0 0 70px rgba(125, 211, 252, 0.20);
+  }
+
+  /* GREEN text → FUCHSIA glow */
+  66% {
+    color: #22c55e;
+    text-shadow:
+      0 0 12px rgba(232, 121, 249, 0.55),
+      0 0 26px rgba(217, 70, 239, 0.65),
+      0 0 48px rgba(217, 70, 239, 0.45),
+      0 0 78px rgba(217, 70, 239, 0.25);
+  }
+}
+
+.usage-glow-cycle {
+  animation: usageColorCycle 7.5s ease-in-out infinite;
+}
+
+
+.big-number {
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
+}
+
+
+/* ===============================
+   IMPORTANT BOX — FIX ALIGNMENT
+   =============================== */
+
+.warn-box {
+  text-align: left;        /* override inherited centering */
+}
+
+.warn-box ul {
+  list-style: disc;
+  padding-left: 1.1rem;   /* tight, natural bullet indent */
+  margin: 0.5rem 0;       /* remove auto-centering */
+}
+
+.warn-box li {
+  text-align: left;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.warn-box li::marker {
+  color: #f87171;         /* soft red bullet */
+}
+
+   .warn-box{
+      border: 1px solid rgba(239,68,68,0.35);
+      background: rgba(239,68,68,0.08);
+      border-radius: 12px;
+      padding: 10px;
+      color: #fecaca;
+    }
+
+
+    /* ============================================
+   WARN / IMPORTANT BOX — RESET LIST STYLES
+   ============================================ */
+
+.warn-box {
+  text-align: left !important;
+}
+
+.warn-box ul {
+  list-style: disc !important;
+  padding-left: 1.1rem !important;
+  margin: 0.5rem 0 0.75rem 0 !important;
+}
+
+.warn-box li {
+  text-align: left !important;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.warn-box li::marker {
+  color: #f87171; /* soft red */
+}
+
+
+
+/* ===============================
+   DOWNLOAD COUNT — GOLD KPI
+   =============================== */
+
+.download-kpi {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #facc15; /* neon gold */
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+
+  text-shadow:
+    0 0 6px rgba(125, 211, 252, 0.45),
+    0 0 14px rgba(125, 211, 252, 0.30);
+
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+}
+
+
+</style>
+
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+<div id="builder-popup-overlay" aria-hidden="false">
+  <div id="builder-popup" role="dialog" aria-modal="true" aria-labelledby="builder-popup-title">
+    <h2 id="builder-popup-title">Welcome to the PROTAC Builder</h2>
+
+    <p>
+      Thank you for using our platform! This interactive builder allows rapid prototyping of
+      PROTAC molecules by combining <strong>warheads</strong>, <strong>linkers</strong>, and
+      <strong>E3 ligase recruiters</strong>.
+    </p>
+
+    <p>
+      You can modify individual pieces, load from templates, or explore ligase recruiters from
+      the integrated Recruiter Ligandalyzer module.
+    </p>
+
+    <div class="counter-box">
+      <div class="big-number" id="protac-counter" data-current-value="0">0</div>
+      <div class="popup-small-note" id="protac-counter-label">
+        PROTACs built by the community — in real time. This number increases as researchers use
+        this builder. Build one yourself, refresh the page, and see if it moved.
+      </div>
+    </div>
+
+    <div class="about-link-container">
+      <a href="{{ url_for('ui.about') }}" class="about-link">
+        🎯 Find out how this tool works &amp; terms of use
+      </a>
+    </div>
+
+    <button id="builder-close-btn" type="button">Continue</button>
+  </div>
+</div>

@@ -1,0 +1,1105 @@
+{% extends "base.html" %}
+
+{% block title %}Ligase Ligandalyzer (Demo){% endblock %}
+{% block body_class %}protac-page{% endblock %}
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+       GLOBAL
+       ============================================================ */
+    body {
+        background: #0B1220;
+        color: #e2e8f0;
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+    }
+
+    h1 {
+        font-weight: 700;
+        color: #E2F3FE;
+    }
+
+    :root {
+        --c1: #f6fa25; /* CRBN → yellow */
+        --c2: #f5d0d0; /* VHL  → pink   */
+        --c3: #b0edf7; /* MDM2 → cyan   */
+    }
+
+
+
+    /* ============================================================
+       LIGASE CARDS
+       ============================================================ */
+    .ligase-card {
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border-radius: 16px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.45);
+        padding-bottom: 15px;
+        transition: all 0.25s ease;
+        border-left: 6px solid #444; /* gets overridden by coloring JS */
+    }
+
+    .ligase-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 25px rgba(56,189,248,0.45);
+    }
+
+    .card-img-top {
+        border-radius: 16px 16px 0 0;
+    }
+
+
+
+    /* ============================================================
+       FULLSCREEN POPUP BACKDROP
+       ============================================================ */
+    #ligandalyzer-popup {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        backdrop-filter: blur(6px);
+        display: none; /* hidden until JS loads it */
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+
+
+    /* ============================================================
+       POPUP CONTENT
+       ============================================================ */
+    .popup-content {
+        width: 90%;
+        max-width: 1100px;
+        max-height: 90vh;
+        overflow-y: auto;
+
+        background: #0b1220;
+        border-radius: 22px;
+        padding: 35px 40px;
+        text-align: center;
+
+        border: 3px solid #f6fa25;
+        box-shadow: 0 0 28px #f6fa25;
+
+        animation: glowPulse 4s ease-in-out infinite alternate,
+                   fadeInScale 0.45s ease-out;
+    }
+
+    @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.88); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes glowPulse {
+        0%   { border-color: #f6fa25; box-shadow: 0 0 20px #f6fa25; }
+        25%  { border-color: #f5d0d0; box-shadow: 0 0 24px #f5d0d0; }
+        50%  { border-color: #b0edf7; box-shadow: 0 0 26px #b0edf7; }
+        100% { border-color: #c2ffb0; box-shadow: 0 0 28px #c2ffb0; }
+    }
+
+
+
+    /* ============================================================
+       POPUP IMAGE
+       ============================================================ */
+    .popup-img {
+        width: 95%;
+        max-width: 900px;
+        border-radius: 14px;
+        margin-bottom: 25px;
+    }
+
+
+
+    /* ============================================================
+       POPUP TEXT
+       ============================================================ */
+    .popup-title {
+        color: #38bdf8;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .popup-text {
+        color: #c2c8d6;
+        font-size: 1.22rem;
+        line-height: 1.65;
+        max-width: 900px;
+        margin: 0 auto 20px auto;
+    }
+
+
+
+    /* ============================================================
+       POPUP BUTTONS
+       ============================================================ */
+    .popup-buttons {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+    }
+
+    .btn-main {
+        background: #0ea5e9;
+        color: #0b1220;
+        font-weight: 600;
+        padding: 14px 26px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        box-shadow: 0 0 12px rgba(14,165,233,0.6);
+        transition: 0.2s ease;
+    }
+    .btn-main:hover { background: #38bdf8; transform: translateY(-2px); }
+
+    .btn-close {
+        background: #475569;
+        color: white;
+        padding: 14px 26px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+    .btn-close:hover { background: #64748b; }
+
+
+
+    /* ============================================================
+       RETURN BUTTON
+       ============================================================ */
+    .return-btn {
+        background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+        color: #0b1220;
+        font-weight: 600;
+        padding: 12px 22px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 1.05rem;
+        box-shadow: 0 0 18px rgba(6,182,212,0.6);
+        transition: all 0.25s ease;
+    }
+
+    .return-btn:hover {
+        background: linear-gradient(135deg, #38bdf8, #22d3ee);
+        transform: translateY(-2px);
+        box-shadow: 0 0 25px rgba(34,211,238,0.85);
+    }
+
+    .nav-new {
+    color: #facc15 !important;
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+}
+/* ============================================
+    GENERATED PROTAC PANEL — NEON DISPLAY
+    =============================================== */
+
+    .generated-protac-wrapper {
+        margin-top: 40px;
+        padding: 30px;
+        border-radius: 18px;
+
+        background: rgba(10, 20, 30, 0.55);
+        backdrop-filter: blur(12px);
+        border: 2px solid rgba(126, 227, 255, 0.35);
+
+        box-shadow: 0 0 30px rgba(126, 227, 255, 0.25),
+                    inset 0 0 20px rgba(20, 40, 60, 0.4);
+
+        animation: protacFadeIn 0.6s ease-out;
+    }
+
+    @keyframes protacFadeIn {
+        from { opacity: 0; transform: translateY(20px) scale(.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Title */
+    .generated-title {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #7ee3ff;
+        margin-bottom: 20px;
+        text-shadow: 0 0 12px rgba(126, 227, 255, 0.6);
+    }
+
+    /* Inner container */
+    .generated-inner {
+        text-align: center;
+    }
+
+    /* SMILES box */
+    .smiles-box {
+        margin-top: 15px;
+        padding: 12px 18px;
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(126,227,255,0.2);
+        border-radius: 12px;
+        color: #ffe17a;
+        font-family: monospace;
+        font-size: 0.95rem;
+
+        box-shadow: inset 0 0 10px rgba(126,227,255,0.15);
+    }
+
+    /* Buttons */
+    .generated-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    /* Neon Buttons */
+    .neon-btn {
+        padding: 10px 18px;
+        border-radius: 10px;
+        background: rgba(20,30,40,0.75);
+        border: 1px solid rgba(126,227,255,0.4);
+        color: #7ee3ff;
+        font-weight: 600;
+        letter-spacing: .3px;
+        cursor: pointer;
+        transition: 0.25s ease;
+
+        text-shadow: 0 0 6px rgba(126,227,255,0.5);
+        box-shadow: 0 0 12px rgba(126,227,255,0.25);
+    }
+
+    .neon-btn:hover {
+        background: rgba(255,215,100,0.18);
+        color: #ffe17a;
+        border-color: #ffe17a;
+        box-shadow: 0 0 18px rgba(255,215,100,0.45);
+        transform: scale(1.03);
+    }
+
+       /* ============================================
+        GLOBAL COLORS
+        ============================================ */
+        :root {
+            --teal: #4fb6c2;
+            --charcoal: #222626;
+            --yellow: #e8e85a;
+            --pink: #f0d1e4;
+            --cyan: #7ee3ff;
+
+            --button: #6d7285;
+            --button-hover: #031a6e;
+        }
+
+        /* ============================================
+        PAGE BASE
+        ============================================ */
+        body {
+            margin: 0;
+            background: var(--charcoal);
+            /* color: #f2f2f2; */
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+       
+        /* ============================================
+        NAV BAR
+        ============================================ */
+        #nav-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 70px;
+            pointer-events: none;
+            background-image: url('/static/images/noise.png');
+            opacity: .15;
+            z-index: 5;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 64px;
+
+            background: rgba(20,20,20,0.55);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,.05);
+            box-shadow: 0 2px 14px rgba(0,0,0,.35);
+
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 0 40px;
+
+            z-index: 1999;
+            transition: .3s ease;
+        }
+        .top-nav.shrink {
+            height: 50px;
+            padding: 0 28px;
+        }
+
+        .top-nav a {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+
+            font-size: 15px;
+            font-weight: 650;
+
+            color: var(--cyan);
+            text-decoration: none;
+
+            transition: .25s ease;
+        }
+        .top-nav a:hover {
+            color: var(--yellow);
+            text-shadow: 0 0 6px rgba(232,232,90,.6);
+        }
+
+        /* Underline effect */
+        .top-nav a::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -2px;
+            width: 0%;
+            height: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, var(--cyan), var(--yellow));
+            border-radius: 2px;
+            transition: .25s ease;
+        }
+        .top-nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Icon wiggle */
+        .top-nav a .emoji {
+            transition: transform .25s ease;
+        }
+        .top-nav a:hover .emoji {
+            transform: rotate(8deg) scale(1.15);
+        }
+
+        /* Spacer below fixed header */
+        .header-spacer {
+            height: 90px;
+        }
+
+ 
+        /* GLOWING FOOTER */
+.glow-footer {
+    margin-top: 60px;
+    padding: 40px 25px 25px 25px;
+
+    background: rgba(10, 15, 18, 0.75);
+    border-top: 3px solid transparent;
+
+    /* Animated color-shifting border */
+    border-image: linear-gradient(
+        90deg,
+        #4fb6c2,
+        #e8e85a,
+        #f0d1e4,
+        #7ee3ff,
+        #4fb6c2
+    ) 1;
+    animation: footerBorderShift 8s linear infinite;
+
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -8px 35px rgba(0,0,0,0.4);
+}
+
+/* Border animation */
+@keyframes footerBorderShift {
+    0% { border-image-slice: 1; }
+    100% { border-image-slice: 1; }
+}
+
+/* Inner grid */
+.footer-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 30px;
+    margin-bottom: 35px;
+
+    opacity: 0;
+    animation: fadeUp 1s ease forwards;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Column titles */
+.footer-col h4 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #e8e85a;
+    font-weight: 800;
+    text-shadow: 0 0 10px rgba(232,232,90,0.4);
+}
+
+/* Links */
+.footer-col a {
+    display: block;
+    margin-bottom: 8px;
+    color: #7ee3ff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: 0.25s;
+}
+
+/* Neon hover glow */
+.footer-col a:hover {
+    color: #e8e85a;
+    text-shadow: 0 0 8px rgba(232,232,90,0.6);
+    transform: translateX(3px);
+}
+
+/* Bottom line text */
+.footer-bottom {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #bfc8c9;
+    opacity: 0;
+    animation: fadeUp 1.4s ease forwards;
+}
+
+.footer-bottom span {
+    color: var(--yellow);
+}
+
+/* ================================================================
+   NEW HERO SECTION (KEEPING YOUR ORIGINAL LOOK)
+   ================================================================ */
+
+.hero-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 40px auto 60px auto;
+    padding: 50px 20px;
+    border-radius: 22px;
+
+    background: linear-gradient(
+        145deg,
+        rgba(255, 215, 240, 0.12),
+        rgba(126, 227, 255, 0.10)
+    );
+
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 24px rgba(255,255,255,0.05);
+
+    overflow: hidden;
+    text-align: center;
+}
+
+/* Soft animated glow ring behind */
+.hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 180%;
+    height: 180%;
+    transform: translate(-50%, -50%);
+
+    background: radial-gradient(
+        circle,
+        rgba(255,255,160,0.25),
+        rgba(255,160,255,0.18),
+        rgba(0,255,240,0.15),
+        transparent 70%
+    );
+
+    filter: blur(80px);
+    animation: heroGlowShift 14s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes heroGlowShift {
+    0% { transform: translate(-50%, -50%) scale(0.95); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+    100% { transform: translate(-50%, -50%) scale(1.0); }
+}
+
+/* ================================================================
+   HERO TITLE + TAGLINE BASE STYLES
+   ================================================================ */
+
+.hero-title {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #ffd6f9;
+    text-shadow: 0 0 12px rgba(255,180,240,0.45);
+    margin-bottom: 15px;
+}
+
+.hero-tagline {
+    font-size: 19px;
+    color: #d7f8ff;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.hero-tagline span {
+    color: #ffe17a;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255,215,100,.6);
+    display: inline-block;
+}
+
+/* ================================================================
+   HERO TEXT ANIMATIONS — Smooth, elegant, scientific
+   ================================================================ */
+
+/* Title animation: fade → lift → subtle scale-in */
+.animate-hero-title {
+    opacity: .5Í;
+    transform: translateY(20px) scale(0.97);
+    animation: heroTitleIn 1s ease forwards;
+}
+
+@keyframes heroTitleIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px) scale(0.97);
+        text-shadow: none;
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 10px rgba(255, 200, 255, 0.35);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 6px rgba(255, 200, 255, 0.22);
+    }
+}
+
+/* Tagline animation: softer, slower, with neon shimmer */
+.animate-hero-tagline {
+    opacity: 1;
+    transform: translateY(20px);
+    animation: heroTaglineIn 1.2s ease forwards;
+    animation-delay: 0.25s;
+}
+
+@keyframes heroTaglineIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px);
+        filter: blur(3px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+        text-shadow: 0 0 8px rgba(126, 227, 255, 0.5);
+    }
+    100% {
+        text-shadow: 0 0 4px rgba(126, 227, 255, 0.25);
+    }
+}
+
+/* Optional: highlight pulse (you had it disabled) */
+@keyframes heroHighlightPulse {
+    0%   { text-shadow: none; opacity: 0; transform: scale(0.9); }
+    60%  { opacity: 1; transform: scale(1.03); text-shadow: 0 0 10px rgba(255,215,100,0.65); }
+    100% { transform: scale(1.0); text-shadow: 0 0 6px rgba(255,215,100,0.45); }
+}
+/* ===============================================
+   UPDATED DROPDOWN + LABEL VISIBILITY & STYLING
+   =============================================== */
+
+/* --- Fix label readability --- */
+label {
+    color: #e8e8e8 !important;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+}
+
+/* --- Container spacing under nav --- */
+.row {
+    margin-top: 20px;
+}
+
+/* --- Glowing selector card for each dropdown --- */
+.selector-box {
+    background: rgba(20, 30, 40, 0.55);
+    border: 1px solid rgba(126,227,255,0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 16px rgba(126,227,255,0.15);
+    backdrop-filter: blur(10px);
+    transition: 0.25s ease;
+}
+
+.selector-box:hover {
+    box-shadow: 0 0 22px rgba(255,215,100,0.35);
+    border-color: rgba(255,215,100,0.35);
+}
+
+/* --- Dropdown style (wider / taller / readable) --- */
+.selector-box select.form-control {
+    background: rgba(12, 18, 28, 0.85) !important;
+    color: #dff9ff !important;
+    border: 1px solid rgba(126,227,255,0.28);
+    border-radius: 10px;
+    padding: 12px;
+    height: 44px;                    /* ← Taller input */
+    font-size: 1rem;
+    font-weight: 500;
+    transition: 0.25s ease;
+}
+
+.selector-box select.form-control:focus {
+    border-color: #7ee3ff;
+    box-shadow: 0 0 12px rgba(126,227,255,0.5);
+}
+
+/* --- Tooltip icon next to ligase label --- */
+#ligase-info-btn {
+    color: #7ee3ff !important;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+#ligase-info-btn:hover {
+    color: #ffe17a !important;
+    transform: scale(1.15);
+}
+
+/* -------------------------------
+   LIGASE SELECTOR VISUAL FIXES
+--------------------------------*/
+
+/* Container */
+.selector-box {
+    background: rgba(20, 30, 40, 0.55);
+    border: 1px solid rgba(126,227,255,0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 16px rgba(126,227,255,0.15);
+    backdrop-filter: blur(10px);
+    transition: 0.25s ease;
+}
+.selector-box:hover {
+    box-shadow: 0 0 22px rgba(255,215,100,0.35);
+    border-color: rgba(255,215,100,0.35);
+}
+
+/* Label styling */
+.selector-label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #e8e8e8 !important;
+    margin-bottom: 6px;
+}
+
+/* 🔍 Info icon styling */
+.ligase-info-icon {
+    cursor: pointer;
+    font-size: 15px;
+    margin-left: 6px;
+    color: #7ee3ff;
+    transition: 0.2s ease;
+}
+.ligase-info-icon:hover {
+    color: #ffe17a;
+    transform: scale(1.15);
+}
+
+/* Dropdown visual */
+.selector-box select.form-control {
+    background: rgba(12, 18, 28, 0.85) !important;
+    color: #dff9ff !important;
+    border: 1px solid rgba(126,227,255,0.28);
+    border-radius: 10px;
+    padding: 12px;
+    height: 44px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: 0.25s ease;
+}
+.selector-box select.form-control:focus {
+    border-color: #7ee3ff;
+    box-shadow: 0 0 12px rgba(126,227,255,0.5);
+}
+body.fade-out {
+        opacity: 0;
+        transition: opacity .25s ease-out;
+    }
+
+    /* Add visibility animation to footer */
+    .glow-footer { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
+    .glow-footer.visible { opacity: 1; transform: translateY(0); }
+
+
+
+
+
+
+    /* Base nav container */
+.top-nav-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+}
+
+/* Brand */
+.top-nav-brand {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+/* Desktop menu */
+.top-nav-menu {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+}
+
+.top-nav-menu a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Hamburger Button */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    width: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.hamburger span {
+    width: 100%;
+    height: 3px;
+    background: #cbd5e1;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+/* Fullscreen Mobile Menu */
+@media (max-width: 768px) {
+    .top-nav-menu {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        flex-direction: column;
+        padding-top: 5rem;
+        padding-left: 1.5rem;
+        gap: 1.2rem;
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .top-nav-menu.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .top-nav-menu li {
+        width: 100%;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    /* Turn hamburger into X */
+    .hamburger.active span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    /* Hide desktop links */
+    .top-nav-menu a {
+        font-size: 1.1rem;
+        display: block;
+        padding: 0.6rem 0;
+    }
+}
+
+/* Add spacing below fixed nav */
+.header-spacer {
+    height: 68px;
+}
+
+.top-nav-menu {
+    margin-right: 2rem; /* prevents clipping */
+}
+
+/* FORCE MOBILE DROPDOWN TO BE BLACK */
+@media (max-width: 768px) {
+    .top-nav-menu,
+    .top-nav-menu * {
+        background: #000 !important;
+    }
+}
+
+.menu-toggle {
+  margin-right: 2rem !important;
+}
+
+
+.top-nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hamburger {
+    margin-left: auto !important;  /* pushes it to the right */
+    margin-right: 1.5rem !important; /* shifts it left from the screen edge */
+}
+
+.top-nav-menu.show::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+}
+
+/* Move the X horizontally when active */
+.hamburger.active {
+    transform: translateX(-10px); /* adjust as needed */
+}
+</style>
+{% endblock %}
+{% block content %}
+<!-- Animated background -->
+<div id="molecule-bg"></div>
+
+
+
+
+    
+
+
+        <div class="container mt-4">
+            <!-- Alert Message Container -->
+            <div id="alert-box" class="alert alert-info text-center" style="display: none;"></div>
+
+            <!-- NEW HERO SECTION -->
+            <section class="hero-wrapper">
+
+                <!-- Animated glow ring -->
+                <div class="hero-glow"></div>
+
+                <!-- Inner hero content -->
+                <div class="hero-content">
+                    <h1 class="hero-title animate-hero-title">Ligase Ligandalyzer (Demo)</h1>
+
+                    <p class="hero-tagline animate-hero-tagline">
+                        A lightweight tool for <span>rapid recruiter design</span> —
+                        enabling quick structural comparison & ligase selection.
+                    </p>
+                </div>
+
+
+            </section>
+
+
+<div class="container mt-4">
+
+
+    <div class="row">
+
+        {% for ligase in ligases|sort(attribute='name') %}
+        <div class="col-md-4 mb-4">
+            <div class="ligase-card">
+
+                <img loading="lazy"
+                     src="{{ ligase.image }}"
+                     class="card-img-top"
+                     alt="{{ ligase.name }}"
+                     onerror="this.src='/static/images/default_ligase.png'">
+
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ ligase.name }}</h5>
+
+                    <p><strong>Molecular Weight:</strong> {{ ligase.mw }} g/mol</p>
+                    <p><strong>Formula:</strong> {{ ligase.formula }}</p>
+
+                    <button class="btn btn-info view-details-btn mt-2"
+                        data-ligase="{{ ligase.name }}"
+                        data-ligand="{{ ligase.name.split('_')[1] if '_' in ligase.name else '' }}">
+                        View Details
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+
+<!-- ============================================================
+     POPUP
+============================================================ -->
+<div id="ligandalyzer-popup">
+    <div class="popup-content">
+
+        <img src="/static/images/Ligandalyzer-tzr.png" class="popup-img">
+
+        <h2 class="popup-title">Explore the Full Ligase Recruiter Ligandalyzer</h2>
+        <p class="popup-text">
+            The complete version of this platform provides 
+            <strong>16+ E3 ligases</strong> and nearly 
+            <strong>500 curated ligase recruiters</strong> — with advanced analytics, 
+            diversity metrics, and full recruiter exploration tools designed 
+            to accelerate PROTAC research.
+        </p>
+
+        <div class="popup-buttons">
+            <button id="visit-full" class="btn-main">Visit Full Ligandalyzer</button>
+            <button id="popup-close" class="btn-close">Close</button>
+        </div>
+
+        <button id="contact-btn" class="btn-contact">
+            Questions or Comments? Contact Us ✉️
+        </button>
+
+    </div>
+</div>
+
+
+
+<!-- ============================================================
+     JS
+============================================================ -->
+
+
+
+
+<!-- ============================================================
+     RETURN BUTTON
+============================================================ -->
+<div class="text-center mt-5">
+    <button id="return-to-builder" class="return-btn">
+        ⬅ Return to PROTAC Builder
+    </button>
+</div>
+
+
+
+
+  
+
+
+
+ 
+
+    
+
+
+
+
+
+
+
+
+
+
+<!-- Optional Fade-Out CSS -->
+{% endblock %}
+{% block extra_scripts %}
+<script>
+/* ============================================================
+   MANUAL LIGASE COLORING (CRBN/VHL/MDM2)
+============================================================ */
+document.querySelectorAll(".ligase-card").forEach(card => {
+    const txt = card.innerText.toUpperCase();
+
+    if (txt.includes("CRBN")) card.style.borderLeft = "6px solid var(--c1)";
+    if (txt.includes("VHL"))  card.style.borderLeft = "6px solid var(--c2)";
+    if (txt.includes("MDM2")) card.style.borderLeft = "6px solid var(--c3)";
+});
+
+
+
+/* ============================================================
+   POPUP LOGIC
+============================================================ */
+window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        document.getElementById("ligandalyzer-popup").style.display = "flex";
+    }, 600);
+});
+
+document.getElementById("popup-close").onclick =
+    () => document.getElementById("ligandalyzer-popup").style.display = "none";
+
+document.getElementById("visit-full").onclick =
+    () => window.open("{{ LIGANDALYZER_URL }}", "_blank");
+
+document.getElementById("contact-btn").onclick =
+    () => window.location.href = "mailto:jxs794@miami.edu";
+
+
+
+/* ============================================================
+   LIGASE CARD VIEW BUTTON LOGIC
+============================================================ */
+$(document).ready(function() {
+    $(".view-details-btn").click(function() {
+        const ligase = $(this).data("ligase");
+        const ligand = $(this).data("ligand");
+        window.open(`/view-ligase?name=${ligase}&ligand=${ligand}`, "_blank");
+    });
+});
+</script>
+
+<script>
+document.getElementById("return-to-builder").addEventListener("click", () => {
+    window.location.href = "/builder";
+});
+</script>
+{% endblock %}

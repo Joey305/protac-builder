@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference — Coming Soon</title>
+
+    <link rel="icon" type="image/png" href="/static/images/ProtacBuilder_favicon.png">
+
+    <style>
+        body {
+            margin: 0;
+            background: #1a1f1f;
+            font-family: Arial, sans-serif;
+            color: #e2f0f3;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+            color: #7ee3ff;
+            text-shadow: 0 0 10px rgba(126,227,255,0.4);
+        }
+
+        p {
+            max-width: 700px;
+            margin: 0 auto 20px auto;
+            line-height: 1.65;
+            font-size: 18px;
+            color: #cfe5e8;
+        }
+
+        .coming-box {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(126,227,255,0.25);
+            box-shadow: 0 0 16px rgba(0,200,255,0.15);
+            border-radius: 12px;
+            padding: 35px;
+            margin: 40px auto;
+            max-width: 750px;
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(25px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .emoji {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        a.button {
+            background: #4fb6c2;
+            padding: 10px 22px;
+            border-radius: 8px;
+            color: #101616;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 12px;
+            transition: 0.25s ease;
+            box-shadow: 0 0 12px rgba(79,182,194,0.4);
+        }
+
+        a.button:hover {
+            background: #e8e85a;
+            transform: translateY(-2px);
+            box-shadow: 0 0 16px rgba(232,232,90,0.5);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>API Reference</h1>
+
+    <div class="coming-box">
+        <div class="emoji">🧬</div>
+
+        <p>
+            Our full REST API for the PROTAC Builder ecosystem is currently under construction.
+            This documentation will include endpoints for:
+        </p>
+
+        <p>
+            • Warhead extraction<br>
+            • Linker geometry generation<br>
+            • E3 recruiter data + tissue profiles<br>
+            • Programmatic PROTAC assembly<br>
+            • SMILES generation & 3D export<br>
+            • Integration with PRosettaC pipelines
+        </p>
+
+        <p>
+            The API documentation will be released soon as part of the 
+            <strong>PROTAC Builder v2.0 launch</strong>.
+        </p>
+
+        <a href="/copy/COPYindex" class="button">← Back to Builder</a>
+    </div>
+
+</body>
+</html>

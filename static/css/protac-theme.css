@@ -1,0 +1,218 @@
+body {
+  background: radial-gradient(circle at top, rgba(34, 211, 238, 0.12), transparent 32%),
+    linear-gradient(180deg, #07111d 0%, #091829 50%, #07111d 100%);
+  color: #dbeafe;
+  min-height: 100vh;
+}
+
+.page-shell {
+  min-height: calc(100vh - 180px);
+}
+
+#builder-popup-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+}
+
+#builder-popup {
+  width: min(760px, 96vw);
+  padding: 2rem;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(9, 20, 36, 0.97), rgba(11, 30, 48, 0.97));
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), 0 0 40px rgba(34, 211, 238, 0.18);
+  text-align: center;
+}
+
+#builder-popup h2 {
+  color: #7ee3ff;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.counter-box {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(125, 211, 252, 0.25);
+}
+
+.big-number {
+  font-size: clamp(2.2rem, 8vw, 4rem);
+  color: #67e8f9;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.popup-small-note {
+  margin-top: 0.8rem;
+  color: #cbd5e1;
+}
+
+.about-link-container {
+  margin: 1rem 0 1.5rem;
+}
+
+.about-link {
+  color: #fde68a;
+}
+
+#builder-close-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.8rem 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #22d3ee, #38bdf8);
+  color: #082032;
+}
+
+.admet-results-panel {
+  margin-top: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 16px;
+  background: rgba(9, 17, 31, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  text-align: left;
+}
+
+.admet-results-panel h4 {
+  color: #7ee3ff;
+  font-size: 1.05rem;
+  margin-bottom: 0.8rem;
+}
+
+.admet-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.admet-panel-subtitle {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.92rem;
+}
+
+.admet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.admet-table-wrap {
+  margin-top: 0.85rem;
+  overflow-x: auto;
+}
+
+.admet-parameter-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.admet-parameter-table th,
+.admet-parameter-table td {
+  padding: 0.85rem 0.95rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  vertical-align: top;
+}
+
+.admet-parameter-table th {
+  width: 36%;
+  color: #93c5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(15, 23, 42, 0.88);
+}
+
+.admet-parameter-table td {
+  color: #f8fafc;
+  font-size: 0.94rem;
+  background: rgba(10, 18, 30, 0.72);
+  word-break: break-word;
+}
+
+.admet-stat {
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.admet-stat-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #93c5fd;
+}
+
+.admet-stat-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.admet-warning-list {
+  margin: 0.8rem 0 0;
+  padding-left: 1.1rem;
+  color: #fde68a;
+}
+
+.admet-warning-box {
+  margin-top: 1rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 12px;
+  background: rgba(120, 53, 15, 0.18);
+  border: 1px solid rgba(250, 204, 21, 0.22);
+}
+
+.admet-warning-title {
+  color: #fde68a;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.admet-download-row {
+  margin-top: 0.9rem;
+}
+
+.admet-success-panel {
+  border-color: rgba(74, 222, 128, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(74, 222, 128, 0.08), transparent 30%),
+    rgba(9, 17, 31, 0.9);
+}
+
+.inline-error-panel {
+  margin-top: 1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 14px;
+  background: rgba(127, 29, 29, 0.22);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+}
+
+.inline-error-panel h4 {
+  color: #fecaca;
+  margin-bottom: 0.55rem;
+}
+
+.inline-error-panel p {
+  margin: 0 0 0.5rem;
+}
+
+.inline-error-panel p:last-child {
+  margin-bottom: 0;
+}

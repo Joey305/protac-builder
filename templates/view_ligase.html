@@ -1,0 +1,1540 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ligase.name }} - Ligase Details{% endblock %}
+{% block body_class %}protac-page{% endblock %}
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/ngl@2.0.0-dev.37/dist/ngl.js"></script>
+
+<style>
+:root {
+            --bg-main: #020617;
+            --bg-panel: #020617;
+            --bg-card-gradient-top: #0b1220;
+            --bg-card-gradient-bottom: #020617;
+            --border-soft: #1f2937;
+
+            --accent-cyan: #22d3ee;
+            --accent-teal: #06b6d4;
+            --accent-blue: #0ea5e9;
+            --accent-yellow: #f6fa25;
+            --accent-pink: #f5d0d0;
+            --accent-lightcyan: #b0edf7;
+            --accent-mint: #c2ffb0;
+
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background:
+                radial-gradient(circle at top left, rgba(34,211,238,0.22), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(244,244,245,0.08), transparent 55%),
+                var(--bg-main);
+            color: var(--text-main);
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Page shell */
+        .page-shell {
+            max-width: 1200px;
+            margin: 30px auto 50px;
+            padding: 0 16px;
+        }
+
+        /* Top header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: #e2f3fe;
+        }
+
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* Back button */
+        .btn-back {
+            background: transparent;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.45);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            padding: 8px 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 14px rgba(34,211,238,0.45);
+        }
+
+        /* Main card */
+        .details-shell {
+            background: radial-gradient(circle at top, #0b1220, #020617 65%);
+            border-radius: 20px;
+            border: 1px solid rgba(148,163,184,0.25);
+            box-shadow:
+                0 20px 40px rgba(15,23,42,0.9),
+                0 0 25px rgba(15,118,178,0.45);
+            padding: 22px 22px 26px;
+        }
+
+        .details-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .details-left,
+        .details-right {
+            flex: 1 1 320px;
+            min-width: 0;
+        }
+
+        /* Left: image + metadata */
+        .ligand-image-wrapper {
+            background: linear-gradient(145deg, #020617, #020617);
+            border-radius: 18px;
+            border: 1px solid rgba(148,163,184,0.35);
+            padding: 14px;
+            box-shadow: 0 0 18px rgba(15,23,42,0.9);
+        }
+
+        .ligand-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent-cyan);
+            margin-bottom: 4px;
+        }
+
+        .ligand-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e5f3ff;
+            margin-bottom: 12px;
+        }
+
+        #ligand-image {
+            width: 100%;
+            border-radius: 12px;
+            background: #020617;
+            border: 1px solid rgba(15,23,42,0.6);
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 8px 16px;
+            margin-top: 14px;
+            font-size: 0.88rem;
+        }
+
+        .meta-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .meta-value {
+            color: var(--text-main);
+            font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.82rem;
+        }
+
+        /* Generate diagram button */
+        .btn-generate {
+            margin-top: 16px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            color: #020617;
+            border-radius: 999px;
+            border: none;
+            padding: 9px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(34,211,238,0.55);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 26px rgba(34,211,238,0.85);
+        }
+
+        .btn-generate:active {
+            transform: translateY(1px);
+            box-shadow: 0 0 14px rgba(34,211,238,0.65);
+        }
+
+        /* Right: 3D viewer */
+        .viewer-panel {
+            background: radial-gradient(circle at top, #020617, #020617 70%);
+            border-radius: 18px;
+            border: 1px solid rgba(148,163,184,0.3);
+            padding: 12px 12px 16px;
+            box-shadow: 0 0 18px rgba(15,23,42,0.9);
+        }
+
+        .viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        .viewer-title {
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: #e2f3fe;
+        }
+
+        .viewer-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        #viewport {
+            width: 100%;
+            height: 430px;
+            border-radius: 14px;
+            background-color: #020617;
+            border: 1px solid rgba(15,23,42,0.8);
+            box-shadow: inset 0 0 18px rgba(15,23,42,0.9);
+        }
+
+        /* Interaction diagram section */
+        .diagram-shell {
+            margin-top: 24px;
+            background: linear-gradient(145deg, #020617, #020617);
+            border-radius: 18px;
+            border: 1px solid rgba(148,163,184,0.35);
+            padding: 18px 18px 20px;
+            box-shadow: 0 0 18px rgba(15,23,42,0.85);
+        }
+
+        .diagram-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #e2f3fe;
+            margin-bottom: 4px;
+        }
+
+        .diagram-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        #diagram-container img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(15,23,42,0.7);
+            background: #020617;
+        }
+
+        /* Bottom return button */
+        .footer-actions {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .return-btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            color: #020617;
+            font-weight: 600;
+            padding: 11px 22px;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.98rem;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(6,182,212,0.7);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .return-btn:hover {
+            background: linear-gradient(135deg, #38bdf8, #22d3ee);
+            transform: translateY(-2px);
+            box-shadow: 0 0 28px rgba(34,211,238,0.9);
+        }
+
+        .return-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 0 14px rgba(34,211,238,0.7);
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .page-title {
+                font-size: 1.6rem;
+            }
+            #viewport {
+                height: 360px;
+            }
+        }
+
+        .nav-new {
+    color: #facc15 !important;
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+}
+
+/* PoseView loader styling */
+.pv-loading {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 12px 0;
+}
+
+.pv-loading-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pv-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 3px solid rgba(226, 232, 240, 0.25);
+  border-top-color: rgba(226, 232, 240, 0.95);
+  animation: pvSpin 0.9s linear infinite;
+  margin-top: 2px;
+}
+
+@keyframes pvSpin {
+  to { transform: rotate(360deg); }
+}
+
+.pv-loading-title {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.pv-loading-message {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.pv-loading-message a {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.pv-loading-subtle {
+  color: rgba(226, 232, 240, 0.65);
+  font-size: 0.82rem;
+}
+
+.pv-mini-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.pv-mini-btn:hover {
+  border-color: rgba(148, 163, 184, 0.7);
+}
+
+.viewer-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-use-recruiter {
+    background: linear-gradient(135deg, var(--accent-yellow), var(--accent-mint));
+    color: #020617;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+
+    box-shadow:
+        0 0 18px rgba(250, 204, 21, 0.55),
+        0 0 28px rgba(194, 255, 176, 0.35);
+
+    transition: all 0.25s ease;
+}
+
+.btn-use-recruiter:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 0 26px rgba(250, 204, 21, 0.9),
+        0 0 40px rgba(194, 255, 176, 0.55);
+}
+
+.btn-use-recruiter:active {
+    transform: translateY(1px);
+    box-shadow:
+        0 0 14px rgba(250, 204, 21, 0.7);
+}
+/* ============================================
+    GENERATED PROTAC PANEL — NEON DISPLAY
+    =============================================== */
+
+    .generated-protac-wrapper {
+        margin-top: 40px;
+        padding: 30px;
+        border-radius: 18px;
+
+        background: rgba(10, 20, 30, 0.55);
+        backdrop-filter: blur(12px);
+        border: 2px solid rgba(126, 227, 255, 0.35);
+
+        box-shadow: 0 0 30px rgba(126, 227, 255, 0.25),
+                    inset 0 0 20px rgba(20, 40, 60, 0.4);
+
+        animation: protacFadeIn 0.6s ease-out;
+    }
+
+    @keyframes protacFadeIn {
+        from { opacity: 0; transform: translateY(20px) scale(.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Title */
+    .generated-title {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #7ee3ff;
+        margin-bottom: 20px;
+        text-shadow: 0 0 12px rgba(126, 227, 255, 0.6);
+    }
+
+    /* Inner container */
+    .generated-inner {
+        text-align: center;
+    }
+
+    /* SMILES box */
+    .smiles-box {
+        margin-top: 15px;
+        padding: 12px 18px;
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(126,227,255,0.2);
+        border-radius: 12px;
+        color: #ffe17a;
+        font-family: monospace;
+        font-size: 0.95rem;
+
+        box-shadow: inset 0 0 10px rgba(126,227,255,0.15);
+    }
+
+    /* Buttons */
+    .generated-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    /* Neon Buttons */
+    .neon-btn {
+        padding: 10px 18px;
+        border-radius: 10px;
+        background: rgba(20,30,40,0.75);
+        border: 1px solid rgba(126,227,255,0.4);
+        color: #7ee3ff;
+        font-weight: 600;
+        letter-spacing: .3px;
+        cursor: pointer;
+        transition: 0.25s ease;
+
+        text-shadow: 0 0 6px rgba(126,227,255,0.5);
+        box-shadow: 0 0 12px rgba(126,227,255,0.25);
+    }
+
+    .neon-btn:hover {
+        background: rgba(255,215,100,0.18);
+        color: #ffe17a;
+        border-color: #ffe17a;
+        box-shadow: 0 0 18px rgba(255,215,100,0.45);
+        transform: scale(1.03);
+    }
+
+       /* ============================================
+        GLOBAL COLORS
+        ============================================ */
+        :root {
+            --teal: #4fb6c2;
+            --charcoal: #222626;
+            --yellow: #e8e85a;
+            --pink: #f0d1e4;
+            --cyan: #7ee3ff;
+
+            --button: #6d7285;
+            --button-hover: #031a6e;
+        }
+
+        /* ============================================
+        PAGE BASE
+        ============================================ */
+        body {
+            margin: 0;
+            background: var(--charcoal);
+            /* color: #f2f2f2; */
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+       
+        /* ============================================
+        NAV BAR
+        ============================================ */
+        #nav-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 70px;
+            pointer-events: none;
+            background-image: url('/static/images/noise.png');
+            opacity: .15;
+            z-index: 5;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 64px;
+
+            background: rgba(20,20,20,0.55);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,.05);
+            box-shadow: 0 2px 14px rgba(0,0,0,.35);
+
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 0 40px;
+
+            z-index: 1999;
+            transition: .3s ease;
+        }
+        .top-nav.shrink {
+            height: 50px;
+            padding: 0 28px;
+        }
+
+        .top-nav a {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+
+            font-size: 15px;
+            font-weight: 650;
+
+            color: var(--cyan);
+            text-decoration: none;
+
+            transition: .25s ease;
+        }
+        .top-nav a:hover {
+            color: var(--yellow);
+            text-shadow: 0 0 6px rgba(232,232,90,.6);
+        }
+
+        /* Underline effect */
+        .top-nav a::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -2px;
+            width: 0%;
+            height: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, var(--cyan), var(--yellow));
+            border-radius: 2px;
+            transition: .25s ease;
+        }
+        .top-nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Icon wiggle */
+        .top-nav a .emoji {
+            transition: transform .25s ease;
+        }
+        .top-nav a:hover .emoji {
+            transform: rotate(8deg) scale(1.15);
+        }
+
+        /* Spacer below fixed header */
+        .header-spacer {
+            height: 90px;
+        }
+
+ 
+        /* GLOWING FOOTER */
+.glow-footer {
+    margin-top: 60px;
+    padding: 40px 25px 25px 25px;
+
+    background: rgba(10, 15, 18, 0.75);
+    border-top: 3px solid transparent;
+
+    /* Animated color-shifting border */
+    border-image: linear-gradient(
+        90deg,
+        #4fb6c2,
+        #e8e85a,
+        #f0d1e4,
+        #7ee3ff,
+        #4fb6c2
+    ) 1;
+    animation: footerBorderShift 8s linear infinite;
+
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -8px 35px rgba(0,0,0,0.4);
+}
+
+/* Border animation */
+@keyframes footerBorderShift {
+    0% { border-image-slice: 1; }
+    100% { border-image-slice: 1; }
+}
+
+/* Inner grid */
+.footer-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 30px;
+    margin-bottom: 35px;
+
+    opacity: 0;
+    animation: fadeUp 1s ease forwards;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Column titles */
+.footer-col h4 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #e8e85a;
+    font-weight: 800;
+    text-shadow: 0 0 10px rgba(232,232,90,0.4);
+}
+
+/* Links */
+.footer-col a {
+    display: block;
+    margin-bottom: 8px;
+    color: #7ee3ff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: 0.25s;
+}
+
+/* Neon hover glow */
+.footer-col a:hover {
+    color: #e8e85a;
+    text-shadow: 0 0 8px rgba(232,232,90,0.6);
+    transform: translateX(3px);
+}
+
+/* Bottom line text */
+.footer-bottom {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #bfc8c9;
+    opacity: 0;
+    animation: fadeUp 1.4s ease forwards;
+}
+
+.footer-bottom span {
+    color: var(--yellow);
+}
+
+/* ================================================================
+   NEW HERO SECTION (KEEPING YOUR ORIGINAL LOOK)
+   ================================================================ */
+
+.hero-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 40px auto 60px auto;
+    padding: 50px 20px;
+    border-radius: 22px;
+
+    background: linear-gradient(
+        145deg,
+        rgba(255, 215, 240, 0.12),
+        rgba(126, 227, 255, 0.10)
+    );
+
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 24px rgba(255,255,255,0.05);
+
+    overflow: hidden;
+    text-align: center;
+}
+
+/* Soft animated glow ring behind */
+.hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 180%;
+    height: 180%;
+    transform: translate(-50%, -50%);
+
+    background: radial-gradient(
+        circle,
+        rgba(255,255,160,0.25),
+        rgba(255,160,255,0.18),
+        rgba(0,255,240,0.15),
+        transparent 70%
+    );
+
+    filter: blur(80px);
+    animation: heroGlowShift 14s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes heroGlowShift {
+    0% { transform: translate(-50%, -50%) scale(0.95); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+    100% { transform: translate(-50%, -50%) scale(1.0); }
+}
+
+/* ================================================================
+   HERO TITLE + TAGLINE BASE STYLES
+   ================================================================ */
+
+.hero-title {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #ffd6f9;
+    text-shadow: 0 0 12px rgba(255,180,240,0.45);
+    margin-bottom: 15px;
+}
+
+.hero-tagline {
+    font-size: 19px;
+    color: #d7f8ff;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.hero-tagline span {
+    color: #ffe17a;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255,215,100,.6);
+    display: inline-block;
+}
+
+/* ================================================================
+   HERO TEXT ANIMATIONS — Smooth, elegant, scientific
+   ================================================================ */
+
+/* Title animation: fade → lift → subtle scale-in */
+.animate-hero-title {
+    opacity: .5Í;
+    transform: translateY(20px) scale(0.97);
+    animation: heroTitleIn 1s ease forwards;
+}
+
+@keyframes heroTitleIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px) scale(0.97);
+        text-shadow: none;
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 10px rgba(255, 200, 255, 0.35);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 6px rgba(255, 200, 255, 0.22);
+    }
+}
+
+/* Tagline animation: softer, slower, with neon shimmer */
+.animate-hero-tagline {
+    opacity: 1;
+    transform: translateY(20px);
+    animation: heroTaglineIn 1.2s ease forwards;
+    animation-delay: 0.25s;
+}
+
+@keyframes heroTaglineIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px);
+        filter: blur(3px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+        text-shadow: 0 0 8px rgba(126, 227, 255, 0.5);
+    }
+    100% {
+        text-shadow: 0 0 4px rgba(126, 227, 255, 0.25);
+    }
+}
+
+/* Optional: highlight pulse (you had it disabled) */
+@keyframes heroHighlightPulse {
+    0%   { text-shadow: none; opacity: 0; transform: scale(0.9); }
+    60%  { opacity: 1; transform: scale(1.03); text-shadow: 0 0 10px rgba(255,215,100,0.65); }
+    100% { transform: scale(1.0); text-shadow: 0 0 6px rgba(255,215,100,0.45); }
+}
+/* ===============================================
+   UPDATED DROPDOWN + LABEL VISIBILITY & STYLING
+   =============================================== */
+
+/* --- Fix label readability --- */
+label {
+    color: #e8e8e8 !important;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+}
+
+/* --- Container spacing under nav --- */
+.row {
+    margin-top: 20px;
+}
+
+/* --- Glowing selector card for each dropdown --- */
+.selector-box {
+    background: rgba(20, 30, 40, 0.55);
+    border: 1px solid rgba(126,227,255,0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 16px rgba(126,227,255,0.15);
+    backdrop-filter: blur(10px);
+    transition: 0.25s ease;
+}
+
+.selector-box:hover {
+    box-shadow: 0 0 22px rgba(255,215,100,0.35);
+    border-color: rgba(255,215,100,0.35);
+}
+
+/* --- Dropdown style (wider / taller / readable) --- */
+.selector-box select.form-control {
+    background: rgba(12, 18, 28, 0.85) !important;
+    color: #dff9ff !important;
+    border: 1px solid rgba(126,227,255,0.28);
+    border-radius: 10px;
+    padding: 12px;
+    height: 44px;                    /* ← Taller input */
+    font-size: 1rem;
+    font-weight: 500;
+    transition: 0.25s ease;
+}
+
+.selector-box select.form-control:focus {
+    border-color: #7ee3ff;
+    box-shadow: 0 0 12px rgba(126,227,255,0.5);
+}
+
+/* --- Tooltip icon next to ligase label --- */
+#ligase-info-btn {
+    color: #7ee3ff !important;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+#ligase-info-btn:hover {
+    color: #ffe17a !important;
+    transform: scale(1.15);
+}
+
+/* -------------------------------
+   LIGASE SELECTOR VISUAL FIXES
+--------------------------------*/
+
+/* Container */
+.selector-box {
+    background: rgba(20, 30, 40, 0.55);
+    border: 1px solid rgba(126,227,255,0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 16px rgba(126,227,255,0.15);
+    backdrop-filter: blur(10px);
+    transition: 0.25s ease;
+}
+.selector-box:hover {
+    box-shadow: 0 0 22px rgba(255,215,100,0.35);
+    border-color: rgba(255,215,100,0.35);
+}
+
+/* Label styling */
+.selector-label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #e8e8e8 !important;
+    margin-bottom: 6px;
+}
+
+/* 🔍 Info icon styling */
+.ligase-info-icon {
+    cursor: pointer;
+    font-size: 15px;
+    margin-left: 6px;
+    color: #7ee3ff;
+    transition: 0.2s ease;
+}
+.ligase-info-icon:hover {
+    color: #ffe17a;
+    transform: scale(1.15);
+}
+
+/* Dropdown visual */
+.selector-box select.form-control {
+    background: rgba(12, 18, 28, 0.85) !important;
+    color: #dff9ff !important;
+    border: 1px solid rgba(126,227,255,0.28);
+    border-radius: 10px;
+    padding: 12px;
+    height: 44px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: 0.25s ease;
+}
+.selector-box select.form-control:focus {
+    border-color: #7ee3ff;
+    box-shadow: 0 0 12px rgba(126,227,255,0.5);
+}
+body.fade-out {
+        opacity: 0;
+        transition: opacity .25s ease-out;
+    }
+
+    /* Add visibility animation to footer */
+    .glow-footer { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
+    .glow-footer.visible { opacity: 1; transform: translateY(0); }
+
+
+
+    /* Base nav container */
+.top-nav-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+}
+
+/* Brand */
+.top-nav-brand {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+/* Desktop menu */
+.top-nav-menu {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+}
+
+.top-nav-menu a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Hamburger Button */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    width: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.hamburger span {
+    width: 100%;
+    height: 3px;
+    background: #cbd5e1;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+/* Fullscreen Mobile Menu */
+@media (max-width: 768px) {
+    .top-nav-menu {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        flex-direction: column;
+        padding-top: 5rem;
+        padding-left: 1.5rem;
+        gap: 1.2rem;
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .top-nav-menu.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .top-nav-menu li {
+        width: 100%;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    /* Turn hamburger into X */
+    .hamburger.active span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    /* Hide desktop links */
+    .top-nav-menu a {
+        font-size: 1.1rem;
+        display: block;
+        padding: 0.6rem 0;
+    }
+}
+
+/* Add spacing below fixed nav */
+.header-spacer {
+    height: 68px;
+}
+
+.top-nav-menu {
+    margin-right: 2rem; /* prevents clipping */
+}
+
+/* FORCE MOBILE DROPDOWN TO BE BLACK */
+@media (max-width: 768px) {
+    .top-nav-menu,
+    .top-nav-menu * {
+        background: #000 !important;
+    }
+}
+
+.menu-toggle {
+  margin-right: 2rem !important;
+}
+
+
+.top-nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hamburger {
+    margin-left: auto !important;  /* pushes it to the right */
+    margin-right: 1.5rem !important; /* shifts it left from the screen edge */
+}
+
+.top-nav-menu.show::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+}
+
+/* Move the X horizontally when active */
+.hamburger.active {
+    transform: translateX(-10px); /* adjust as needed */
+}
+</style>
+{% endblock %}
+{% block content %}
+<!-- Animated background -->
+<div id="molecule-bg"></div>
+
+
+
+
+
+   
+<div class="page-shell">
+
+    <!-- Top header -->
+    <div class="page-header">
+        <div>
+            <button class="btn-back" onclick="window.close()">
+                ⬅ Back
+            </button>
+            <div class="page-title mt-2">
+                {{ ligase.name }} Details
+            </div>
+            <div class="page-subtitle">
+                Integrated 2D / 3D view of the selected ligase recruiter and its binding context.
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content card -->
+    <div class="details-shell">
+        <div class="details-grid">
+            <!-- Left column: 2D & metadata -->
+            <div class="details-left">
+                <div class="ligand-image-wrapper">
+                    <div class="ligand-tag">Ligase Recruiter</div>
+                    <div class="ligand-name">{{ ligase.name }}</div>
+
+                    <img id="ligand-image" src="{{ ligase.image }}" alt="{{ ligase.name }}">
+
+                    <div class="meta-grid">
+                        <div>
+                            <div class="meta-label">Ligand Code</div>
+                            <div class="meta-value">
+                                {{ ligase.ligand_code if ligase.ligand_code else "N/A" }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="meta-label">PDB ID</div>
+                            <div class="meta-value">
+                                {{ ligase.pdb_id if ligase.pdb_id else "N/A" }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="meta-label">Chain</div>
+                            <div class="meta-value">{{ ligase.chain if ligase.chain else "N/A" }}</div>
+                        </div>
+                        <div>
+                            <div class="meta-label">Residue</div>
+                            <div class="meta-value">{{ ligase.residue if ligase.residue else "N/A" }}</div>
+                        </div>
+                    </div>
+
+                    <button class="btn-generate" onclick="generateLigandInteractionDiagram()">
+                        ⚗ Generate Interaction Diagram
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right column: 3D viewer -->
+            <div class="details-right">
+                <div class="viewer-panel">
+                    <div class="viewer-header">
+                        <div class="viewer-title">3D Binding Context</div>
+                        <div class="viewer-subtitle">
+                            Protein structure from RCSB PDB, centered on the recruiter.
+                        </div>
+                    </div>
+                    <div id="viewport"></div>
+                   
+                    
+
+                </div>
+                <div class="viewer-actions">
+                    <button class="btn-use-recruiter" onclick="useAsRecruiter()">
+                        🧲 Use as Recruiter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interaction diagram section -->
+        <div class="diagram-shell">
+            <div class="diagram-title">2D Ligand–Protein Interaction Diagram</div>
+            <div class="diagram-subtitle">
+                Generated on demand using the PoseView API (proteins.plus).
+            </div>
+            <!-- PoseView Loading Panel (place in your menu/sidebar or above #diagram-container) -->
+    <div id="poseview-loading" class="pv-loading d-none" aria-live="polite">
+        <div class="pv-loading-row">
+        <div class="pv-spinner" aria-hidden="true"></div>
+    
+        <div class="pv-loading-text">
+            <div class="pv-loading-title">Generating interaction diagram…</div>
+    
+            <!-- Rotating messages will render here -->
+            <div id="poseview-loading-message" class="pv-loading-message"></div>
+    
+            <div class="pv-loading-subtle">
+            PoseView can take a bit if the queue is busy. We’ll update automatically.
+            </div>
+        </div>
+        </div>
+    </div>
+            <div id="diagram-container">
+                <p class="text-muted mb-0" style="color: var(--text-muted); font-size: 0.9rem;">
+                    Click <strong>“Generate Interaction Diagram”</strong> above to fetch a 2D interaction map.
+                </p>
+            </div>
+        </div>
+
+        <!-- Return -->
+        <div class="footer-actions">
+            <button class="return-btn" onclick="window.close()">
+                ⬅ Return to Ligase Ligandalyzer
+            </button>
+        </div>
+    </div>
+
+    
+  
+</div>
+
+
+
+
+
+
+
+
+
+ 
+
+    
+
+
+
+
+
+
+<!-- Animated background -->
+<div id="molecule-bg"></div>
+
+
+
+
+
+
+
+
+<!-- Optional Fade-Out CSS -->
+{% endblock %}
+{% block extra_scripts %}
+<script>
+// --- PoseView Loading UX: rotating messages + call-to-actions ---
+let pvMsgTimer = null;
+let pvMsgIndex = 0;
+
+function buildProssetacMailto() {
+  const to = "jxs794@miami.edu";
+  const subject = "Need Help With PRosettaC";
+
+  // Keep it detailed but not insanely long (mailto URLs have length limits).
+  const body = [
+    "Hi Joseph-Michael,",
+    "",
+    "I'm looking for help with PRosettaC. Here are my details:",
+    "",
+    "1) Experience level (check one):",
+    "   - [ ] New to Python / command line",
+    "   - [ ] Comfortable running scripts & conda environments",
+    "   - [ ] Advanced (dev workflows / debugging / HPC)",
+    "",
+    "2) What are you trying to model?",
+    "   - Target protein (name / UniProt):",
+    "   - E3 ligase (e.g., VHL, CRBN, MDM2):",
+    "   - Ligand warheads / PROTAC(s) (SMILES or IDs):",
+    "   - If known: PDB IDs / structures you’re using:",
+    "",
+    "3) What environment are you running on?",
+    "   - OS (macOS/Windows/Linux), CPU/GPU, local/HPC/cloud:",
+    "   - Python version & key packages (if known):",
+    "",
+    "4) What have you tried so far?",
+    "   - Commands you ran:",
+    "   - Where it fails (error messages/log snippets):",
+    "",
+    "5) Goal / timeline:",
+    "   - Quick troubleshooting help vs. full pipeline setup:",
+    "",
+    "6) Collaboration option:",
+    "   - [ ] I want to collaborate / co-author",
+    "   - [ ] I’d like your team to run models for us (we can provide inputs)",
+    "",
+    "7) Links/files I can share:",
+    "   - Repo link (if any):",
+    "   - Input structures / constraints / params:",
+    "",
+    "Thanks!",
+    ""
+  ].join("\n");
+
+  // URL-encode subject/body safely
+  const href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return href;
+}
+
+const pvLoadingMessages = [
+  {
+    html: `Have you tried out <a href="https://vlisemod.com" target="_blank" rel="noopener">VLISEMOD</a> yet?`,
+  },
+  {
+    html: `Have you explored our <a href="https://e3ligandalyzer.com" target="_blank" rel="noopener">E3 Recruiter Ligandalyzer</a>?`,
+  },
+  {
+    html: `Have you explored our <a href="https://warheadhunter.com/" target="_blank" rel="noopener">Warhead Hunter</a>?`,
+  },
+  {
+    html: `Need help with PRosettaC?<br>
+           <a class="pv-mini-btn" href="${buildProssetacMailto()}">Email Joseph-Michael</a>`,
+  }
+];
+
+function startPoseViewLoadingUX() {
+  pvMsgIndex = 0;
+
+  $("#poseview-loading").removeClass("d-none");
+  $("#poseview-loading-message").html(pvLoadingMessages[pvMsgIndex].html);
+
+  // Rotate every 5 seconds
+  clearInterval(pvMsgTimer);
+  pvMsgTimer = setInterval(() => {
+    pvMsgIndex = (pvMsgIndex + 1) % pvLoadingMessages.length;
+    $("#poseview-loading-message").fadeOut(150, function () {
+      $(this).html(pvLoadingMessages[pvMsgIndex].html).fadeIn(150);
+    });
+  }, 5000);
+}
+
+function stopPoseViewLoadingUX() {
+  clearInterval(pvMsgTimer);
+  pvMsgTimer = null;
+  $("#poseview-loading").addClass("d-none");
+  $("#poseview-loading-message").empty();
+}
+
+function generateLigandInteractionDiagram() {
+  const pdbId = "{{ ligase.pdb_id }}";
+  const ligandCode = "{{ ligase.ligand_code }}";
+  const chain = "{{ ligase.chain }}";
+  const residue = "{{ ligase.residue }}";
+
+  if (!pdbId || !ligandCode || !chain || !residue) {
+    alert("Error: Missing required data for generating diagram.");
+    return;
+  }
+
+  const requestData = {
+    poseview: {
+      pdbCode: pdbId,
+      ligand: `${ligandCode}_${chain}_${residue}`
+    }
+  };
+
+  console.log("Sending request to PoseView API with data:", requestData);
+
+  // ✅ Start loader UX
+  startPoseViewLoadingUX();
+
+  $("#diagram-container").html(
+    '<p style="color:#e2e8f0;font-size:0.9rem;">Generating interaction diagram...</p>'
+  );
+
+  fetch("https://proteins.plus/api/poseview_rest", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify(requestData),
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("PoseView API Response:", data);
+
+    if (data.status_code === 200 && data.result_png_picture) {
+      stopPoseViewLoadingUX(); // ✅ stop
+      $("#diagram-container").html(`<img src="${data.result_png_picture}" class="img-fluid">`);
+    }
+    else if (data.status_code === 202 && data.location) {
+      console.log("PoseView job processing. Retrying in 5 seconds...");
+      setTimeout(() => pollPoseView(data.location), 5000);
+    }
+    else if (data.status_code === 200 && data.location) {
+      console.log("Job exists, fetching result...");
+      pollPoseView(data.location);
+    }
+    else {
+      stopPoseViewLoadingUX(); // ✅ stop on error
+      console.error("PoseView Error: No image returned.", data);
+      $("#diagram-container").html(
+        '<p style="color:#f97373;">Error retrieving interaction diagram. Try again later.</p>'
+      );
+    }
+  })
+  .catch(error => {
+    stopPoseViewLoadingUX(); // ✅ stop on error
+    console.error("Fetch Error:", error);
+    $("#diagram-container").html(
+      '<p style="color:#f97373;">Error generating interaction diagram.</p>'
+    );
+  });
+}
+
+function pollPoseView(url) {
+  fetch(url)
+  .then(response => response.json())
+  .then(data => {
+    console.log("Polling PoseView API:", data);
+
+    if (data.status_code === 202) {
+      console.log("Still processing. Retrying in 5 seconds...");
+      setTimeout(() => pollPoseView(url), 5000);
+    }
+    else if (data.status_code === 200 && data.result_png_picture) {
+      stopPoseViewLoadingUX(); // ✅ stop when done
+      $("#diagram-container").html(`<img src="${data.result_png_picture}" class="img-fluid">`);
+    }
+    else {
+      stopPoseViewLoadingUX(); // ✅ stop on error
+      console.error("PoseView Error: No image returned.", data);
+      $("#diagram-container").html(
+        '<p style="color:#f97373;">Error retrieving interaction diagram.</p>'
+      );
+    }
+  })
+  .catch(error => {
+    stopPoseViewLoadingUX(); // ✅ stop on error
+    console.error("Error retrieving PoseView data:", error);
+    $("#diagram-container").html(
+      '<p style="color:#f97373;">Error retrieving interaction diagram.</p>'
+    );
+  });
+}
+
+
+function load3DViewer(pdbId, ligandCode, chain, residue) {
+        if (!pdbId) {
+            console.warn("No PDB ID provided, skipping 3D viewer load.");
+            return;
+        }
+
+        var stage = new NGL.Stage("viewport");
+        var pdbUrl = `https://files.rcsb.org/view/${pdbId}.pdb`;
+
+        stage.loadFile(pdbUrl, { defaultRepresentation: true }).then(function (o) {
+            // Protein
+            o.addRepresentation("cartoon", {
+                color: "spectrum"
+            });
+
+            // Ligand
+            if (ligandCode) {
+                o.addRepresentation("ball+stick", {
+                    sele: ligandCode,
+                    color: "element"
+                });
+            }
+
+            const ligandSelection = `${chain}:${residue}`;
+            o.autoView(ligandSelection || "ligand", 2000);
+            stage.animationControls.zoomMove(-15);
+
+            console.log(`Auto-centered on: ${ligandSelection}`);
+        }).catch(error => {
+            console.error("Error loading PDB:", error);
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        load3DViewer(
+            "{{ ligase.pdb_id }}",
+            "{{ ligase.ligand_code }}",
+            "{{ ligase.chain }}",
+            "{{ ligase.residue }}"
+        );
+    });
+</script>
+
+<script>
+function useAsRecruiter() {
+        const ligaseName = "{{ ligase.name }}";
+    
+        if (!ligaseName) {
+            alert("No ligase recruiter found for this page.");
+            return;
+        }
+    
+        const targetUrl = `/builder?ligase=${encodeURIComponent(ligaseName)}`;
+    
+        console.log("🧲 Using recruiter:", ligaseName);
+        console.log("➡ Redirecting to:", targetUrl);
+    
+        window.location.href = targetUrl;
+    }
+</script>
+{% endblock %}

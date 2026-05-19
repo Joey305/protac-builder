@@ -1,0 +1,11 @@
+Flask
+python-dotenv
+pandas
+numpy
+rdkit
+Pillow
+requests
+Werkzeug
+rich
+reportlab
+matplotlib

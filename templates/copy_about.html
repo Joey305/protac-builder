@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About — PROTAC Builder</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/images/ProtacBuilder_favicon.png">
+
+    <style>
+       /* ============================================
+        GLOBAL COLORS
+        ============================================ */
+        :root {
+            --teal: #4fb6c2;
+            --charcoal: #222626;
+            --yellow: #e8e85a;
+            --pink: #f0d1e4;
+            --cyan: #7ee3ff;
+
+            --button: #6d7285;
+            --button-hover: #031a6e;
+        }
+
+        /* ============================================
+        PAGE BASE
+        ============================================ */
+        body {
+            margin: 0;
+            background: var(--charcoal);
+            color: #f2f2f2;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Animated BG */
+        #molecule-bg {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #2a2a2a 0%, #1b1b1b 100%);
+            z-index: -2;
+        }
+        #molecule-bg::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image:
+                radial-gradient(circle, rgba(255,255,255,.06) 2px, transparent 2px),
+                radial-gradient(circle, rgba(255,255,255,.04) 1.5px, transparent 1.5px),
+                radial-gradient(circle, rgba(255,255,255,.03) 1px, transparent 1px);
+            background-size: 140px 140px, 90px 90px, 65px 65px;
+            animation: moleculeDrift 120s linear infinite;
+        }
+        @keyframes moleculeDrift {
+            from { transform: translate(0,0) rotate(0deg); }
+            to   { transform: translate(200px,100px) rotate(360deg); }
+        }
+
+        /* ============================================
+        NAV BAR
+        ============================================ */
+        #nav-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 70px;
+            pointer-events: none;
+            background-image: url('/static/images/noise.png');
+            opacity: .15;
+            z-index: 5;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 64px;
+
+            background: rgba(20,20,20,0.55);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,.05);
+            box-shadow: 0 2px 14px rgba(0,0,0,.35);
+
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 0 40px;
+
+            z-index: 999;
+            transition: .3s ease;
+        }
+        .top-nav.shrink {
+            height: 50px;
+            padding: 0 28px;
+        }
+
+        .top-nav a {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+
+            font-size: 15px;
+            font-weight: 650;
+
+            color: var(--cyan);
+            text-decoration: none;
+
+            transition: .25s ease;
+        }
+        .top-nav a:hover {
+            color: var(--yellow);
+            text-shadow: 0 0 6px rgba(232,232,90,.6);
+        }
+
+        /* Underline effect */
+        .top-nav a::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -2px;
+            width: 0%;
+            height: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, var(--cyan), var(--yellow));
+            border-radius: 2px;
+            transition: .25s ease;
+        }
+        .top-nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Icon wiggle */
+        .top-nav a .emoji {
+            transition: transform .25s ease;
+        }
+        .top-nav a:hover .emoji {
+            transform: rotate(8deg) scale(1.15);
+        }
+
+        /* Spacer below fixed header */
+        .header-spacer {
+            height: 90px;
+        }
+
+        /* ============================================
+        CONTAINER
+        ============================================ */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 22px;
+        }
+
+        .container p,
+        .container h1,
+        .container h2,
+        .container h3,
+        .container h4,
+        .container h5 {
+            text-align: center !important;
+        }
+
+        .container p {
+            max-width: 750px;
+            margin: 0 auto 20px auto;
+            line-height: 1.65;
+        }
+
+        /* Remove bullets */
+        .container ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0 auto 20px auto;
+        }
+        .container ul li {
+            text-align: center;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        /* Link styling */
+        .container a,
+        .intro-polished a {
+            color: #7ee3ff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(126,227,255,.25);
+            transition: .25s ease;
+        }
+        .container a:hover,
+        .intro-polished a:hover {
+            color: var(--yellow);
+            border-bottom-color: var(--yellow);
+            text-shadow: 0 0 8px rgba(232,232,90,.45);
+        }
+
+        /* ============================================
+        HERO BOX
+        ============================================ */
+        .hero-box {
+            background: var(--pink);
+            padding: 28px;
+            border-radius: 16px;
+            color: var(--charcoal);
+
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeSlide 1s ease forwards;
+        }
+        .hero-box h1 {
+            font-size: 32px;
+            font-weight: 900;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+        SECTION BOXES
+        ============================================ */
+        .section-box {
+            background: #2f3434;
+            border: 2px solid #3c4444;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+
+            animation: fadeSection .8s ease;
+        }
+        @keyframes fadeSection {
+            from { opacity: 0; transform: translateY(26px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+        BUTTON
+        ============================================ */
+        .button {
+            background: var(--button);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            display: inline-block;
+            transition: .25s ease;
+        }
+        .button:hover {
+            background: var(--button-hover);
+            box-shadow: 0 0 12px rgba(3,26,110,.6);
+        }
+
+        /* ============================================
+        RELATED GRID
+        ============================================ */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+            gap: 22px;
+            margin-top: 20px;
+        }
+        .related-card {
+            text-align: center;
+            padding: 24px;
+            background: #2f3434;
+            border: 2px solid #3c4444;
+            border-radius: 14px;
+            transition: .25s ease;
+        }
+        .related-card:hover {
+            transform: translateY(-6px);
+            background: #3d4444;
+            border-color: var(--teal);
+            box-shadow: 0 0 12px rgba(79,182,194,.5);
+        }
+
+        /* ============================================
+        FOOTER & FLOAT BUTTON
+        ============================================ */
+        #floating-back-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+
+            background: var(--teal);
+            padding: 14px;
+
+            border-radius: 50%;
+            font-size: 22px;
+            text-decoration: none;
+            color: #000;
+
+            transition: .2s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,.25);
+        }
+        #floating-back-btn:hover {
+            background: var(--yellow);
+        }
+
+        footer {
+            text-align: center;
+            color: #aaa;
+            padding-bottom: 40px;
+            margin-top: 50px;
+        }
+        footer span {
+            color: var(--yellow);
+        }
+
+        /* ============================================
+        SLIDER
+        ============================================ */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            max-width: 780px;
+            margin: 25px auto;
+        }
+        .slider {
+            overflow: hidden;
+            border-radius: 14px;
+            border: 2px solid #3c4444;
+            background: rgba(255,255,255,.03);
+            box-shadow: 0 0 18px rgba(0,0,0,.35);
+        }
+        .slide {
+            display: none;
+            opacity: 0;
+            transform: translateX(40px);
+            transition: .7s ease;
+        }
+        .slide.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .slide img {
+            width: 100%;
+            border-radius: 14px;
+        }
+        .caption {
+            text-align: center;
+            padding: 12px;
+            background: rgba(0,0,0,.25);
+            border-top: 1px solid rgba(255,255,255,.05);
+            color: #7ee3ff;
+        }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 15px;
+        }
+        .slider-btn {
+            background: var(--button);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: .25s ease;
+        }
+        .slider-btn:hover {
+            background: var(--button-hover);
+            box-shadow: 0 0 10px rgba(3,26,110,.5);
+        }
+
+        /* ============================================
+        INTRO SECTION
+        ============================================ */
+        .intro-polished {
+            text-align: center;
+            font-size: 18px;
+            max-width: 780px;
+            margin: 0 auto 18px auto;
+            line-height: 1.7;
+            color: #d9e6e8;
+        }
+
+        /* Tooltip */
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            background: #222626;
+            border: 1px solid var(--teal);
+            color: var(--yellow);
+
+            width: 240px;
+            padding: 10px;
+            border-radius: 6px;
+
+            position: absolute;
+            z-index: 50;
+            line-height: 1.4;
+
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity .25s ease;
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* ============================================
+        PROTAC ANATOMY (ANIMATED)
+        ============================================ */
+        .protac-anatomy {
+            margin: 40px auto;
+            padding: 30px 25px;
+            max-width: 1100px;
+            border: 3px solid var(--yellow);
+            border-radius: 14px;
+            background: rgba(34,38,38,0.65);
+            backdrop-filter: blur(6px);
+
+            opacity: 0;
+            animation: protacGlow 0.5s ease forwards;
+        }
+        @keyframes protacGlow {
+            from { opacity: 0; box-shadow: none; }
+            to   { opacity: 1; box-shadow: 0 0 25px rgba(232,232,90,.25); }
+        }
+
+        .protac-anatomy.run {
+            animation: protacGlow 1s ease forwards;
+        }
+
+        .protac-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--yellow);
+            margin-bottom: 25px;
+            opacity: 0;
+            animation: titleFade 1s ease forwards;
+            animation-delay: 3.4s;
+        }
+        @keyframes titleFade {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .protac-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 10px 15px;
+        }
+
+        /* MODULE BASE */
+        .module {
+            flex: 1;
+            text-align: center;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            background: #222626;
+            opacity: 0;
+        }
+        .warhead { border: 3px solid var(--teal); color: var(--teal); }
+        .linker  { border: 3px solid #9fe38c; color: #9fe38c; }
+        .ligase  { border: 3px solid var(--pink); color: var(--pink); }
+
+        /* Lines */
+        .connector-line {
+            width: 80px;
+            height: 4px;
+            background: rgba(253, 215, 162, 0.926);
+            border-radius: 1px;
+            opacity: 0;
+        }
+
+        /* Animations */
+        @keyframes floatInLeft {
+            from { transform: translateX(-200px) scale(.8); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes floatInRight {
+            from { transform: translateX(200px) scale(.8); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes dropIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to   { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes lineAppear {
+            from { transform: scaleX(0); opacity: 0; }
+            to   { transform: scaleX(1); opacity: 1; }
+        }
+
+        /* Apply animation timing */
+        .animate-warhead { animation: floatInLeft .9s ease-out forwards; animation-delay: .3s; }
+        .animate-ligase  { animation: floatInRight .9s ease-out forwards; animation-delay: 1s; }
+        .animate-linker  { animation: dropIn .8s ease-out forwards; animation-delay: 2s; }
+
+        .animate-line {
+            transform-origin: center;
+            animation: lineAppear .7s ease-out forwards;
+            animation-delay: 2.8s;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .protac-inner { flex-direction: column; }
+            .connector-line {
+                width: 4px;
+                height: 30px;
+            }
+        }
+
+
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 180, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparklePop 1.2s ease-out forwards;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 150, 0.8));
+        }
+
+        @keyframes sparklePop {
+            0% {
+                transform: scale(0.2) translate(0,0);
+                opacity: 1;
+            }
+            70% {
+                transform: scale(1.6) translate(
+                    calc((var(--x, 0) - 50) * 1px),
+                    calc((var(--y, 0) - 50) * 1px)
+                );
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+        }
+
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .tool-title {
+            color: #7ee3ff;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .link-glow {
+            color: #7ee3ff;
+            text-decoration: none;
+        }
+        .link-glow:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 6px rgba(126, 227, 255, 0.7);
+        }
+
+        .tool-divider {
+            border: none;
+            height: 1px;
+            margin: 22px 0;
+            background: linear-gradient(
+                to right,
+                rgba(255,255,255,0) 0%,
+                rgba(126,227,255,0.3) 50%,
+                rgba(255,255,255,0) 100%
+            );
+        }
+
+        .nice-list {
+            margin-top: 10px;
+            padding-left: 18px;
+        }
+
+        .highlight {
+            color: #ffd966;
+            font-weight: 600;
+        }
+
+
+        /* Overall grid */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        /* Card container */
+        .tool-card {
+            background: rgba(20, 30, 40, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.18);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+        }
+
+        /* Hover glow */
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 18px rgba(0, 255, 255, 0.4);
+            border-color: rgba(0, 255, 255, 0.45);
+        }
+
+        /* Icon */
+        .tool-icon {
+            font-size: 2.1rem;
+            margin-bottom: 10px;
+        }
+
+        /* Titles */
+        .tool-card h3 {
+            font-size: 1.3rem;
+            color: #7ee3ff;
+            margin-bottom: 10px;
+        }
+        .tool-card h3 span {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Paragraphs */
+        .tool-card p {
+            color: #cdeaff;
+            line-height: 1.45;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: #ffd86b;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .tool-btn {
+            display: inline-block;
+            margin-top: 12px;
+            color: #7ee3ff;
+            border: 1px solid #7ee3ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: 0.25s;
+        }
+        .tool-btn:hover {
+            background: rgba(126, 227, 255, 0.1);
+            box-shadow: 0 0 10px rgba(126,227,255,0.5);
+        }
+
+        /* Divider list section */
+        .nice-list {
+            padding-left: 16px;
+            margin-top: 10px;
+        }
+        .nice-list li {
+            margin-bottom: 4px;
+        }
+
+        /* Glow under unified pipeline card */
+        .ecosystem-glow {
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(
+                to right,
+                rgba(255,215,100,0) 0%,
+                rgba(255,215,100,0.45) 50%,
+                rgba(255,215,100,0) 100%
+            );
+            border-radius: 0 0 14px 14px;
+            pointer-events: none;
+        }
+
+
+
+        /* GLOWING FOOTER */
+.glow-footer {
+    margin-top: 60px;
+    padding: 40px 25px 25px 25px;
+
+    background: rgba(10, 15, 18, 0.75);
+    border-top: 3px solid transparent;
+
+    /* Animated color-shifting border */
+    border-image: linear-gradient(
+        90deg,
+        #4fb6c2,
+        #e8e85a,
+        #f0d1e4,
+        #7ee3ff,
+        #4fb6c2
+    ) 1;
+    animation: footerBorderShift 8s linear infinite;
+
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -8px 35px rgba(0,0,0,0.4);
+}
+
+/* Border animation */
+@keyframes footerBorderShift {
+    0% { border-image-slice: 1; }
+    100% { border-image-slice: 1; }
+}
+
+/* Inner grid */
+.footer-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 30px;
+    margin-bottom: 35px;
+
+    opacity: 0;
+    animation: fadeUp 1s ease forwards;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Column titles */
+.footer-col h4 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #e8e85a;
+    font-weight: 800;
+    text-shadow: 0 0 10px rgba(232,232,90,0.4);
+}
+
+/* Links */
+.footer-col a {
+    display: block;
+    margin-bottom: 8px;
+    color: #7ee3ff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: 0.25s;
+}
+
+/* Neon hover glow */
+.footer-col a:hover {
+    color: #e8e85a;
+    text-shadow: 0 0 8px rgba(232,232,90,0.6);
+    transform: translateX(3px);
+}
+
+/* Bottom line text */
+.footer-bottom {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #bfc8c9;
+    opacity: 0;
+    animation: fadeUp 1.4s ease forwards;
+}
+
+.footer-bottom span {
+    color: var(--yellow);
+}
+
+/* =============================== */
+/*        IMAGE SLIDER             */
+/* =============================== */
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 780px;
+    margin: 30px auto;
+}
+
+.slider {
+    overflow: hidden;
+    border-radius: 14px;
+    border: 2px solid rgba(126,227,255,0.25);
+    background: rgba(255,255,255,0.03);
+    box-shadow: 0 0 25px rgba(0, 200, 255, 0.2);
+}
+
+.slide {
+    display: none;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity .7s ease, transform .7s ease;
+}
+
+.slide.active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.slide img {
+    width: 100%;
+    border-radius: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.caption {
+    text-align: center;
+    padding: 12px;
+    color: #7ee3ff;
+    background: rgba(0,0,0,0.25);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    font-size: 14.5px;
+    text-shadow: 0 0 6px rgba(126,227,255,0.4);
+}
+
+/* Slider Controls */
+.slider-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.slider-btn {
+    background: #4fb6c2;
+    color: #1a1a1a;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    box-shadow: 0 0 12px rgba(79,182,194,0.4);
+}
+
+.slider-btn:hover {
+    background: #e8e85a;
+    box-shadow: 0 0 16px rgba(232,232,90,0.5);
+    transform: translateY(-2px);
+}
+
+
+
+
+/* ======================================================= */
+/*      MULTI-COLOR GLOWING AURA BEHIND ANY CONTAINER      */
+/* ======================================================= */
+
+.glow-aura-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+/* FRONT glow (your existing golden glow stays intact) */
+.glow-aura-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: -18px;
+    border-radius: 16px;
+    z-index: -1;
+
+    background: radial-gradient(
+        circle,
+        rgba(255,215,90,0.45),
+        rgba(255,215,90,0.10),
+        transparent 70%
+    );
+
+    filter: blur(14px);
+    opacity: 0.85;
+}
+
+/* BACK animated color-shifting aura */
+.glow-aura-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: -40px;
+    border-radius: 22px;
+    z-index: -2;
+
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgba(0,255,180,0.30) 0%,
+        rgba(0,200,255,0.25) 30%,
+        rgba(255,140,150,0.30) 60%,
+        rgba(0,0,0,0) 85%
+    );
+
+    filter: blur(45px) brightness(1.5);
+    opacity: 0.75;
+
+    animation: auraPulse 8s ease-in-out infinite alternate,
+               auraShift 18s linear infinite;
+}
+
+/* Smooth pulsing */
+@keyframes auraPulse {
+    0%   { transform: scale(0.9); opacity: 0.70; }
+    50%  { transform: scale(1.1); opacity: 0.90; }
+    100% { transform: scale(1.0); opacity: 0.75; }
+}
+
+/* Slow rotating color shift for twinkle effect */
+@keyframes auraShift {
+    0% {
+        filter: blur(45px) hue-rotate(0deg);
+    }
+    33% {
+        filter: blur(48px) hue-rotate(90deg);
+    }
+    66% {
+        filter: blur(48px) hue-rotate(180deg);
+    }
+    100% {
+        filter: blur(45px) hue-rotate(360deg);
+    }
+}
+
+/* ================================================================
+   NEW HERO SECTION (KEEPING YOUR ORIGINAL LOOK)
+   ================================================================ */
+
+.hero-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 40px auto 60px auto;
+    padding: 50px 20px;
+    border-radius: 22px;
+
+    background: linear-gradient(
+        145deg,
+        rgba(255, 215, 240, 0.12),
+        rgba(126, 227, 255, 0.10)
+    );
+
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 24px rgba(255,255,255,0.05);
+
+    overflow: hidden;
+    text-align: center;
+}
+
+/* Soft animated glow ring behind */
+.hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 180%;
+    height: 180%;
+    transform: translate(-50%, -50%);
+
+    background: radial-gradient(
+        circle,
+        rgba(255,255,160,0.25),
+        rgba(255,160,255,0.18),
+        rgba(0,255,240,0.15),
+        transparent 70%
+    );
+
+    filter: blur(80px);
+    animation: heroGlowShift 14s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes heroGlowShift {
+    0% { transform: translate(-50%, -50%) scale(0.95); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+    100% { transform: translate(-50%, -50%) scale(1.0); }
+}
+
+/* ================================================================
+   HERO TITLE + TAGLINE BASE STYLES
+   ================================================================ */
+
+.hero-title {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #ffd6f9;
+    text-shadow: 0 0 12px rgba(255,180,240,0.45);
+    margin-bottom: 15px;
+}
+
+.hero-tagline {
+    font-size: 19px;
+    color: #d7f8ff;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.hero-tagline span {
+    color: #ffe17a;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255,215,100,.6);
+    display: inline-block;
+}
+
+/* ================================================================
+   HERO TEXT ANIMATIONS — Smooth, elegant, scientific
+   ================================================================ */
+
+/* Title animation: fade → lift → subtle scale-in */
+.animate-hero-title {
+    opacity: .5Í;
+    transform: translateY(20px) scale(0.97);
+    animation: heroTitleIn 1s ease forwards;
+}
+
+@keyframes heroTitleIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px) scale(0.97);
+        text-shadow: none;
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 10px rgba(255, 200, 255, 0.35);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        text-shadow: 0 0 6px rgba(255, 200, 255, 0.22);
+    }
+}
+
+/* Tagline animation: softer, slower, with neon shimmer */
+.animate-hero-tagline {
+    opacity: 1;
+    transform: translateY(20px);
+    animation: heroTaglineIn 1.2s ease forwards;
+    animation-delay: 0.25s;
+}
+
+@keyframes heroTaglineIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px);
+        filter: blur(3px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+        text-shadow: 0 0 8px rgba(126, 227, 255, 0.5);
+    }
+    100% {
+        text-shadow: 0 0 4px rgba(126, 227, 255, 0.25);
+    }
+}
+
+/* Optional: highlight pulse (you had it disabled) */
+@keyframes heroHighlightPulse {
+    0%   { text-shadow: none; opacity: 0; transform: scale(0.9); }
+    60%  { opacity: 1; transform: scale(1.03); text-shadow: 0 0 10px rgba(255,215,100,0.65); }
+    100% { transform: scale(1.0); text-shadow: 0 0 6px rgba(255,215,100,0.45); }
+}
+
+
+/* ==========================================================
+   DockQ Tooltip — Neon Scientific Glow
+   ========================================================== */
+
+.dockq-tooltip {
+    position: relative;
+    cursor: pointer;
+    font-weight: bold;
+    color: #7ee3ff;
+    text-shadow: 0 0 8px rgba(126, 227, 255, 0.55);
+}
+
+.dockq-tooltip:hover {
+    color: #a8f6ff;
+}
+
+/* Tooltip bubble */
+.dockq-tooltip .dockq-tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+
+    width: 280px;
+    background: rgba(15, 35, 55, 0.9);
+    color: #d0f7ff;
+    padding: 14px 18px;
+    border-radius: 12px;
+
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 130%;
+
+    font-size: 14px;
+    line-height: 1.45;
+    z-index: 30;
+
+    box-shadow: 0 0 14px rgba(0,255,255,0.35);
+    backdrop-filter: blur(8px);
+
+    transition: opacity .25s ease, transform .25s ease;
+    transform-origin: top center;
+}
+
+/* Small triangular pointer */
+.dockq-tooltip .dockq-tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent rgba(15,35,55,0.9) transparent;
+}
+
+/* Hover reveal */
+.dockq-tooltip:hover .dockq-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(4px);
+}
+
+
+.tool-integrations {
+    text-align: center;
+}
+
+.tool-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.tool-card {
+    text-align: center;
+}
+
+
+/* Base nav container */
+.top-nav-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+}
+
+/* Brand */
+.top-nav-brand {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+/* Desktop menu */
+.top-nav-menu {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+}
+
+.top-nav-menu a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Hamburger Button */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    width: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.hamburger span {
+    width: 100%;
+    height: 3px;
+    background: #cbd5e1;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+/* Fullscreen Mobile Menu */
+@media (max-width: 768px) {
+    .top-nav-menu {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        flex-direction: column;
+        padding-top: 5rem;
+        padding-left: 1.5rem;
+        gap: 1.2rem;
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .top-nav-menu.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .top-nav-menu li {
+        width: 100%;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    /* Turn hamburger into X */
+    .hamburger.active span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    /* Hide desktop links */
+    .top-nav-menu a {
+        font-size: 1.1rem;
+        display: block;
+        padding: 0.6rem 0;
+    }
+}
+
+/* Add spacing below fixed nav */
+.header-spacer {
+    height: 68px;
+}
+
+.top-nav-menu {
+    margin-right: 2rem; /* prevents clipping */
+}
+
+/* FORCE MOBILE DROPDOWN TO BE BLACK */
+@media (max-width: 768px) {
+    .top-nav-menu,
+    .top-nav-menu * {
+        background: #000 !important;
+    }
+}
+
+.menu-toggle {
+  margin-right: 2rem !important;
+}
+
+
+.top-nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hamburger {
+    margin-left: auto !important;  /* pushes it to the right */
+    margin-right: 1.5rem !important; /* shifts it left from the screen edge */
+}
+
+.top-nav-menu.show::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+}
+
+/* Move the X horizontally when active */
+.hamburger.active {
+    transform: translateX(-10px); /* adjust as needed */
+}
+
+.nav-new {
+    color: #facc15 !important;
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+}
+
+
+
+    </style>
+</head>
+
+
+<body>
+<div id="nav-bg"></div>
+
+
+<!-- Animated background -->
+<div id="molecule-bg"></div>
+
+<!-- TOP NAVIGATION -->
+<nav class="top-nav-container">
+    <div class="top-nav-brand">
+        PROTAC Builder
+    </div>
+
+    <button class="hamburger" id="hamburgerBtn">
+        <span></span><span></span><span></span>
+    </button>
+
+    <ul class="top-nav-menu" id="mobileMenu">
+        <li><a href="/copy/COPYindex">🧪 PROTAC Builder</a></li>
+        <li>
+            <a href="/copy/COPYbuilder" class="nav-new">
+                ⚙️ API Builder
+            </a>
+        </li>
+
+        <li><a href="/copy/about">📘 About</a></li>
+        <li><a href="https://vlisemod.com" target="_blank">🧬 V-LiSEMOD</a></li>
+        <li><a href="/copy/ligase_ligandalyzer" target="_blank">🔬 Ligandalyzer</a></li>
+        <li><a href="https://warheadhunter.com/" target="_blank">🔬 Warhead Hunter</a></li>
+        <li><a href="https://schurerlab.org" target="_blank">🏛️ Schürer Lab</a></li>
+    </ul>
+</nav>
+
+<div class="header-spacer"></div>
+
+
+
+
+
+<div class="container">
+
+    <!-- NEW HERO SECTION -->
+    <section class="hero-wrapper">
+
+        <!-- Animated glow ring -->
+        <div class="hero-glow"></div>
+
+        <!-- Inner hero content -->
+        <div class="hero-content">
+            <h1 class="hero-title animate-hero-title">About the PROTAC Builder</h1>
+
+            <p class="hero-tagline animate-hero-tagline">
+                A next-generation platform for <span>rapid degrader design</span> —
+                bridging chemistry, structural biology, and AI-assisted modeling.
+            </p>
+        </div>
+
+
+    </section>
+
+    <section id="about-protac" class="intro-section fade-container">
+
+        <p class="intro-polished fade-in delay-0">
+            The PROTAC Builder is a free, open-access molecular design platform developed by the 
+            <a href="https://schurerlab.org" target="_blank">University of Miami Schürer System Drug Discovery Lab</a>.
+        </p>
+
+        <p class="intro-polished fade-in delay-1">
+            A 
+            <span class="highlight-protac tooltip">
+                PROTAC
+                <span class="tooltip-text">
+                    A PROteolysis TArgeting Chimera — a bifunctional degrader that
+                    recruits an E3 ligase to destroy a target protein.
+                </span>
+            </span>
+            is a small molecule designed to redirect the cell's ubiquitin–proteasome machinery 
+            toward disease-causing proteins. For a deeper introduction and benchmarking analysis, 
+            see our 2025 publication in 
+            <a href="https://www.nature.com/articles/s41598-025-21502-8" target="_blank">
+                Scientific Reports
+            </a>.
+        </p>
+
+    </section>
+
+
+
+        
+
+        <!-- INFOGRAPHIC -->
+        <div class="glow-aura-wrapper">
+            <div class="protac-anatomy fade-in">
+
+                <div class="protac-title">🔥 PROTAC</div>
+
+                <div class="protac-inner">
+
+                    <div class="module warhead">
+                        <span>🧪 Warhead</span>
+                    </div>
+
+                    <div class="connector-line"></div>
+
+                    <div class="module linker">
+                        <span>🧩 Linker</span>
+                    </div>
+
+                    <div class="connector-line"></div>
+
+                    <div class="module ligase">
+                        <span>🏛 E3 Ligase</span>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <p class="intro-polished fade-in" style="animation-delay:0.30s;">
+            This platform enables rapid web-based construction of complete PROTAC molecules by 
+            combining a warhead, chemical linker, and E3 ligase recruiter.
+            Modern degrader design relies heavily on 
+            <a href="#scientific-context" class="anchor-link" id="modeling-link">
+                constraint-driven geometric modeling
+            </a>, currently the most accurate computational strategy for evaluating
+            ternary-complex feasibility.
+        </p>
+
+    </section>
+
+
+
+    <!-- TERMS OF USE -->
+    <h2>Terms of Use</h2>
+    <div class="section-box">
+        <ul>
+            <li>✔ Free for academic, commercial, nonprofit, and personal use.</li>
+            <li>✔ You may export, publish, or commercialize any generated structure.</li>
+            <li>✔ Anonymous logs (timestamp + SMILES only) support community metrics.</li>
+            <li>✔ No cookies, tracking scripts, or personal data collection.</li>
+            <li>✔ Results are provided as-is and should be scientifically verified.</li>
+        </ul>
+    </div>
+
+    <!-- =============================== -->
+    <!--        HOW THE BUILDER WORKS    -->
+    <!-- =============================== -->
+    <h2>How the Builder Works</h2>
+
+    <div class="section-box how-it-works">
+
+        <p class="how-desc">
+            The PROTAC Builder uses three synchronized ChemDoodle editors—Warhead, Linker,
+            and E3 Ligase Recruiter—to create complete bifunctional degrader molecules.
+            Once assembled, the builder merges fragments, generates a clean 3D-ready MOL,
+            and outputs canonical SMILES suitable for PRosettaC, docking workflows,
+            MD simulations, and cheminformatics pipelines.
+        </p>
+
+        <!-- IMAGE SLIDER CONTAINER -->
+        <div class="slider-container">
+
+            <div class="slider">
+                <div class="slide active">
+                    <img src="/static/images/protac-builder-showcase.png" alt="Builder Components">
+                    <div class="caption">🛠️ Design: Warhead • Linker • Ligase Recruiter</div>
+                </div>
+
+                <div class="slide">
+                    <img src="/static/images/protac-generated-showcase.png" alt="Generated PROTAC">
+                    <div class="caption">⚗️ Generated PROTAC: Clean Structure + SMILES</div>
+                </div>
+            </div>
+
+            <!-- Slider Controls -->
+            <div class="slider-controls">
+                <button class="slider-btn prev">◀</button>
+                <button class="slider-btn next">▶</button>
+            </div>
+
+        </div>
+
+        <p class="centered" style="margin-top:25px;">
+            <a href="https://youtu.be/CYYsG1MpsE4" class="button" target="_blank">
+                ▶ Watch Tutorial Video
+            </a>
+        </p>
+
+    </div>
+
+    <!-- SCIENTIFIC CONTEXT -->
+    <h2 id="scientific-context">Scientific Context</h2>
+    <div class="section-box">
+
+        <p>
+            Accurate structural modeling of PROTAC ternary complexes remains one of the most 
+            persistent challenges in degrader design. Even small geometric distortions between 
+            the warhead, linker, and E3-recruiting ligand can dramatically alter whether a ternary 
+            complex is physically achievable.
+        </p>
+
+        <p>
+            Our 2025 study, 
+            <strong>“PRosettaC outperforms AlphaFold3 for modeling PROTAC ternary complexes”</strong>
+            (Scientific Reports), provides the first systematic benchmarking of
+            <span style="color:#7ee3ff;font-weight:bold;">constraint-driven geometric modeling</span> 
+            (PRosettaC) versus 
+            <span style="color:#7ee3ff;font-weight:bold;">deep-learning whole-complex prediction</span> 
+            (AlphaFold3).
+            We analyzed 36 experimentally solved PROTAC ternary complexes and found that 
+            geometry-constrained sampling consistently produced ternary poses with higher 
+
+            <!-- PREMIUM DockQ Tooltip + Hyperlink -->
+            <a href="https://academic.oup.com/bioinformatics/article/40/10/btae586/7796530"
+            target="_blank"
+            class="dockq-tooltip">
+
+                DockQ
+
+                <span class="dockq-tooltip-text">
+                    <strong>DockQ v2</strong> — a 0–1 interface-quality score that measures how well
+                    two biomolecules interact (higher = better agreement with the reference structure).<br><br>
+
+                    • <strong>0.80–1.00</strong> → Near-Native Interface <br>
+                    • <strong>0.50–0.80</strong> → Medium Interface <br>
+                    • <strong>0.23–0.49</strong> → Acceptable Interface <br>
+                    • <strong>0.00–0.23</strong> → Incorrect Interface <br><br>
+
+                    DockQ v2 supports protein–protein, protein–nucleic acid, and 
+                    protein–small-molecule interactions — making it ideal for evaluating 
+                    PROTAC ternary complexes. It allows direct comparison of different 
+                    <em>linker designs</em> on the same target–E3 interface to identify which 
+                    linker geometries produce the most native-like interactions.
+                </span>
+
+
+            </a>
+
+               
+
+
+            agreement, especially when linker conformational space was well-anchored 
+            by known attachment atoms.
+        </p>
+
+        <div style="text-align:center; margin: 22px 0;">
+            <a href="https://www.nature.com/articles/s41598-025-21502-8" target="_blank">
+                <img src="/static/images/Fig1.png"
+                    alt="Median-centered DockQ score distributions"
+                    style="width:90%; max-width:780px; border-radius:12px; cursor:pointer; box-shadow:0 0 14px rgba(0,0,0,0.35);">
+            </a>
+            <div style="color:#7ee3ff; margin-top:10px; font-size:14px;">
+                Figure 1. Median-centered DockQ score distributions for PRosettaC, AF3 Core Complex, 
+                and AF3 Minimal Complex across all benchmark ternary systems.
+                PRosettaC shows broader variability and higher medians in challenging systems 
+                (e.g., 6BN7, 6ZHC, 7KHH, 8QVU).
+            </div>
+        </div>
+
+        <p>
+            AlphaFold3 accurately models local interfaces, but without explicit geometric constraints, it 
+            tends to hallucinate linker trajectories or collapse the degrader into non-physical poses — 
+            a limitation particularly evident for flexible or long linker chemotypes.
+        </p>
+
+        <div style="text-align:center; margin: 22px 0;">
+            <a href="https://www.nature.com/articles/s41598-025-21502-8" target="_blank">
+                <img src="/static/images/AF3_PROSETTAC.png"
+                    alt="DockQ CDF Comparison"
+                    style="width:90%; max-width:780px; border-radius:12px; cursor:pointer; box-shadow:0 0 14px rgba(0,0,0,0.35);">
+            </a>
+            <div style="color:#7ee3ff; margin-top:10px; font-size:14px;">
+                Figure 2. Cumulative DockQ distributions comparing AF3 full complexes, AF3 minimal complexes, 
+                and PRosettaC.
+            </div>
+        </div>
+
+        <p>
+            The PROTAC Builder bridges this gap by generating chemically accurate 
+            <strong>SMILES + anchor-aligned linker geometries</strong>, fully compatible with PRosettaC, 
+            allowing researchers to explore biophysically plausible ternary assemblies with far greater control.
+        </p>
+
+        <p style="text-align:center;margin-top:20px;">
+            <a href="https://www.nature.com/articles/s41598-025-21502-8" class="button" target="_blank">
+                📄 Read the Scientific Reports Paper
+            </a>
+        </p>
+
+    </div>
+
+
+
+    <h2>Tool Integrations</h2>
+
+    <div class="section-box tool-integrations">
+
+        <p class="leading-relaxed intro-text">
+            The PROTAC Builder is part of a unified molecular-design ecosystem developed by the 
+            <strong>University of Miami Schürer Lab</strong>.  
+            Together, these tools accelerate degrader discovery by integrating structural biology,
+            ligand intelligence, and cheminformatics.
+        </p>
+
+        <!-- Grid Container -->
+        <div class="tool-grid">
+
+            <!-- ========================= -->
+            <!-- V-LiSEMOD Card            -->
+            <!-- ========================= -->
+            <div class="tool-card">
+                <div class="tool-icon">🧬</div>
+                <h3>V-LiSEMOD<br><span>Viral Ligand Database</span></h3>
+
+                <p>
+                    <a href="https://vlisemod.com" target="_blank" class="link-glow">V-LiSEMOD</a> provides curated
+                    viral protein–ligand structures annotated with 
+                    <span class="highlight">solvent-exposed moieties</span> and
+                    fragmentable chemotypes.  
+                    Warheads identified here drop seamlessly into the PROTAC Builder.
+                </p>
+
+                <a href="https://vlisemod.com" target="_blank" class="tool-btn">Explore V-LiSEMOD →</a>
+            </div>
+
+            <!-- ========================= -->
+            <!-- Ligandalyzer Card         -->
+            <!-- ========================= -->
+            <div class="tool-card">
+                <div class="tool-icon">🔬</div>
+                <h3>Ligandalyzer<br><span>E3 Recruiter Explorer</span></h3>
+
+                <p>
+                    <a href="https://e3ligandalyzer.com/" 
+                    target="_blank" class="link-glow">Ligandalyzer</a> maps and clusters
+                    all published E3 ligase recruiters, including 
+                    <span class="highlight">scaffolds, attachment vectors, and tissue profiles</span>.  
+                    Any recruiter can be exported directly into the PROTAC Builder.
+                </p>
+
+                <a href="https://e3ligandalyzer.com/" 
+                target="_blank" class="tool-btn">Open Ligandalyzer →</a>
+            </div>
+
+            <!-- ========================= -->
+            <!-- Warhead Hunter Card       -->
+            <!-- ========================= -->
+            <div class="tool-card">
+                <div class="tool-icon">🎯</div>
+                <h3>Warhead Hunter<br><span>Target Ligand Explorer</span></h3>
+
+                <p>
+                    <a href="https://warheadhunter.com/" target="_blank" class="link-glow">Warhead Hunter</a>
+                    helps identify and organize
+                    <span class="highlight">target-binding ligands, warhead opportunities, and fragmentable chemotypes</span>
+                    for degrader design. Candidate warheads discovered here can feed directly into the PROTAC Builder workflow.
+                </p>
+
+                <a href="https://warheadhunter.com/" target="_blank" class="tool-btn">Open Warhead Hunter →</a>
+            </div>
+
+           <!-- ========================= -->
+            <!-- Unified Pipeline Card     -->
+            <!-- ========================= -->
+            <div class="tool-card">
+                <div class="tool-icon">🔗</div>
+                <h3>Unified Workflow<br><span>End-to-End Degrader Discovery Ecosystem</span></h3>
+
+                <p>
+                    The Schürer Lab platform is not a collection of isolated tools — it is a connected molecular-design
+                    ecosystem built to support every major stage of modern degrader discovery.
+                    <a href="https://vlisemod.com" target="_blank" class="link-glow">V-LiSEMOD</a> enables discovery of
+                    structurally annotated ligand starting points and solvent-exposed warhead opportunities;
+                    <a href="https://warheadhunter.com/" target="_blank" class="link-glow">Warhead Hunter</a> expands
+                    target-ligand and warhead exploration;
+                    <a href="https://e3ligandalyzer.com/" target="_blank" class="link-glow">Ligandalyzer</a> maps E3 ligase
+                    recruiters, scaffolds, and attachment strategies;
+                    <a href="/copy/COPYindex" class="link-glow">PROTAC Builder</a> rapidly assembles complete degrader designs;
+                    and <a href="https://github.com/Joey305/pymacs" target="_blank" class="link-glow">PyMACS</a> supports
+                    downstream molecular analysis and computational workflows.
+                </p>
+
+                <p>
+                    Together, these tools create a vertically integrated pipeline that moves from
+                    <span class="highlight">ligand discovery</span> to
+                    <span class="highlight">warhead selection</span>,
+                    <span class="highlight">recruiter optimization</span>,
+                    <span class="highlight">PROTAC assembly</span>, and finally into
+                    <span class="highlight">modeling, docking, and simulation-ready outputs</span>.
+                    The result is a faster, smarter, and more scientifically grounded path from idea to degrader candidate.
+                </p>
+
+                <ul class="nice-list">
+                    <li>📌 Discover high-value ligands, warheads, and fragmentable chemotypes</li>
+                    <li>📌 Compare E3 recruiters, attachment vectors, and scaffold families</li>
+                    <li>📌 Build complete PROTAC designs in seconds through the PROTAC Builder</li>
+                    <li>📌 Export candidates into PRosettaC, docking pipelines, MD workflows, and analytical toolchains</li>
+                    <li>📌 Keep the full design process inside one unified Schürer Lab ecosystem</li>
+                </ul>
+
+                <div class="ecosystem-glow"></div>
+            </div>
+
+        </div> <!-- end tool-grid -->
+
+    </div> <!-- end section-box -->
+
+
+
+
+    
+    <!-- RELATED TOOLS -->
+    <h2>Explore More Tools</h2>
+    <div class="related-grid">
+        <a class="related-card" href="https://vlisemod.com" target="_blank">
+            <div class="emoji">🧬</div>
+            <h3>V-LiSEMOD</h3>
+            <p>Viral ligand + solvent-exposed moiety database</p>
+        </a>
+
+        <a class="related-card" href="https://jmsum.com" target="_blank">
+            <div class="emoji">🧠</div>
+            <h3>JMSum</h3>
+            <p>AI-powered scientific paper summarizer</p>
+        </a>
+
+        <a class="related-card" href="https://e3ligandalyzer.com/" target="_blank">
+            <div class="emoji">🧪</div>
+            <h3>Ligandalyzer</h3>
+            <p>E3 ligase recruiter explorer</p>
+        </a>
+
+        <a class="related-card" href="https://warheadhunter.com/" target="_blank">
+            <div class="emoji">🎯</div>
+            <h3>Warhead Hunter</h3>
+            <p>Target ligand and warhead discovery platform</p>
+        </a>
+
+        <a class="related-card" href="https://github.com/schurerlab/protacbuilder" target="_blank">
+            <div class="emoji">📁</div>
+            <h3>GitHub Repo</h3>
+            <p>Source code + updates</p>
+        </a>
+    </div>
+
+    
+    <!-- CONTACT -->
+    <h2>Contact</h2>
+    <div class="section-box" style="text-align:center">
+        <p>For collaborations or bug reports:</p>
+        <p><a href="mailto:jxs794@miami.edu" style="color:var(--yellow);font-weight:bold;">📧 jxs794@miami.edu</a></p>
+
+        <p style="margin-top:10px;">
+            Developed by <strong>Joseph-Michael Schulz</strong><br>
+            University of Miami — Schürer Lab
+        </p>
+    </div>
+
+</div>
+<!-- GLOW FOOTER -->
+<footer class="glow-footer">
+
+    <div class="footer-inner">
+
+        <!-- COLUMN 1 — Explore -->
+        <div class="footer-col">
+            <h4>Explore</h4>
+
+            <!-- Local PROTAC Builder -->
+            <a href="/copy/COPYindex">PROTAC Builder</a>
+
+            <!-- Ligandalyzer -->
+            <a href="https://e3ligandalyzer.com/" target="_blank">
+                Ligase Explorer
+            </a>
+
+            <!-- Warhead Hunter -->
+            <a href="https://warheadhunter.com/" target="_blank">
+                Warhead Hunter
+            </a>
+
+            <!-- JMSum -->
+            <a href="https://jmsum.com" target="_blank">JMSum</a>
+
+            <!-- About Page -->
+            <a href="/copy/about">About Project</a>
+        </div>
+
+        <!-- COLUMN 2 — Modules -->
+        <div class="footer-col">
+            <h4>Modules</h4>
+
+            <!-- PROTAC Builder -->
+            <a href="/copy/COPYindex">PROTAC Builder</a>
+
+            <!-- API PROTAC Builder -->
+            <a href="/copy/COPYbuilder">API PROTAC Builder</a>
+
+            <!-- V-LiSEMOD -->
+            <a href="https://vlisemod.com" target="_blank">V-LiSEMOD</a>
+
+            <!-- PyMACS -->
+            <a href="https://github.com/Joey305/pymacs" target="_blank">PyMACS (Dev)</a>
+
+            <!-- AutoDock Suite (Pegasus login) -->
+            <a href="https://butters.rove-vernier.ts.net" target="_blank">
+                AutoDock Suite (Live)
+            </a>
+
+            <!-- AF3 Analyzer -->
+            <a href="https://github.com/Joey305/af3-Auto-analysis" target="_blank">
+                AF3 Analyzer (Dev)
+            </a>
+        </div>
+
+        <!-- COLUMN 3 — Resources -->
+        <div class="footer-col">
+            <h4>Resources</h4>
+
+            <!-- Main GitHub Repo -->
+            <a href="https://github.com/schurerlab/protacbuilder" target="_blank">
+                GitHub Repo
+            </a>
+
+            <!-- Docs (placeholder until ready) -->
+            <a href="https://github.com/schurerlab/protacbuilder?tab=readme-ov-file#table-of-contents">Documentation</a>
+
+            <!-- API Reference (placeholder) -->
+            <a href="/copy/api">API Reference</a>
+
+        </div>
+
+        <!-- COLUMN 4 — Connect -->
+        <div class="footer-col">
+            <h4>Connect</h4>
+
+            <!-- Contact -->
+            <a href="mailto:jxs794@miami.edusubject=Feedback About PROTAC Builder" >Contact</a>
+
+            <!-- Feedback -->
+            <a href="mailto:jxs794@miami.edu?subject=PROTAC Builder Feedback">
+                Feedback
+            </a>
+
+            <!-- Contribute (GitHub or internal page) -->
+            <a href="mailto:jxs794@miami.edu?subject=Collaboration on PROTAC Builder Project">Contribute</a>
+        </div>
+
+    </div>
+
+    <!-- Bottom line -->
+    <div class="footer-bottom">
+        © <span id="year"></span> Schürer Lab — University of Miami  
+        <br>Designed for molecular discovery and open science.
+    </div>
+
+</footer>
+
+<script>
+// =============================
+// FOOTER BEHAVIOR + LINK LOGIC
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+
+    const footer = document.querySelector(".glow-footer");
+
+    // ---- 1. Fade-in when footer enters viewport ----
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    footer.classList.add("visible"); 
+                    observer.unobserve(footer);
+                }
+            });
+        },
+        { threshold: 0.1 }
+    );
+
+    observer.observe(footer);
+
+
+    // ---- 2. Footer Link Behavior ----
+    document.querySelectorAll(".glow-footer a").forEach(link => {
+        const href = link.getAttribute("href");
+
+        // Skip empty links
+        if (!href || href === "#") return;
+
+        // External links (http or https)
+        if (href.startsWith("http://") || href.startsWith("https://")) {
+            link.setAttribute("target", "_blank");
+            link.setAttribute("rel", "noopener noreferrer");
+        }
+
+        // Internal navigation
+        if (href.startsWith("/") && !href.includes("http")) {
+            link.addEventListener("click", e => {
+                e.preventDefault();
+                document.body.classList.add("fade-out");
+                setTimeout(() => window.location.href = href, 150);
+            });
+        }
+    });
+
+});
+</script>
+
+<!-- Optional Fade-Out CSS -->
+<style>
+    body.fade-out {
+        opacity: 0;
+        transition: opacity .25s ease-out;
+    }
+
+    /* Add visibility animation to footer */
+    .glow-footer { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
+    .glow-footer.visible { opacity: 1; transform: translateY(0); }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const anatomy = document.querySelector(".protac-anatomy");
+    const warhead = document.querySelector(".warhead");
+    const linker = document.querySelector(".linker");
+    const ligase = document.querySelector(".ligase");
+    const lines = document.querySelectorAll(".connector-line");
+
+    // 1. Warhead + Ligase float inward
+    setTimeout(() => {
+        warhead.classList.add("animate-warhead");
+        ligase.classList.add("animate-ligase");
+    }, 200);
+
+    // 2. Linker drops in
+    setTimeout(() => {
+        linker.classList.add("animate-linker");
+    }, 800);
+
+    // 3. Lines animate
+    setTimeout(() => {
+        lines.forEach(line => line.classList.add("animate-line"));
+    }, 700);
+
+    // 4. Golden glow + sparkle effect
+    setTimeout(() => {
+        anatomy.classList.add("run");
+        createSparkleBurst(anatomy);
+    }, 3600);
+
+});
+</script>
+
+<script>
+// ---- Sparkle Burst Effect ----
+function createSparkleBurst(container) {
+    for (let i = 0; i < 20; i++) {
+        const sparkle = document.createElement("div");
+        sparkle.classList.add("sparkle");
+
+        // random position inside the container
+        sparkle.style.left = Math.random() * 100 + "%";
+        sparkle.style.top = Math.random() * 100 + "%";
+
+        container.appendChild(sparkle);
+
+        // auto-remove after animation
+        setTimeout(() => sparkle.remove(), 2500);
+    }
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const modelingLink = document.getElementById("modeling-link");
+    const sciSection = document.getElementById("scientific-context");
+
+    modelingLink.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        // Smooth scroll to target section
+        sciSection.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+        // Highlight flash animation
+        sciSection.style.transition = "background-color 0.6s ease";
+        sciSection.style.backgroundColor = "rgba(255, 255, 150, 0.18)";
+
+        setTimeout(() => {
+            sciSection.style.backgroundColor = "transparent";
+        }, 800);
+
+        // Sparkles!
+        createSparkleBurst(sciSection);
+    });
+});
+</script>
+
+<script>
+// ===============================
+// IMAGE SLIDER LOGIC
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+
+    const slides = document.querySelectorAll(".slide");
+    const prevBtn = document.querySelector(".slider-btn.prev");
+    const nextBtn = document.querySelector(".slider-btn.next");
+
+    let index = 0;
+
+    function showSlide(i) {
+        slides.forEach((s, idx) => {
+            s.classList.remove("active");
+            if (idx === i) s.classList.add("active");
+        });
+    }
+
+    nextBtn.addEventListener("click", () => {
+        index = (index + 1) % slides.length;
+        showSlide(index);
+    });
+
+    prevBtn.addEventListener("click", () => {
+        index = (index - 1 + slides.length) % slides.length;
+        showSlide(index);
+    });
+
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const targets = document.querySelectorAll(".dockq-tooltip");
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("fade-in-up");
+            }
+        });
+    }, { threshold: 0.35 });
+
+    targets.forEach(target => observer.observe(target));
+});
+</script>
+
+<style>
+.fade-in-up {
+    animation: fadeUp 0.7s ease forwards;
+    opacity: 0;
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const hamburger = document.querySelector(".hamburger");
+    const menu = document.querySelector(".top-nav-menu");
+
+    // Toggle menu open / close
+    hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("active");
+        menu.classList.toggle("show");
+    });
+
+    // Close when clicking any link inside menu
+    document.querySelectorAll(".top-nav-menu a").forEach(link => {
+        link.addEventListener("click", () => {
+            hamburger.classList.remove("active");
+            menu.classList.remove("show");
+        });
+    });
+
+    // Close when clicking outside the nav
+    document.addEventListener("click", (e) => {
+        const clickInsideMenu = menu.contains(e.target);
+        const clickHamburger = hamburger.contains(e.target);
+
+        if (!clickInsideMenu && !clickHamburger) {
+            hamburger.classList.remove("active");
+            menu.classList.remove("show");
+        }
+    });
+});
+</script>
+
+
+
+</body>
+</html>
+
+

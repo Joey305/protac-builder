@@ -1,0 +1,108 @@
+.protac-loader-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(2, 6, 23, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1800;
+}
+
+.protac-loader-panel,
+.protac-inline-loader {
+  width: min(620px, 92vw);
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  background: rgba(9, 16, 30, 0.96);
+  border: 1px solid rgba(56, 189, 248, 0.26);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.34);
+}
+
+.protac-loader-row,
+.pv-loading-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.protac-loader-text {
+  flex: 1 1 auto;
+}
+
+.pv-loading {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 12px 0;
+}
+
+.protac-deeppk-loader {
+  background:
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 38%),
+    rgba(15, 23, 42, 0.78);
+  border-color: rgba(56, 189, 248, 0.34);
+}
+
+.pv-loading-text {
+  flex: 1 1 auto;
+}
+
+.pv-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 3px solid rgba(226, 232, 240, 0.25);
+  border-top-color: rgba(226, 232, 240, 0.95);
+  animation: pvSpin 0.9s linear infinite;
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+@keyframes pvSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pv-loading-title {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.pv-loading-message {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  margin-bottom: 8px;
+  min-height: 2.5rem;
+}
+
+.pv-loading-message a {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.pv-loading-subtle {
+  color: rgba(226, 232, 240, 0.65);
+  font-size: 0.82rem;
+}
+
+.pv-mini-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.pv-mini-btn:hover {
+  border-color: rgba(148, 163, 184, 0.7);
+}

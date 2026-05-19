@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Ligand Editor{% endblock %}
+{% block body_class %}protac-page{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ChemDoodleWeb.css') }}">
+<style>
+/* Centering the container */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90vh;
+            padding: 20px;
+        }
+        
+        /* Style adjustments */
+        #ligand-editor {
+            border: 2px solid #007bff;
+            border-radius: 10px;
+        }
+
+        .save-btn {
+            width: 100%;
+            max-width: 400px;
+        }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container editor-container">
+        <h2 class="text-center">Modify Warhead: {{ ligand_data["ligand"] }}</h2>
+
+        <div class="card shadow p-4">
+            <canvas id="ligand-editor" width="400" height="400"></canvas>
+            <button id="ligandSaveButton" class="btn btn-success mt-3 save-btn" onclick="saveLigand()">Save & Open Viewer</button>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/ChemDoodleWeb.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ChemDoodleWeb-uis.js') }}"></script>
+<script>
+let sketcher;
+
+        window.onload = function () {
+            ChemDoodle.iChemLabsServer = null;
+
+            sketcher = new ChemDoodle.SketcherCanvas("ligand-editor", 400, 400, {
+                useServices: false,
+                includeToolbar: true,
+                oneMolecule: true
+            });
+
+            console.log("✅ ChemDoodle SketcherCanvas initialized.");
+
+            {% if ligand_data["smiles"] %}
+                var smiles = `{{ ligand_data['smiles'] }}`;
+                console.log("✅ Rendering Ligand:", "{{ ligand_data['ligand'] }}", "SMILES:", smiles);
+
+                $.ajax({
+                    url: "/api/ligand/modify",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ smiles: smiles }),
+                    success: function (data) {
+                        if (data.mol_block) {
+                            const molecule = ChemDoodle.readMOL(data.mol_block);
+                            sketcher.loadMolecule(molecule);
+                            console.log("✅ Ligand successfully loaded into ChemDoodle.");
+                        } else {
+                            console.error("❌ Failed to convert SMILES to MOL.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error converting SMILES to MOL:", error);
+                    }
+                });
+            {% else %}
+                console.warn("❌ No SMILES data available.");
+            {% endif %}
+        };
+
+        // ✅ Save + Reload with Modified Ligand
+        function saveLigand() {
+            const molecule = sketcher.getMolecule();
+            if (!molecule || molecule.atoms.length === 0) {
+                alert("❌ No molecule loaded to save!");
+                return;
+            }
+
+            const molBlock = ChemDoodle.writeMOL(molecule);
+            sessionStorage.setItem("modifiedLigand", molBlock);
+            alert("✅ Ligand modification saved.");
+
+            // ✅ Reload the page WITHOUT storing modified ligand globally
+            window.location.href = "/builder";
+        }
+
+
+
+        function getLigandFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("ligand"); // Returns ligand code or null if not found
+        }
+
+        function openNewLigandEditor(ligandCode) {
+            const newWindowURL = `/ligand-editor?ligand=${ligandCode}`;
+            window.open(newWindowURL, '_blank'); // Opens in a new tab
+        }
+</script>
+{% endblock %}

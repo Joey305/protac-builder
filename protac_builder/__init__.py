@@ -1,0 +1,1 @@
+"""Standalone PROTAC Builder package."""

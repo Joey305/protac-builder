@@ -1,0 +1,1378 @@
+{% extends "base.html" %}
+
+{% block title %}PROTAC Builder API{% endblock %}
+{% block body_class %}protac-page{% endblock %}
+
+{% block extra_head %}
+<style>
+  .docs-page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 2.75rem 1rem 4.5rem;
+  }
+
+  .docs-hero,
+  .docs-panel,
+  .docs-section,
+  .endpoint-card,
+  .snippet-card,
+  .workflow-card {
+    background:
+      radial-gradient(circle at top right, rgba(34, 211, 238, 0.1), transparent 34%),
+      linear-gradient(180deg, rgba(9, 18, 34, 0.98), rgba(7, 13, 26, 0.96));
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    border-radius: 24px;
+    box-shadow: 0 24px 56px rgba(2, 8, 23, 0.32);
+  }
+
+  .docs-hero {
+    padding: 2.4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(34, 211, 238, 0.12);
+    color: #a5f3fc;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .docs-hero h1 {
+    margin: 1rem 0 0.75rem;
+    color: #f0fdff;
+    font-size: clamp(2.3rem, 5vw, 3.8rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .docs-hero p {
+    max-width: 900px;
+    margin: 0;
+    color: #d6e7f8;
+    font-size: 1.05rem;
+    line-height: 1.78;
+  }
+
+  .badge-row,
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .badge-row {
+    margin-top: 1.1rem;
+  }
+
+  .hero-actions {
+    margin-top: 1.45rem;
+  }
+
+  .hero-badge,
+  .method-pill,
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-weight: 800;
+  }
+
+  .hero-badge {
+    padding: 0.45rem 0.82rem;
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    color: #dbeafe;
+    font-size: 0.82rem;
+  }
+
+  .docs-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.88rem 1.18rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 800;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .docs-link:hover {
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+
+  .docs-link-primary {
+    background: linear-gradient(90deg, #22d3ee, #38bdf8);
+    color: #06283a;
+    box-shadow: 0 16px 28px rgba(14, 165, 233, 0.2);
+  }
+
+  .docs-link-secondary {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    color: #e2e8f0;
+  }
+
+  .docs-layout {
+    display: grid;
+    grid-template-columns: 310px minmax(0, 1fr);
+    gap: 1.35rem;
+    align-items: start;
+  }
+
+  .docs-sidebar {
+    position: sticky;
+    top: 110px;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .docs-panel,
+  .docs-section,
+  .snippet-card,
+  .workflow-card {
+    padding: 1.35rem;
+  }
+
+  .docs-panel h2,
+  .docs-section h2 {
+    margin: 0 0 0.85rem;
+    color: #67e8f9;
+    font-size: 1.16rem;
+    font-weight: 800;
+  }
+
+  .docs-panel h3,
+  .docs-section h3,
+  .endpoint-card h3,
+  .snippet-card h3,
+  .workflow-card h3 {
+    margin: 0 0 0.7rem;
+    color: #eaf8ff;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .docs-panel p,
+  .docs-panel li,
+  .docs-section p,
+  .docs-section li,
+  .endpoint-card p,
+  .workflow-card p,
+  .workflow-card li,
+  .endpoint-note,
+  .info-list li {
+    color: #d4e4f5;
+    line-height: 1.72;
+  }
+
+  .docs-panel p:last-child,
+  .docs-section p:last-child,
+  .endpoint-card p:last-child,
+  .workflow-card p:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-list,
+  .toc-list,
+  .check-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .info-list li,
+  .toc-list li,
+  .check-list li {
+    padding: 0.8rem 0.95rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.74);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+
+  .info-list li + li,
+  .toc-list li + li,
+  .check-list li + li {
+    margin-top: 0.65rem;
+  }
+
+  .toc-list a {
+    color: #dff7ff;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .toc-list a:hover {
+    color: #a5f3fc;
+    text-decoration: none;
+  }
+
+  .toc-path {
+    display: block;
+    margin-top: 0.2rem;
+    color: #93c5fd;
+    font-size: 0.86rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  .docs-main {
+    display: grid;
+    gap: 1.35rem;
+  }
+
+  .callout {
+    padding: 1rem 1.05rem;
+    border-radius: 18px;
+    border: 1px solid rgba(234, 179, 8, 0.18);
+    background: rgba(113, 63, 18, 0.14);
+    color: #fde68a;
+    line-height: 1.65;
+  }
+
+  .callout-success {
+    border-color: rgba(34, 197, 94, 0.18);
+    background: rgba(20, 83, 45, 0.18);
+    color: #bbf7d0;
+  }
+
+  .callout-danger {
+    border-color: rgba(251, 146, 60, 0.22);
+    background: rgba(124, 45, 18, 0.18);
+    color: #fdba74;
+  }
+
+  .two-col,
+  .three-col,
+  .snippet-grid,
+  .workflow-grid,
+  .endpoint-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .two-col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .three-col {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .snippet-grid,
+  .workflow-grid,
+  .endpoint-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .snippet-card,
+  .workflow-card,
+  .endpoint-card {
+    padding: 1.1rem;
+  }
+
+  .endpoint-card {
+    border: 1px solid rgba(125, 211, 252, 0.16);
+  }
+
+  .endpoint-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .method-pill {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .method-post {
+    background: rgba(56, 189, 248, 0.16);
+    color: #bae6fd;
+  }
+
+  .method-get {
+    background: rgba(45, 212, 191, 0.16);
+    color: #99f6e4;
+  }
+
+  .method-file {
+    background: rgba(234, 179, 8, 0.16);
+    color: #fde68a;
+  }
+
+  .tag-pill {
+    padding: 0.26rem 0.64rem;
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: #cbd5e1;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+  }
+
+  .endpoint-path,
+  .mono-line {
+    color: #f8fbff;
+    word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  .endpoint-path {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .endpoint-note {
+    margin-top: 0.8rem;
+    font-size: 0.93rem;
+  }
+
+  .mini-meta {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0.7rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mini-meta li {
+    color: #c8d8ea;
+    font-size: 0.91rem;
+    line-height: 1.62;
+  }
+
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-top: 0.8rem;
+  }
+
+  .mini-grid h4 {
+    margin: 0 0 0.45rem;
+    color: #c7f9ff;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  pre,
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  pre {
+    margin: 0;
+    padding: 1rem 1.05rem;
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    background: linear-gradient(180deg, rgba(8, 14, 28, 0.98), rgba(5, 10, 20, 0.98));
+    color: #eef6ff;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .schema-danger pre {
+    border-color: rgba(251, 146, 60, 0.2);
+    background: linear-gradient(180deg, rgba(61, 23, 9, 0.78), rgba(41, 14, 8, 0.92));
+  }
+
+  .section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.95rem;
+  }
+
+  .section-header p {
+    margin: 0;
+    color: #b9cde0;
+    font-size: 0.95rem;
+  }
+
+  .quick-steps {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .quick-step {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.9rem 0.95rem;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.74);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+
+  .quick-step-index {
+    flex: 0 0 1.9rem;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(34, 211, 238, 0.15);
+    color: #a5f3fc;
+    font-weight: 900;
+  }
+
+  .quick-step strong,
+  .workflow-card strong {
+    color: #eefbff;
+  }
+
+  .muted {
+    color: #afc4d9;
+  }
+
+  @media (max-width: 1180px) {
+    .docs-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .docs-sidebar {
+      position: static;
+      top: auto;
+      order: -1;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .two-col,
+    .three-col,
+    .snippet-grid,
+    .workflow-grid,
+    .endpoint-grid,
+    .mini-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .docs-hero {
+      padding: 1.6rem;
+    }
+
+    .docs-page {
+      padding-top: 2rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-page">
+  <section class="docs-hero">
+    <span class="hero-kicker">HTTP Integration Guide</span>
+    <h1>PROTAC Builder API</h1>
+    <p>
+      Run PROTAC Builder workflows from your own scripts, notebooks, servers, or applications.
+      Generate PROTAC-like structures, convert molecular formats, calculate RDKit descriptors,
+      run DeepPK reports, and retrieve downloadable result files through simple HTTP requests.
+    </p>
+    <div class="badge-row">
+      <span class="hero-badge">REST API</span>
+      <span class="hero-badge">Python-ready</span>
+      <span class="hero-badge">RDKit descriptors</span>
+      <span class="hero-badge">DeepPK reports</span>
+      <span class="hero-badge">Batch workflows</span>
+    </div>
+    <div class="hero-actions">
+      <a class="docs-link docs-link-primary" href="{{ url_for('ui.api_builder') }}">Try the API Builder</a>
+      <a class="docs-link docs-link-secondary" href="{{ url_for('ui.builder') }}">Open Web Builder</a>
+      <a class="docs-link docs-link-secondary" href="#python-quickstart">Jump to Python Examples</a>
+    </div>
+  </section>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar">
+      <section class="docs-panel">
+        <h2>Base URL</h2>
+        <ul class="info-list">
+          <li>
+            <strong>Hosted API</strong><br>
+            <span class="mono-line">BASE_URL = "{{ public_base_url }}"</span>
+          </li>
+          <li>
+            <strong>Local development</strong><br>
+            <span class="mono-line">BASE_URL = "{{ local_base_url }}"</span>
+          </li>
+        </ul>
+        <p class="muted" style="margin-top:0.75rem;">
+          Public examples below default to the hosted domain. Use the local base URL only when you are running the app on your own machine.
+        </p>
+      </section>
+
+      <section class="docs-panel">
+        <h2>Authentication</h2>
+        <p>
+          Current local or private deployments do not require an API key. If a hosted deployment
+          adds access tokens, follow the instructions provided with that deployment.
+        </p>
+      </section>
+
+      <section class="docs-panel">
+        <h2>On This Page</h2>
+        <ul class="toc-list">
+          <li><a href="#base-url">Base URL<span class="toc-path">hosted and local</span></a></li>
+          <li><a href="#python-quickstart">Python Quick Start<span class="toc-path">requests examples</span></a></li>
+          <li><a href="#workflow-examples">End-to-End Examples<span class="toc-path">RDKit, DeepPK, conversion</span></a></li>
+          <li><a href="#parameters">Molecular Parameters<span class="toc-path">RDKit + DeepPK</span></a></li>
+          <li><a href="#conversion">Format Conversion<span class="toc-path">SMILES, MOL, rendering</span></a></li>
+          <li><a href="#generation">PROTAC Generation<span class="toc-path">single, batch, ZIP</span></a></li>
+          <li><a href="#data-endpoints">Linker and Recruiter Data<span class="toc-path">catalog and previews</span></a></li>
+          <li><a href="#editing">Ligand Editing Utilities<span class="toc-path">modify and store</span></a></li>
+          <li><a href="#mapping">Structure Mapping Utilities<span class="toc-path">convert and inspect</span></a></li>
+          <li><a href="#operations">Operations<span class="toc-path">usage, templates, health</span></a></li>
+        </ul>
+      </section>
+    </aside>
+
+    <div class="docs-main">
+      <section id="base-url" class="docs-section">
+        <div class="section-header">
+          <h2>Base URL</h2>
+          <p>Choose the hosted domain for public integrations and the local address only for development.</p>
+        </div>
+        <div class="two-col">
+          <article class="workflow-card">
+            <h3>Hosted API</h3>
+            <p class="mono-line">{{ public_base_url }}</p>
+            <pre>BASE_URL = "{{ public_base_url }}"</pre>
+          </article>
+          <article class="workflow-card">
+            <h3>Local development</h3>
+            <p class="mono-line">{{ local_base_url }}</p>
+            <pre>BASE_URL = "{{ local_base_url }}"
+
+curl -X POST {{ local_base_url }}/api/admet/run \
+  -H "Content-Type: application/json" \
+  -d '{"smiles":"CCO"}'</pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="docs-section">
+        <div class="section-header">
+          <h2>Quick Start</h2>
+          <p>Typical order for script-driven molecular parameter workflows.</p>
+        </div>
+        <div class="quick-steps">
+          <div class="quick-step">
+            <span class="quick-step-index">1</span>
+            <div>
+              <strong>Generate or provide a PROTAC SMILES string.</strong>
+              Use your own molecule, a generated PROTAC from <span class="mono-line">POST /api/protac/generate</span>,
+              or a converted structure from the mapping endpoints below.
+            </div>
+          </div>
+          <div class="quick-step">
+            <span class="quick-step-index">2</span>
+            <div>
+              <strong>Call <span class="mono-line">POST /api/admet/run</span> first.</strong>
+              This returns RDKit molecular descriptors quickly and is the fastest way to get immediate parameter output.
+            </div>
+          </div>
+          <div class="quick-step">
+            <span class="quick-step-index">3</span>
+            <div>
+              <strong>Call <span class="mono-line">POST /api/deeppk/run</span> second.</strong>
+              DeepPK may take longer because it submits the molecule to the external prediction workflow and assembles the report files.
+            </div>
+          </div>
+          <div class="quick-step">
+            <span class="quick-step-index">4</span>
+            <div>
+              <strong>Download result files if they are returned.</strong>
+              Successful DeepPK jobs may provide PDF, CSV, cleaned CSV, JSON, and SVG download links under the <span class="mono-line">links</span> object.
+            </div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:1rem;">
+          DeepPK failures are returned as structured JSON. RDKit descriptor calls and DeepPK report calls do not increment the PROTAC Builder usage counter.
+        </div>
+      </section>
+
+      <section id="python-quickstart" class="docs-section">
+        <div class="section-header">
+          <h2>Python Quick Start</h2>
+          <p>Ready-to-run examples for notebooks, scripts, and backend jobs.</p>
+        </div>
+        <div class="snippet-grid">
+          <article class="snippet-card">
+            <h3>RDKit descriptors</h3>
+            <pre>import requests
+
+BASE_URL = "{{ public_base_url }}"
+
+response = requests.post(
+    f"{BASE_URL}/api/admet/run",
+    json={"smiles": "CCO"},
+    timeout=60,
+)
+
+response.raise_for_status()
+data = response.json()
+
+print(data["descriptors"])</pre>
+          </article>
+          <article class="snippet-card">
+            <h3>DeepPK report</h3>
+            <pre>import requests
+
+BASE_URL = "{{ public_base_url }}"
+
+response = requests.post(
+    f"{BASE_URL}/api/deeppk/run",
+    json={"smiles": "CCO"},
+    timeout=300,
+)
+
+data = response.json()
+
+if data.get("success"):
+    print("DeepPK report ready")
+    print(data.get("links") or data.get("deeppk"))
+else:
+    print("DeepPK failed")
+    print(data.get("stage"))
+    print(data.get("details"))</pre>
+          </article>
+          <article class="snippet-card">
+            <h3>Download returned files</h3>
+            <pre>import requests
+from pathlib import Path
+
+BASE_URL = "{{ public_base_url }}"
+links = data.get("links", {})
+
+for label, url in links.items():
+    file_response = requests.get(f"{BASE_URL}{url}", timeout=120)
+    file_response.raise_for_status()
+    Path(f"{label}_output").write_bytes(file_response.content)</pre>
+          </article>
+          <article class="snippet-card">
+            <h3>Convert SMILES to MOL</h3>
+            <pre>import requests
+
+BASE_URL = "{{ public_base_url }}"
+
+response = requests.post(
+    f"{BASE_URL}/api/molecule/smiles-to-mol",
+    json={"smiles": "CCO"},
+    timeout=60,
+)
+
+response.raise_for_status()
+print(response.json())</pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="workflow-examples" class="docs-section">
+        <div class="section-header">
+          <h2>End-to-End Examples</h2>
+          <p>Practical client workflows built around the live API.</p>
+        </div>
+        <div class="workflow-grid">
+          <article class="workflow-card">
+            <h3>Python: RDKit first, then DeepPK</h3>
+            <pre>import requests
+
+BASE_URL = "{{ public_base_url }}"
+smiles = "CCO"
+
+rdkit = requests.post(
+    f"{BASE_URL}/api/admet/run",
+    json={"smiles": smiles},
+    timeout=60,
+).json()
+
+print("RDKit descriptors:")
+print(rdkit.get("descriptors"))
+
+deeppk = requests.post(
+    f"{BASE_URL}/api/deeppk/run",
+    json={"smiles": smiles},
+    timeout=300,
+).json()
+
+if deeppk.get("success"):
+    print("DeepPK files:")
+    print(deeppk.get("links"))
+else:
+    print("DeepPK did not complete:")
+    print(deeppk.get("details"))</pre>
+          </article>
+          <article class="workflow-card">
+            <h3>Python: convert SMILES to MOL, then back to SMILES</h3>
+            <pre>import requests
+
+BASE_URL = "{{ public_base_url }}"
+
+mol_result = requests.post(
+    f"{BASE_URL}/api/molecule/smiles-to-mol",
+    json={"smiles": "CCO"},
+    timeout=60,
+).json()
+
+smiles_result = requests.post(
+    f"{BASE_URL}/api/molecule/mol-to-smiles",
+    json={"mol": mol_result["mol"]},
+    timeout=60,
+).json()
+
+print(smiles_result["smiles"])</pre>
+          </article>
+          <article class="workflow-card">
+            <h3>Python: fetch curated linkers</h3>
+            <pre>import requests
+
+BASE_URL = "{{ public_base_url }}"
+
+linkers = requests.get(
+    f"{BASE_URL}/api/linkers/curated",
+    params={"page": 1, "sort_by": "Molecular Weight", "sort_order": "asc"},
+    timeout=60,
+).json()
+
+print(linkers[0])</pre>
+          </article>
+          <article class="workflow-card">
+            <h3>Python: download the batch template</h3>
+            <pre>import requests
+from pathlib import Path
+
+BASE_URL = "{{ public_base_url }}"
+
+response = requests.get(
+    f"{BASE_URL}/api/protac/builder/template/linkers",
+    timeout=120,
+)
+response.raise_for_status()
+
+Path("api_linkers_template.csv").write_bytes(response.content)</pre>
+          </article>
+          <article class="workflow-card">
+            <h3>curl: RDKit descriptors (hosted)</h3>
+            <pre>curl -X POST {{ public_base_url }}/api/admet/run \
+  -H "Content-Type: application/json" \
+  -d '{"smiles":"CCO"}'</pre>
+          </article>
+          <article class="workflow-card">
+            <h3>curl: DeepPK report (hosted)</h3>
+            <pre>curl -X POST {{ public_base_url }}/api/deeppk/run \
+  -H "Content-Type: application/json" \
+  -d '{"smiles":"CCO"}'</pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="parameters" class="docs-section">
+        <div class="section-header">
+          <h2>Molecular Parameters</h2>
+          <p>Use RDKit for fast descriptors and DeepPK for report files and external prediction output.</p>
+        </div>
+        <div class="callout-success" style="margin-bottom:1rem;">
+          Browser integrations should call <span class="mono-line">/api/admet/run</span> first, render descriptors immediately, then call <span class="mono-line">/api/deeppk/run</span>. That is the same sequence used by the Get Parameters button.
+        </div>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/admet/run</span>
+              <span class="tag-pill">RDKit descriptors</span>
+            </div>
+            <p>Fast local descriptor endpoint for SMILES or MOL input.</p>
+            <div class="mini-grid">
+              <div>
+                <h4>Request</h4>
+                <pre>{
+  "smiles": "CCO"
+}</pre>
+              </div>
+              <div>
+                <h4>Success</h4>
+                <pre>{
+  "success": true,
+  "descriptors": {
+    "smiles": "CCO",
+    "molecular_weight": 46.069,
+    "exact_molecular_weight": 46.04186,
+    "logp": -0.001,
+    "tpsa": 20.23,
+    "hbd": 1,
+    "hba": 1,
+    "qed": 0.4068,
+    "lipinski_violations": 0
+  },
+  "warnings": []
+}</pre>
+              </div>
+            </div>
+            <p class="endpoint-note">Also accepts <span class="mono-line">mol_block</span> or <span class="mono-line">molBlock</span>. The response includes a <span class="mono-line">properties</span> alias and file links for JSON and CSV report exports.</p>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/deeppk/run</span>
+              <span class="tag-pill">PDF + CSV + JSON</span>
+            </div>
+            <p>Runs the DeepPK workflow and prepares downloadable report artifacts.</p>
+            <div class="mini-grid">
+              <div>
+                <h4>Request</h4>
+                <pre>{
+  "smiles": "CCO"
+}</pre>
+              </div>
+              <div>
+                <h4>Success</h4>
+                <pre>{
+  "success": true,
+  "job_id": "20260519_123924_040e4d99",
+  "links": {
+    "pdf": "/api/deeppk/download/&lt;job_id&gt;/JARI_PROTAC_Report.pdf",
+    "csv": "/api/deeppk/download/&lt;job_id&gt;/DeepPK_Predictions.csv",
+    "cleaned_csv": "/api/deeppk/download/&lt;job_id&gt;/DeepPK_Cleaned_Output.csv",
+    "json": "/api/deeppk/download/&lt;job_id&gt;/DeepPK_Predictions.json",
+    "svg": "/api/deeppk/download/&lt;job_id&gt;/Protac.svg"
+  }
+}</pre>
+              </div>
+            </div>
+            <div class="mini-grid">
+              <div class="schema-danger" style="grid-column: 1 / -1;">
+                <h4>Failure</h4>
+                <pre>{
+  "success": false,
+  "error": "DeepPK report generation failed.",
+  "details": "Safe error message",
+  "stage": "run_deeppk_display",
+  "job_id": "20260519_123924_040e4d99",
+  "rdkit_descriptors": {},
+  "retryable": true
+}</pre>
+              </div>
+            </div>
+            <p class="endpoint-note">DeepPK responses also include <span class="mono-line">rdkit_descriptors</span>, a <span class="mono-line">deeppk</span> link alias, and warnings. Failures are structured JSON rather than HTML tracebacks.</p>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/deeppk/download/&lt;job_id&gt;/&lt;filename&gt;</span>
+              <span class="tag-pill">File download</span>
+            </div>
+            <p>Downloads a DeepPK file created by a successful report job.</p>
+            <pre>GET /api/deeppk/download/20260519_123924_040e4d99/JARI_PROTAC_Report.pdf</pre>
+            <ul class="mini-meta">
+              <li><strong>Success:</strong> binary file response with attachment headers.</li>
+              <li><strong>Notes:</strong> filenames are the paths returned in the <span class="mono-line">links</span> object from <span class="mono-line">/api/deeppk/run</span>.</li>
+            </ul>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/admet/download/&lt;filename&gt;</span>
+              <span class="tag-pill">CSV or JSON file</span>
+            </div>
+            <p>Downloads files generated by the local RDKit descriptor workflow.</p>
+            <pre>GET /api/admet/download/admet_report_20260519_123000.csv</pre>
+            <ul class="mini-meta">
+              <li><strong>Success:</strong> binary file response with attachment headers.</li>
+              <li><strong>Notes:</strong> available filenames are returned by <span class="mono-line">/api/admet/run</span> under <span class="mono-line">files</span>.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="conversion" class="docs-section">
+        <div class="section-header">
+          <h2>Molecular Format Conversion</h2>
+          <p>Helpers for moving between SMILES, MOL blocks, and rendered previews.</p>
+        </div>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/molecule/smiles-to-mol</span>
+            </div>
+            <p>Convert a SMILES string into a MOL block.</p>
+            <div class="mini-grid">
+              <div>
+                <h4>Request</h4>
+                <pre>{
+  "smiles": "CCO"
+}</pre>
+              </div>
+              <div>
+                <h4>Success</h4>
+                <pre>{
+  "success": true,
+  "mol": "...",
+  "mol_block": "..."
+}</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/molecule/mol-to-smiles</span>
+            </div>
+            <p>Convert a MOL block back to SMILES.</p>
+            <div class="mini-grid">
+              <div>
+                <h4>Request</h4>
+                <pre>{
+  "mol": "..."
+}</pre>
+              </div>
+              <div>
+                <h4>Success</h4>
+                <pre>{
+  "success": true,
+  "smiles": "CCO"
+}</pre>
+              </div>
+            </div>
+            <p class="endpoint-note">The endpoint accepts either <span class="mono-line">mol</span> or <span class="mono-line">molBlock</span>.</p>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/molecule/render-smiles</span>
+            </div>
+            <p>Render a SMILES string to an inline preview image.</p>
+            <div class="mini-grid">
+              <div>
+                <h4>Request</h4>
+                <pre>{
+  "smiles": "CCO"
+}</pre>
+              </div>
+              <div>
+                <h4>Success</h4>
+                <pre>{
+  "success": true,
+  "image": "data:image/png;base64,..."
+}</pre>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="generation" class="docs-section">
+        <div class="section-header">
+          <h2>PROTAC Generation</h2>
+          <p>Single-molecule generation plus multipart batch and ZIP workflows.</p>
+        </div>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/protac/generate</span>
+              <span class="tag-pill">canonical generator</span>
+            </div>
+            <p>Generate a PROTAC MOL block from three prepared molecule blocks.</p>
+            <div class="mini-grid">
+              <div>
+                <h4>Request</h4>
+                <pre>{
+  "warhead_mol": "...",
+  "linker_mol": "...",
+  "ligase_mol": "..."
+}</pre>
+              </div>
+              <div>
+                <h4>Success</h4>
+                <pre>{
+  "success": true,
+  "protac_mol_block": "...",
+  "protac_smiles": "..."
+}</pre>
+              </div>
+            </div>
+            <p class="endpoint-note">This endpoint increments the usage counter only when the build succeeds.</p>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/protac/builder/batch</span>
+              <span class="tag-pill">multipart/form-data</span>
+            </div>
+            <p>Batch-build PROTAC SMILES from mapped warhead and ligase SMILES plus a linker CSV.</p>
+            <pre>Fields:
+warhead_smiles
+ligase_smiles
+linker_csv
+smiles_col
+name_col
+source (optional)</pre>
+            <pre>{
+  "count": 12,
+  "failed": 1,
+  "warnings": [],
+  "message": "Built 12 PROTAC(s). Skipped 1 row(s).",
+  "results": [{"name": "LINKER_1_PROTAC", "smiles": "..."}],
+  "failures": [{"row": 6, "reason": "..."}]
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/protac/builder/cli</span>
+              <span class="tag-pill">ZIP output</span>
+            </div>
+            <p>Advanced multipart endpoint for command-line style batch execution.</p>
+            <pre>Fields:
+target
+ligase
+library
+source (optional)</pre>
+            <ul class="mini-meta">
+              <li><strong>Success:</strong> <span class="mono-line">application/zip</span> download containing results, failure CSV, and run log.</li>
+              <li><strong>Notes:</strong> useful for external batch jobs that want a single bundle instead of JSON rows.</li>
+            </ul>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/protac/batch-linkers</span>
+              <span class="tag-pill">multipart/form-data</span>
+            </div>
+            <p>Build PROTAC products from warhead and ligase molecule blocks plus a linker CSV.</p>
+            <pre>Fields:
+warhead_mol
+ligase_mol
+linker_csv</pre>
+            <pre>{
+  "count": 4,
+  "results": [{"name": "LINKER_1_PROTAC", "smiles": "..."}]
+}</pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="data-endpoints" class="docs-section">
+        <div class="section-header">
+          <h2>Linker and Recruiter Data</h2>
+          <p>Catalog lookups, raw molecule access, and rendered previews for script-driven discovery work.</p>
+        </div>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/linkers/curated</span>
+            </div>
+            <p>Fetch curated linker records with paging and sort options.</p>
+            <pre>GET /api/linkers/curated?page=1&amp;sort_by=Molecular%20Weight&amp;sort_order=asc</pre>
+            <pre>[
+  {
+    "id": 462,
+    "smiles": "C",
+    "molecular_weight": 16.043,
+    "svg": "&lt;svg ...&gt;"
+  }
+]</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/ligases</span>
+            </div>
+            <p>Return the available ligase names.</p>
+            <pre>["CRBN_EF2", "VHL_3JF", "..."]</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/ligase/render</span>
+            </div>
+            <p>Return a ligase preview for the requested name.</p>
+            <pre>GET /api/ligase/render?ligase=VHL_3JF</pre>
+            <pre>{
+  "mol_block": "...",
+  "image": "data:image/svg+xml;base64,..."
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/ligase/raw/&lt;name&gt;</span>
+            </div>
+            <p>Fetch the raw MOL block for a ligase entry.</p>
+            <pre>{
+  "mol_block": "..."
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/recruiter/&lt;name&gt;</span>
+            </div>
+            <p>Load recruiter molecule data by recruiter identifier.</p>
+            <pre>{
+  "name": "VHL_VH032",
+  "smiles": "...",
+  "mol_block": "..."
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/ligand/smiles</span>
+            </div>
+            <p>Get the stored SMILES for a ligand identifier.</p>
+            <pre>GET /api/ligand/smiles?ligand=DR7</pre>
+            <pre>{
+  "smiles": "..."
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/ligand/data</span>
+            </div>
+            <p>Get the ligand identifier, SMILES, and MOL block in one response.</p>
+            <pre>GET /api/ligand/data?ligand=DR7</pre>
+            <pre>{
+  "ligand": "DR7",
+  "smiles": "...",
+  "mol_block": "..."
+}</pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="editing" class="docs-section">
+        <div class="section-header">
+          <h2>Ligand Editing Utilities</h2>
+          <p>Small helper routes used by custom editors or notebook-driven curation tasks.</p>
+        </div>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/ligand/modify</span>
+            </div>
+            <p>Normalize a ligand SMILES string and return both SMILES and MOL block output.</p>
+            <pre>{
+  "smiles": "CCO"
+}</pre>
+            <pre>{
+  "mol_block": "...",
+  "smiles": "CCO"
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/ligand/store</span>
+            </div>
+            <p>Store ligand metadata from an external workflow.</p>
+            <pre>{
+  "ligand": "DR7",
+  "smiles": "CCO"
+}</pre>
+            <pre>{
+  "message": "Ligand DR7 stored successfully!"
+}</pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="mapping" class="docs-section">
+        <div class="section-header">
+          <h2>Structure Mapping Utilities</h2>
+          <p>Use these endpoints when your client needs mapping, uploads, or linker CSV inspection before generation.</p>
+        </div>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/protac/structure/convert</span>
+              <span class="tag-pill">multipart/form-data</span>
+            </div>
+            <p>Convert an uploaded structure file or a form SMILES string into a MOL block.</p>
+            <pre>Fields:
+smiles
+or
+structure_file</pre>
+            <pre>{
+  "mol_block": "...",
+  "smiles": "..."
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/protac/structure/mapped-smiles</span>
+            </div>
+            <p>Generate mapped attachment-point SMILES from a MOL block.</p>
+            <pre>{
+  "molBlock": "..."
+}</pre>
+            <pre>{
+  "smiles": "[*:1]CCO",
+  "warnings": []
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-post">POST</span>
+              <span class="endpoint-path">/api/protac/linkers/inspect</span>
+              <span class="tag-pill">multipart/form-data</span>
+            </div>
+            <p>Inspect a linker CSV and detect useful column names before batch generation.</p>
+            <pre>Fields:
+linker_csv
+or
+file</pre>
+            <pre>{
+  "columns": ["name", "smiles"],
+  "preview_rows": [{"name": "L1", "smiles": "[*:1]CC[*:2]"}],
+  "suggested_smiles_col": "smiles",
+  "suggested_name_col": "name"
+}</pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="operations" class="docs-section">
+        <div class="section-header">
+          <h2>Operations</h2>
+          <p>Health, templates, usage metrics, and advanced job lookups.</p>
+        </div>
+        <div class="endpoint-grid">
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/protac/builder/usage</span>
+              <span class="tag-pill">verified counter</span>
+            </div>
+            <p>Returns the current PROTAC Builder usage summary.</p>
+            <pre>{
+  "seed_total": 127,
+  "local_actions": 5,
+  "total": 132,
+  "canonical_log_file": "...",
+  "counting_rule": "successful generated PROTAC builds only"
+}</pre>
+            <p class="endpoint-note">Only successful PROTAC generation increments this counter.</p>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/protac/builder/template/linkers</span>
+            </div>
+            <p>Download the CSV template used by the batch builder workflow.</p>
+            <pre>GET /api/protac/builder/template/linkers</pre>
+            <ul class="mini-meta">
+              <li><strong>Success:</strong> CSV file download.</li>
+            </ul>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/protac/builder/template/download-count</span>
+            </div>
+            <p>Read the number of recorded template downloads.</p>
+            <pre>{
+  "downloads": 14
+}</pre>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/api/warheadhunter/job/&lt;job_id&gt;</span>
+              <span class="tag-pill">advanced endpoint</span>
+            </div>
+            <p>Lookup route for Warhead Hunter job artifacts when that workflow is present in the deployment.</p>
+            <ul class="mini-meta">
+              <li><strong>Notes:</strong> useful as an available endpoint for deployments that expose Warhead Hunter job output.</li>
+            </ul>
+          </article>
+
+          <article class="endpoint-card">
+            <div class="endpoint-head">
+              <span class="method-pill method-get">GET</span>
+              <span class="endpoint-path">/healthz</span>
+            </div>
+            <p>Simple health check for monitoring and local startup checks.</p>
+            <pre>{
+  "ok": true
+}</pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="docs-section">
+        <div class="section-header">
+          <h2>Frontend Get Parameters Flow</h2>
+          <p>Reference sequence for client-side integrations that mirror the web builder.</p>
+        </div>
+        <div class="two-col">
+          <div class="workflow-card">
+            <ol style="margin:0; padding-left:1.1rem; color:#d4e4f5; line-height:1.8;">
+              <li>User clicks <strong>Get Parameters</strong>.</li>
+              <li>Browser extracts the current generated PROTAC SMILES.</li>
+              <li>Browser calls <span class="mono-line">/api/admet/run</span>.</li>
+              <li>RDKit Molecular Parameters render immediately.</li>
+              <li>Browser calls <span class="mono-line">/api/deeppk/run</span>.</li>
+              <li>An inline loader appears with rotating progress messages.</li>
+              <li>On DeepPK success, download buttons appear.</li>
+              <li>On DeepPK failure, the RDKit table stays visible and an inline error card appears.</li>
+            </ol>
+          </div>
+          <div class="workflow-card">
+            <ul class="check-list">
+              <li>No browser <span class="mono-line">alert()</span> should be used for DeepPK failures.</li>
+              <li>DeepPK failures should not erase the RDKit descriptor output.</li>
+              <li>DeepPK report requests should not increment the PROTAC Builder usage counter.</li>
+              <li>Only successful PROTAC generation should increment usage.</li>
+              <li>The interactive <a href="{{ url_for('ui.api_builder') }}" style="color:#67e8f9;">API Builder</a> is available if you want a no-code companion while testing payloads.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

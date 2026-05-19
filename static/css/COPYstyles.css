@@ -1,0 +1,746 @@
+/* General container styling */
+.container {
+    max-width: 1200px;
+    margin: auto;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+/* Section Titles */
+h5 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* Section Headers */
+h1 {
+    font-size: 36px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 30px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border-radius: 10px;
+}
+
+/* Section Containers */
+#ligand-container,
+#linker-container,
+#ligase-container {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#ligand-container:hover,
+#linker-container:hover,
+#ligase-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Warhead Styling (Orange Theme) */
+#ligand-container {
+    background: linear-gradient(135deg, #ffecd2, #ffb7a0);
+    border: 2px solid #ff6f00;
+}
+
+/* Linker Styling (Orange-Green Transition Theme) */
+#linker-container {
+    background: linear-gradient(135deg, #fff8e1, #c1f0c1);
+    border: 2px solid #ffa500;
+}
+
+/* Ligase Styling (Green Theme) */
+#ligase-container {
+    background: linear-gradient(135deg, #e6f7e6, #c1f0c1);
+    border: 2px solid #007b00;
+}
+
+/* Styling for ChemDoodle Canvas */
+canvas {
+    display: block;
+    margin: 20px auto;
+    border: 3px solid #ddd;
+    border-radius: 12px;
+    background: white;
+    max-width: 100%;
+    height: 300px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    padding: 5px;
+}
+
+/* Buttons Styling */
+button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #43A047, #1B5E20);
+    transform: translateY(-3px);
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Save Button Colors */
+#ligand-container button {
+    background-color: #ff6f00;
+    color: white;
+}
+
+#linker-container button {
+    background-color: #ffa500;
+    color: white;
+}
+
+#ligase-container button {
+    background-color: #007b00;
+    color: white;
+}
+
+
+
+
+
+
+
+
+
+
+/* Modal Styling */
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 650px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* Modal Content */
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 95%;
+    max-width: 850px; /* Keeps the modal from stretching too wide */
+}
+
+/* Filters Section */
+#filters-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: #f8f9fa; /* Light background to separate it */
+    border-radius: 8px;
+}
+
+#filters-container .form-group {
+    flex: 1 1 120px; /* Makes fields smaller */
+    min-width: 100px;
+}
+
+/* Reduce Select & Input Size */
+#filters-container select,
+#filters-container input {
+    font-size: 14px;
+    padding: 5px;
+    height: 30px;
+    text-align: center;
+}
+
+/* Reduce Button Size */
+#apply-filters {
+    font-size: 14px;
+    padding: 8px 12px;
+    margin-top: 5px;
+}
+
+/* Linker Section - More Space for Images */
+#linkers-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Linker Grid */
+#linkers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Bigger images */
+    gap: 15px;
+    max-height: 500px; /* Increased height */
+    overflow-y: auto;
+    padding: 10px;
+    justify-content: center;
+}
+
+/* Individual Linker Item */
+.linker-item {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Selected Linker */
+.linker-item.selected {
+    border: 2px solid #007bff;
+    background-color: #f0f8ff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+/* Linker Image */
+.linker-item img {
+    width: 180px; /* Larger images */
+    height: 180px;
+    object-fit: contain;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect */
+.linker-item:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.linker-item:hover img {
+    transform: scale(2.15);
+}
+
+/* Pagination Buttons */
+#pagination-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 10px;
+}
+
+#prev-page, #next-page {
+    padding: 6px 16px;
+    font-size: 14px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Styling for the info icon */
+.info-icon {
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 5px;
+    color: #007bff;
+    display: inline-block;
+    position: relative;
+}
+
+
+
+/* Tooltip arrow */
+.info-icon::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 205%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.95);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    z-index: 9999 !important;
+}
+
+/* Show tooltip on hover */
+.info-icon:hover::after,
+.info-icon:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Tooltip Image (GIF) */
+.tooltip-image {
+    width: 200px;  /* Adjust the size */
+    height: auto;
+    margin-top: 5px;
+    border-radius: 5px;
+}
+
+/* Ensure the tooltip is not blocked */
+body, .container {
+    position: relative;
+    z-index: auto;
+}
+
+/* Fix for containers clipping the tooltip */
+#ligand-container, #linker-container, #ligase-container {
+    overflow: visible !important;
+    position: relative;
+    z-index: 1000 !important;
+}
+
+
+/* Floating Home Button Container */
+#floating-home-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+/* Floating Home Button */
+#floating-home-button {
+    width: 50px;
+    height: 50px;
+    background-color: #007BFF; /* Bootstrap primary blue */
+    color: white;
+    font-size: 24px;
+    text-align: center;
+    line-height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* Needed for tooltip positioning */
+}
+
+/* Tooltip Styling (Display to the Right) */
+#floating-home-button::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 60px; /* Shift tooltip to the right */
+    top: 50%;
+    transform: translateY(-50%); /* Center it vertically */
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Show Tooltip on Hover */
+#floating-home-button:hover::after {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+
+/* Chatbot container styles */
+#chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+/* Chatbot icon styles */
+#chatbot-icon {
+    position: fixed;
+    bottom: 20px; 
+    right: 20px;  
+    background-color: #005030; /* University of Miami green */
+    color: white;
+    font-size: 24px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+
+
+#chatbot-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+
+
+
+/* Chatbot Popup */
+#chatbot-popup {
+    display: none;
+    position: fixed;
+    bottom: 50px;
+    right: 50px;
+    width: 350px;
+    height: 450px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* Close Button */
+#close-chatbot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #165B33;  /* ✅ Green background for visibility */
+    color: white; /* ✅ White text for contrast */
+    width: 35px;  /* ✅ Make button larger */
+    height: 35px; /* ✅ Ensure it’s easily clickable */
+    border: none;
+    border-radius: 50%;  /* ✅ Circular button */
+    font-size: 20px; /* ✅ Bigger "X" */
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+}
+
+
+/* Coming Soon Message */
+#coming-soon-message {
+    text-align: center;
+    display: none;
+    padding-top: 30px; /* ✅ Moves the header down */
+}
+
+
+
+
+/* Container for the SVG preview */
+.svg-thumb {
+    width: 180px;
+    height: 180px;
+    overflow: visible;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/* Make the SVG fill the box */
+.svg-thumb svg {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+    pointer-events: none; /* prevents “weird” hover snap */
+}
+
+/* Zoom the whole molecule on linker hover */
+.linker-item:hover .svg-thumb svg {
+    transform: scale(2.5);   /* Bigger zoom */
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+    z-index: 10;
+}
+
+/* Optional: scale the card slightly too */
+.linker-item:hover {
+    transform: scale(1.08);
+    z-index: 10;
+}
+
+
+
+/* Filter Collapse Animation */
+#filters-container {
+    transition: all 0.35s ease;
+}
+
+#filters-container.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Toggle Button */
+#toggle-filters {
+    transition: background 0.2s ease;
+}
+
+#toggle-filters:hover {
+    background-color: #0077cc;
+}
+
+/* Linkers Grid — SVG Ready */
+#linkers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    width: 100%;
+    padding: 10px;
+}
+
+/* Individual Linker Item */
+.linker-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.linker-item:hover {
+    transform: scale(1.06);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 10;
+}
+
+/* SVG Thumbnail */
+.svg-thumb {
+    width: 160px;
+    height: 160px;
+}
+
+.svg-thumb svg {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.25s ease;
+}
+
+/* Hover zoom for SVG */
+.linker-item:hover .svg-thumb svg {
+    transform: scale(2.4);
+}
+
+/* Selected Linker */
+.linker-item.selected {
+    border: 2px solid #007bff;
+    background: #eef7ff;
+    box-shadow: 0 0 12px rgba(0,123,255,0.35);
+}
+
+
+
+
+/* ==========================================================
+   DOCKQ PREMIUM TOOLTIP
+   ========================================================== */
+
+.dockq-premium {
+    position: relative;
+    font-weight: 700;
+    color: #7ee3ff;
+    text-shadow: 0 0 10px rgba(126,227,255,0.55);
+    cursor: pointer;
+    display: inline-block;
+}
+
+.dockq-premium:hover {
+    color: #b6f5ff;
+}
+
+/* Tooltip bubble */
+.dockq-premium .dockq-premium-box {
+    position: absolute;
+    top: 145%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.95);
+    transform-origin: top center;
+
+    width: 310px;
+    padding: 18px 20px;
+    border-radius: 16px;
+
+    background: rgba(10, 25, 40, 0.92);
+    backdrop-filter: blur(12px);
+    color: #d8faff;
+
+    box-shadow:
+        0 0 18px rgba(0,255,255,0.25),
+        inset 0 0 18px rgba(0,255,255,0.20);
+
+    border: 1px solid rgba(120, 240, 255, 0.3);
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 9999;
+
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+/* Glow ring pulse */
+.dockq-premium .dockq-premium-box::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 18px;
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgba(0,255,230,0.22),
+        rgba(0,170,255,0.18),
+        transparent 70%
+    );
+    z-index: -1;
+    filter: blur(20px);
+    animation: dockqPulse 5s ease-in-out infinite alternate;
+}
+
+@keyframes dockqPulse {
+    0%   { transform: scale(0.96); opacity: 0.45; }
+    50%  { transform: scale(1.05); opacity: 0.75; }
+    100% { transform: scale(1.0);  opacity: 0.55; }
+}
+
+/* Divider line */
+.dockq-premium-line {
+    height: 1px;
+    background: linear-gradient(
+        to right,
+        transparent,
+        rgba(120, 240, 255, 0.4),
+        transparent
+    );
+    margin: 8px 0 10px;
+}
+
+/* Floating icon */
+.dockq-premium-icon {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    opacity: 0.9;
+    text-shadow: 0 0 8px rgba(100,220,255,0.6);
+}
+
+/* Bullet styling */
+.dockq-premium-box ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.dockq-premium-box li {
+    margin-bottom: 3px;
+}
+
+/* Show on hover */
+.dockq-premium:hover .dockq-premium-box {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(4px) scale(1);
+}
+
+
+
+/* ==========================================================
+   DockQ Tooltip — Isolated, hover-only, no conflict
+   ========================================================== */
+
+.dockq-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+
+    color: #7ee3ff;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(126, 227, 255, 0.55);
+}
+
+.dockq-tooltip:hover {
+    color: #a8f6ff;
+}
+
+/* Tooltip bubble */
+.dockq-tooltip .dockq-tooltip-text {
+    position: absolute;
+    left: 50%;
+    top: 130%;
+    transform: translateX(-50%) translateY(0);
+
+    width: 280px;
+    padding: 14px 18px;
+    border-radius: 12px;
+
+    background: rgba(10, 25, 40, 0.92);
+    color: #d0f7ff;
+    font-size: 14px;
+    line-height: 1.45;
+
+    box-shadow: 0 0 14px rgba(0,255,255,0.35);
+    backdrop-filter: blur(10px);
+
+    /* Hidden by default */
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 99999;
+}
+
+/* Tooltip arrow */
+.dockq-tooltip .dockq-tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent rgba(10,25,40,0.92) transparent;
+}
+
+/* Hover reveal */
+.dockq-tooltip:hover .dockq-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(5px);
+}

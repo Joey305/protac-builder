@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Runtime logs and uploads
+logs/*
+!logs/.gitkeep
+uploads/*
+!uploads/.gitkeep
+!uploads/admet_reports/
+!uploads/deeppk/
+uploads/admet_reports/*
+!uploads/admet_reports/.gitkeep
+uploads/deeppk/*
+!uploads/deeppk/.gitkeep
+*.log
+
+# Generated reports and temporary jobs
+outputs/deeppk_reports/*
+!outputs/deeppk_reports/.gitkeep
+static/hunter_jobs/*
+!static/hunter_jobs/.gitkeep
+tmp/
+temp/
+.tmp_deeppk_probe/
+
+# Local databases/secrets
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Project runtime artifacts
+generated_protac.smi
+static/data/Generated_PROTACs.csv
+static/data/PROTAC_log.csv
+static/data/protac_api_downloads.csv
+static/data/protac_builder_usage.csv
+
+# Keep required static/data seed files trackable
+# Do not ignore static/data/*.csv globally
