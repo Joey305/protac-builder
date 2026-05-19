@@ -1,0 +1,7 @@
+timestamp_utc,protac_smiles
+2026-05-19T07:49:50.807986Z,CC(=O)N[C@@H](CC(C)C)C(=O)N[C@H](C(=O)N1C[C@H](O)C[C@H]1C(=O)NCc1ccc(-c2scnc2CNCC(=O)NCC(=O)NCC(=O)NCC(=O)NCC(=O)C(=O)Cc2ccc(Cl)c(Cl)c2)cc1)C(C)(C)C
+2026-05-19T09:42:49.906251Z,Cc1ncoc1-c1ccc(CNC(=O)[C@@H]2C[C@@H](O)CN2C(=O)CC(C)(C)COCOC(=O)COc2ccccc2)cc1
+2026-05-19T11:30:57.703214Z,Cc1cc(C(=O)OCCCCCCCCCCCNC(=O)c2ccc(NC(=O)[C@@H]3N[C@@H](CC(C)(C)C)[C@@]4(C(=O)Nc5cc(Cl)ccc54)[C@H]3c3cccc(Cl)c3F)cc2)no1
+2026-05-19T11:33:45.146093Z,CC1(C)CC(NC(=O)C(=O)Nc2ccc(Cl)cc2)CC(C)(CCC(=O)NCC(=O)NCC(=O)NCC(=O)NCC(=O)C(=O)c2[nH]c3cc(Cl)ccc3c2-c2c(-c3ccccc3)ncn2Cc2ccc(Cl)cc2)N1
+2026-05-19T11:37:53.581770Z,O=C(Cc1ccc(Cl)c(Cl)c1)OCCCCCCCCCCCCC(=O)N1CCC[C@H]([C@]2(Cc3cccc(Cl)c3)C(=O)Nc3cc(Cl)ccc32)C1
+2026-05-19T13:28:07.979884Z,O=C(C#CC1CCN(Cc2cccc3c2C(=O)N([C@H]2CCC(=O)NC2=O)C3=O)CC1)Cc1ccc(Cl)c(Cl)c1

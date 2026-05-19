@@ -34,7 +34,7 @@ uploads/deeppk/*
 # Generated reports and temporary jobs
 outputs/deeppk_reports/*
 !outputs/deeppk_reports/.gitkeep
-static/hunter_jobs/*
+#static/hunter_jobs/*
 !static/hunter_jobs/.gitkeep
 tmp/
 temp/
@@ -48,10 +48,10 @@ instance/
 
 # Project runtime artifacts
 generated_protac.smi
-static/data/Generated_PROTACs.csv
-static/data/PROTAC_log.csv
-static/data/protac_api_downloads.csv
-static/data/protac_builder_usage.csv
+#static/data/Generated_PROTACs.csv
+#static/data/PROTAC_log.csv
+#static/data/protac_api_downloads.csv
+#static/data/protac_builder_usage.csv
 
 # Keep required static/data seed files trackable
 # Do not ignore static/data/*.csv globally

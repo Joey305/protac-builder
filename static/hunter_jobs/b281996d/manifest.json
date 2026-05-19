@@ -1,0 +1,25 @@
+{
+  "job_id": "b281996d",
+  "pdb": "4ci3",
+  "chain": "B",
+  "warhead": "Y70",
+  "resid": null,
+  "files": {
+    "pdb": "4ci3_B_Y70.pdb",
+    "sdf": "4ci3_B_Y70_1429.sdf",
+    "svg": [
+      "4ci3_B_Y70_1429_exposed.svg",
+      "4ci3_B_Y70_1429_plain.svg"
+    ]
+  },
+  "source_paths": {
+    "pdb": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b281996d/TARGET_RESULTS/WAR_PDB/CRBN/4ci3_B_Y70.pdb",
+    "sdf": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b281996d/MCS_Output/MCS_SDF/4ci3_B_Y70_1429.sdf",
+    "svg": [
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b281996d/TARGET_RESULTS/MCS_Output/MCS_SVG/4ci3_B_Y70_1429_exposed.svg",
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b281996d/TARGET_RESULTS/MCS_Output/MCS_SVG/4ci3_B_Y70_1429_plain.svg"
+    ]
+  },
+  "remote_dir": "/home/jxs794/VLISEMOD/static/hunter_jobs/b281996d",
+  "source": "protac-builder-button"
+}

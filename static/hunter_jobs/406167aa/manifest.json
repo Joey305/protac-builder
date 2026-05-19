@@ -1,0 +1,17 @@
+{
+  "job_id": "406167aa",
+  "pdb": "7jxh",
+  "chain": "D",
+  "warhead": "VOY",
+  "resid": null,
+  "files": {
+    "pdb": "7jxh_D_VOY.pdb",
+    "sdf": "7jxh_D_VOY_1101.sdf"
+  },
+  "source_paths": {
+    "pdb": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/406167aa/TARGET_RESULTS/WAR_PDB/HER2/7jxh_D_VOY.pdb",
+    "sdf": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/406167aa/MCS_Output/MCS_SDF/7jxh_D_VOY_1101.sdf"
+  },
+  "remote_dir": "/home/jxs794/VLISEMOD/static/hunter_jobs/406167aa",
+  "source": "protac-builder-button"
+}

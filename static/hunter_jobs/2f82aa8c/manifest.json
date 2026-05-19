@@ -1,0 +1,17 @@
+{
+  "job_id": "2f82aa8c",
+  "pdb": "8vb5",
+  "chain": "A",
+  "warhead": "A00",
+  "resid": null,
+  "files": {
+    "pdb": "8vb5_A_A00.pdb",
+    "sdf": "8vb5_A_A00_1101.sdf"
+  },
+  "source_paths": {
+    "pdb": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2f82aa8c/TARGET_RESULTS/WAR_PDB/HER2/8vb5_A_A00.pdb",
+    "sdf": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2f82aa8c/MCS_Output/MCS_SDF/8vb5_A_A00_1101.sdf"
+  },
+  "remote_dir": "/home/jxs794/VLISEMOD/static/hunter_jobs/2f82aa8c",
+  "source": "protac-builder-button"
+}

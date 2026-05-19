@@ -1,0 +1,25 @@
+{
+  "job_id": "b2ba2abd",
+  "pdb": "6hsk",
+  "chain": "A",
+  "warhead": "GOK",
+  "resid": null,
+  "files": {
+    "pdb": "6hsk_A_GOK.pdb",
+    "sdf": "6hsk_A_GOK_404.sdf",
+    "svg": [
+      "6hsk_A_GOK_404_exposed.svg",
+      "6hsk_A_GOK_404_plain.svg"
+    ]
+  },
+  "source_paths": {
+    "pdb": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b2ba2abd/TARGET_RESULTS/WAR_PDB/HSP70/6hsk_A_GOK.pdb",
+    "sdf": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b2ba2abd/MCS_Output/MCS_SDF/6hsk_A_GOK_404.sdf",
+    "svg": [
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b2ba2abd/TARGET_RESULTS/MCS_Output/MCS_SVG/6hsk_A_GOK_404_exposed.svg",
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/b2ba2abd/TARGET_RESULTS/MCS_Output/MCS_SVG/6hsk_A_GOK_404_plain.svg"
+    ]
+  },
+  "remote_dir": "/home/jxs794/VLISEMOD/static/hunter_jobs/b2ba2abd",
+  "source": "protac-builder-button"
+}

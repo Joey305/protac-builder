@@ -1,0 +1,29 @@
+{
+  "job_id": "2e9130c8",
+  "pdb": "2ylp",
+  "chain": "A",
+  "warhead": "056",
+  "resid": null,
+  "files": {
+    "pdb": "2ylp_A_056.pdb",
+    "sdf": "2ylp_A_056_1922.sdf",
+    "svg": [
+      "2ylp_A_056_1922_exposed.svg",
+      "2ylp_A_056_1922_plain.svg",
+      "2ylp_A_056_1923_exposed.svg",
+      "2ylp_A_056_1923_plain.svg"
+    ]
+  },
+  "source_paths": {
+    "pdb": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2e9130c8/TARGET_RESULTS/WAR_PDB/AR/2ylp_A_056.pdb",
+    "sdf": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2e9130c8/MCS_Output/MCS_SDF/2ylp_A_056_1922.sdf",
+    "svg": [
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2e9130c8/TARGET_RESULTS/MCS_Output/MCS_SVG/2ylp_A_056_1922_exposed.svg",
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2e9130c8/TARGET_RESULTS/MCS_Output/MCS_SVG/2ylp_A_056_1922_plain.svg",
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2e9130c8/TARGET_RESULTS/MCS_Output/MCS_SVG/2ylp_A_056_1923_exposed.svg",
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/2e9130c8/TARGET_RESULTS/MCS_Output/MCS_SVG/2ylp_A_056_1923_plain.svg"
+    ]
+  },
+  "remote_dir": "/home/jxs794/VLISEMOD/static/hunter_jobs/2e9130c8",
+  "source": "protac-builder-button"
+}

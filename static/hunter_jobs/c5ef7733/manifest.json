@@ -1,0 +1,25 @@
+{
+  "job_id": "c5ef7733",
+  "pdb": "2gj6",
+  "chain": "C",
+  "warhead": "3IB",
+  "resid": null,
+  "files": {
+    "pdb": "2gj6_C_3IB.pdb",
+    "sdf": "2gj6_C_3IB_10.sdf",
+    "svg": [
+      "2gj6_C_3IB_10_exposed.svg",
+      "2gj6_C_3IB_10_plain.svg"
+    ]
+  },
+  "source_paths": {
+    "pdb": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/c5ef7733/TARGET_RESULTS/WAR_PDB/Tyrosine-protein kinase BTK/2gj6_C_3IB.pdb",
+    "sdf": "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/c5ef7733/MCS_Output/MCS_SDF/2gj6_C_3IB_10.sdf",
+    "svg": [
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/c5ef7733/TARGET_RESULTS/MCS_Output/MCS_SVG/2gj6_C_3IB_10_exposed.svg",
+      "/home/jxs794/WEBTOOLs/PROTAC-Target-Builder/jobs/c5ef7733/TARGET_RESULTS/MCS_Output/MCS_SVG/2gj6_C_3IB_10_plain.svg"
+    ]
+  },
+  "remote_dir": "/home/jxs794/VLISEMOD/static/hunter_jobs/c5ef7733",
+  "source": "protac-builder-button"
+}
