@@ -1,8 +1,8 @@
 {
-  "seed_total": 127,
-  "seed_template_downloads": 27,
-  "source": "legacy_static_data_protac_log",
-  "source_file": "static/data/PROTAC_log.csv",
+  "seed_total": 0,
+  "seed_template_downloads": 0,
+  "source": "unverified",
+  "source_file": null,
   "counting_rule": "seed_total from parent legacy PROTAC_log.csv non-header rows + local standalone successful generated PROTAC rows",
-  "notes": "Verified historical build count from legacy PROTAC_log.csv plus new standalone successful builds."
+  "notes": "No verified historical build log found. Counter starts from standalone successful builds."
 }

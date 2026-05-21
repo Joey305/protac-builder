@@ -1168,6 +1168,118 @@
     display: inline-block;
 }
 
+.cheats-notes-btn {
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(126, 227, 255, 0.55);
+    background: linear-gradient(135deg, rgba(15, 40, 62, 0.65), rgba(32, 14, 57, 0.62));
+    color: #dcfbff;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: 0 0 18px rgba(126, 227, 255, 0.24), inset 0 0 16px rgba(255, 255, 255, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.cheats-notes-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 225, 122, 0.9);
+    box-shadow: 0 0 25px rgba(255, 225, 122, 0.34), 0 0 14px rgba(126, 227, 255, 0.28);
+}
+
+.cheats-notes-btn:focus {
+    outline: 2px solid rgba(126, 227, 255, 0.85);
+    outline-offset: 2px;
+}
+
+#cheats-notes-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 10, 16, 0.78);
+    backdrop-filter: blur(4px);
+    z-index: 12000;
+    padding: 24px;
+}
+
+#cheats-notes-overlay.is-open {
+    display: flex;
+}
+
+.cheats-notes-panel {
+    width: min(860px, 100%);
+    max-height: min(86vh, 760px);
+    overflow: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(126, 227, 255, 0.42);
+    background: linear-gradient(155deg, rgba(10, 20, 32, 0.93), rgba(24, 9, 35, 0.9));
+    color: #dff8ff;
+    box-shadow: 0 0 28px rgba(126, 227, 255, 0.2), 0 0 38px rgba(255, 225, 122, 0.13);
+}
+
+.cheats-notes-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(126, 227, 255, 0.23);
+}
+
+.cheats-notes-title {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #ffe89d;
+}
+
+#cheats-notes-close {
+    border: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f3f9ff;
+    font-size: 22px;
+    line-height: 1;
+}
+
+#cheats-notes-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.cheats-notes-body {
+    padding: 18px 20px 22px;
+    line-height: 1.55;
+}
+
+.cheats-notes-body ol {
+    padding-left: 18px;
+    margin: 0 0 12px;
+}
+
+.cheats-notes-body li {
+    margin-bottom: 10px;
+}
+
+.cheats-notes-body code,
+.cheats-notes-body pre {
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.cheats-notes-body pre {
+    margin: 8px 0 0;
+    background: rgba(8, 16, 26, 0.9);
+    border: 1px solid rgba(126, 227, 255, 0.25);
+    border-radius: 10px;
+    color: #d6f7ff;
+    padding: 10px 12px;
+    overflow: auto;
+}
+
 /* ================================================================
    HERO TEXT ANIMATIONS — Smooth, elegant, scientific
    ================================================================ */
@@ -1545,6 +1657,186 @@ body.fade-out {
 #filters-container {
     display: block;   /* force initial visibility */
 }
+
+.cheats-card {
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(8, 18, 30, 0.62);
+    border: 1px solid rgba(126, 227, 255, 0.22);
+    box-shadow: inset 0 0 16px rgba(126, 227, 255, 0.05);
+}
+
+.cheats-card-primary {
+    background: linear-gradient(
+        135deg,
+        rgba(34, 211, 238, 0.14),
+        rgba(250, 204, 21, 0.08)
+    );
+    border-color: rgba(126, 227, 255, 0.38);
+}
+
+.cheats-dev-card {
+    border-color: rgba(250, 204, 21, 0.28);
+    background: rgba(28, 24, 12, 0.45);
+}
+
+.cheats-kicker {
+    color: #7ee3ff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.cheats-card h4 {
+    margin: 0 0 8px;
+    color: #ffe17a;
+    font-size: 1.05rem;
+}
+
+.cheats-card p {
+    margin: 0 0 10px;
+    color: #dff8ff;
+}
+
+.cheats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.cheats-mini-card {
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(126, 227, 255, 0.16);
+}
+
+.cheats-mini-card p {
+    margin-top: 8px;
+    font-size: 0.92rem;
+}
+
+.cheats-pill {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(126, 227, 255, 0.12);
+    border: 1px solid rgba(126, 227, 255, 0.35);
+    color: #7ee3ff;
+    font-size: 0.76rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.cheats-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.cheats-list li {
+    margin-bottom: 8px;
+}
+
+.cheats-note {
+    margin-top: 12px !important;
+    padding: 10px 12px;
+    border-left: 3px solid #ffe17a;
+    background: rgba(250, 204, 21, 0.08);
+    border-radius: 10px;
+}
+
+.cheats-code-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 10px;
+    align-items: start;
+    margin-top: 10px;
+}
+
+.cheats-code-row code,
+.cheats-param-list code,
+.cheats-card p code {
+    display: inline-block;
+    padding: 4px 7px;
+    border-radius: 7px;
+    background: rgba(8, 16, 26, 0.86);
+    border: 1px solid rgba(126, 227, 255, 0.18);
+    color: #d6f7ff;
+    word-break: break-all;
+}
+
+.cheats-param-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0 12px;
+}
+
+@media (max-width: 768px) {
+    .cheats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cheats-code-row {
+        grid-template-columns: 1fr;
+    }
+
+    .cheats-notes-body {
+        padding: 14px;
+    }
+}
+
+
+
+.cheats-notes-btn-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.cheats-notes-btn {
+    margin: 22px auto 0 auto;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    width: auto !important;
+    max-width: fit-content;
+
+    padding: 11px 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(126, 227, 255, 0.55);
+
+    background: linear-gradient(
+        135deg,
+        rgba(15, 40, 62, 0.65),
+        rgba(32, 14, 57, 0.62)
+    );
+
+    color: #dcfbff;
+    font-weight: 800;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
+
+    box-shadow:
+        0 0 18px rgba(126, 227, 255, 0.24),
+        inset 0 0 16px rgba(255, 255, 255, 0.04);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1572,33 +1864,242 @@ body.fade-out {
         
 
 
-        
-
-
-
-
         <div class="container mt-4">
-            <!-- Alert Message Container -->
-            <div id="alert-box" class="alert alert-info text-center" style="display: none;"></div>
+    <!-- Alert Message Container -->
+    <div id="alert-box" class="alert alert-info text-center" style="display: none;"></div>
 
-            <!-- NEW HERO SECTION -->
-            <section class="hero-wrapper">
+    <!-- NEW HERO SECTION -->
+    <section class="hero-wrapper">
 
-                <!-- Animated glow ring -->
-                <div class="hero-glow"></div>
+        <!-- Animated glow ring -->
+        <div class="hero-glow"></div>
 
-                <!-- Inner hero content -->
-                <div class="hero-content">
-                    <h1 class="hero-title animate-hero-title">PROTAC Builder</h1>
+        <!-- Inner hero content -->
+        <div class="hero-content">
+            <h1 class="hero-title animate-hero-title">PROTAC Builder</h1>
 
-                    <p class="hero-tagline animate-hero-tagline">
-                        A next-generation platform for <span>rapid degrader design</span> —
-                        bridging chemistry, structural biology, and AI-assisted modeling.
+            <p class="hero-tagline animate-hero-tagline">
+                A next-generation platform for <span>rapid degrader design</span> —
+                bridging chemistry, structural biology, and AI-assisted modeling.
+            </p>
+
+            <div class="cheats-notes-btn-wrap">
+                <button id="cheats-notes-btn" type="button" class="cheats-notes-btn">
+                    🧠 Cheats &amp; Notes
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Cheats & Notes Popup -->
+    <div id="cheats-notes-overlay" aria-hidden="true">
+        <div class="cheats-notes-panel" role="dialog" aria-modal="true" aria-labelledby="cheats-notes-title">
+            <div class="cheats-notes-head">
+                <h3 id="cheats-notes-title" class="cheats-notes-title">
+                    PROTAC Builder Cheats &amp; Notes
+                </h3>
+
+                <button id="cheats-notes-close" type="button" aria-label="Close cheats and notes">
+                    ×
+                </button>
+            </div>
+
+            <div class="cheats-notes-body">
+
+                <!-- QUICK START -->
+                <section class="cheats-card cheats-card-primary">
+                    <div class="cheats-kicker">Quick Start</div>
+
+                    <h4>Build a PROTAC from three modular pieces</h4>
+
+                    <p>
+                        PROTAC Builder helps you assemble a degrader by combining a
+                        <strong>warhead / target ligand</strong>, a <strong>linker</strong>,
+                        and an <strong>E3 ligase recruiter</strong>.
                     </p>
-                </div>
 
+                    <div class="cheats-grid">
+                        <div class="cheats-mini-card">
+                            <span class="cheats-pill">Warhead</span>
+                            <p>
+                                Select from V-LiSEMOD, paste a SMILES, or draw/edit your own
+                                target-binding ligand.
+                            </p>
+                        </div>
 
-            </section>
+                        <div class="cheats-mini-card">
+                            <span class="cheats-pill">Linker</span>
+                            <p>
+                                Choose a curated linker, filter by properties, paste a SMILES,
+                                or design one manually.
+                            </p>
+                        </div>
+
+                        <div class="cheats-mini-card">
+                            <span class="cheats-pill">Ligase</span>
+                            <p>
+                                Select or load an E3 ligase recruiter, then define where the linker
+                                should attach.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ATTACHMENT ATOMS -->
+                <section class="cheats-card">
+                    <div class="cheats-kicker">Attachment Atom Cheat Sheet</div>
+
+                    <h4>Mark the connection points before saving</h4>
+
+                    <ul class="cheats-list">
+                        <li>
+                            <strong>Warhead:</strong>
+                            add a bonded <code>U</code> atom at the warhead attachment site.
+                        </li>
+
+                        <li>
+                            <strong>Linker:</strong>
+                            add <code>U</code> at the warhead-facing end and <code>V</code>
+                            at the ligase-facing end.
+                        </li>
+
+                        <li>
+                            <strong>Ligase recruiter:</strong>
+                            add a bonded <code>V</code> atom at the ligase recruiter attachment site.
+                        </li>
+                    </ul>
+
+                    <p class="cheats-note">
+                        After editing each panel, click <strong>Save</strong> under Warhead,
+                        Linker, and Ligase Recruiter. Then click <strong>Generate PROTAC</strong>.
+                    </p>
+                </section>
+
+                <!-- LOADING MOLECULES -->
+                <section class="cheats-card">
+                    <div class="cheats-kicker">Loading Molecules</div>
+
+                    <h4>Use SMILES when you already know the structure</h4>
+
+                    <p>
+                        Click <strong>Load from SMILES</strong> under the Warhead, Linker,
+                        or Ligase Recruiter panel, paste a valid SMILES string, and load it
+                        into the editor.
+                    </p>
+
+                    <p>
+                        Once loaded, you can modify the molecule, add the required
+                        <code>U</code>/<code>V</code> attachment atom, and click
+                        <strong>Save</strong>.
+                    </p>
+                </section>
+
+                <!-- COMPANION TOOLS -->
+                <section class="cheats-card">
+                    <div class="cheats-kicker">Companion Tools</div>
+
+                    <h4>Use the discovery tools when you need help choosing components</h4>
+
+                    <ul class="cheats-list">
+                        <li>
+                            <strong>Warhead Hunter:</strong>
+                            helps identify or import target-binding warheads.
+                        </li>
+
+                        <li>
+                            <strong>E3 Ligandalyzer:</strong>
+                            helps explore E3 ligase recruiter options.
+                        </li>
+
+                        <li>
+                            <strong>V-LiSEMOD:</strong>
+                            provides selectable warheads from the builder dropdown.
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- SHAREABLE LINKS -->
+                <section class="cheats-card">
+                    <div class="cheats-kicker">Shareable Builder Links</div>
+
+                    <h4>Open PROTAC Builder with molecules already loaded</h4>
+
+                    <p>
+                        Advanced users can create links that preload a warhead, linker,
+                        or ligase recruiter.
+                    </p>
+
+                    <div class="cheats-code-row">
+                        <span class="cheats-pill">Builder</span>
+                        <code>https://protacbuilder.com/builder</code>
+                    </div>
+
+                    <div class="cheats-code-row">
+                        <span class="cheats-pill">Warhead SMILES</span>
+                        <code>https://protacbuilder.com/builder?smiles=ENCODED_WARHEAD_SMILES</code>
+                    </div>
+
+                    <div class="cheats-code-row">
+                        <span class="cheats-pill">Linker SMILES</span>
+                        <code>https://protacbuilder.com/builder?linker=ENCODED_LINKER_SMILES</code>
+                    </div>
+
+                    <div class="cheats-code-row">
+                        <span class="cheats-pill">Ligase Recruiter</span>
+                        <code>https://protacbuilder.com/builder?ligase=LIGASE_NAME</code>
+                    </div>
+
+                    <div class="cheats-code-row">
+                        <span class="cheats-pill">Multiple Pieces</span>
+                        <code>https://protacbuilder.com/builder?smiles=WARHEAD_SMILES&amp;linker=LINKER_SMILES&amp;ligase=LIGASE_NAME</code>
+                    </div>
+                </section>
+
+                <!-- DEVELOPER NOTES -->
+                <section class="cheats-card cheats-dev-card">
+                    <div class="cheats-kicker">Developer Notes</div>
+
+                    <h4>Local testing and query parameter reference</h4>
+
+                    <p>
+                        Local development builder URL:
+                        <code>http://192.168.1.154:5069/builder</code>
+                    </p>
+
+                    <p>
+                        <strong>Supported warhead preload parameters:</strong>
+                    </p>
+
+                    <div class="cheats-param-list">
+                        <code>?smiles=</code>
+                        <code>?lig_smi=</code>
+                        <code>?warhead_smiles=</code>
+                        <code>?warheadSmiles=</code>
+                    </div>
+
+                    <p>
+                        Backend/database ligand preload:
+                        <code>/builder?ligand=YOUR_LIGAND_CODE</code>
+                    </p>
+
+                    <p>
+                        Real SMILES should be URL-encoded before being placed into a link:
+                        <code>encodeURIComponent(smiles)</code>
+                    </p>
+
+<pre><code>const url =
+  "/builder?smiles=" +
+  encodeURIComponent(warheadSmiles) +
+  "&amp;linker=" +
+  encodeURIComponent(linkerSmiles) +
+  "&amp;ligase=" +
+  encodeURIComponent(ligaseName);</code></pre>
+                </section>
+
+            </div>
+        </div>
+    </div>
             
 
             <!-- Molecule Selection Section -->
@@ -2397,6 +2898,39 @@ window.convertedSession = {{ (converted_session or '') | tojson }};
 document.addEventListener("DOMContentLoaded", () => {
                 console.log("📥 DOM ready → Preparing ligase dropdown loader registration…");
             });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const openBtn = document.getElementById("cheats-notes-btn");
+    const overlay = document.getElementById("cheats-notes-overlay");
+    const panel = overlay ? overlay.querySelector(".cheats-notes-panel") : null;
+    const closeBtn = document.getElementById("cheats-notes-close");
+    if (!openBtn || !overlay || !panel || !closeBtn) return;
+
+    function openCheatsNotes() {
+        overlay.classList.add("is-open");
+        overlay.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeCheatsNotes() {
+        overlay.classList.remove("is-open");
+        overlay.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+    }
+
+    openBtn.addEventListener("click", openCheatsNotes);
+    closeBtn.addEventListener("click", closeCheatsNotes);
+    overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) closeCheatsNotes();
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && overlay.classList.contains("is-open")) {
+            closeCheatsNotes();
+        }
+    });
+});
 </script>
 
 <script>

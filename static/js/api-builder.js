@@ -441,11 +441,14 @@
 
   function downloadResultsCSV() {
     if (!LAST_RESULTS.length) return;
-    let csv = "PROTAC_Name,PROTAC_SMILES\n";
+    let csv = "PROTAC_Name,PROTAC_SMILES,WARHEAD_SMILES,LINKER_SMILES,LIGASE_SMILES\n";
     LAST_RESULTS.forEach((row) => {
       const name = String(row.name || "").replace(/"/g, '""');
       const smiles = String(row.smiles || "").replace(/"/g, '""');
-      csv += `"${name}","${smiles}"\n`;
+      const warhead = String(row.warhead_smiles || "").replace(/"/g, '""');
+      const linker = String(row.linker_smiles || "").replace(/"/g, '""');
+      const ligase = String(row.ligase_smiles || "").replace(/"/g, '""');
+      csv += `"${name}","${smiles}","${warhead}","${linker}","${ligase}"\n`;
     });
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);

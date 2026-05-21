@@ -53,6 +53,7 @@ from .io_utils import (
     get_template_download_count,
     get_warheads_df,
     log_builder_usage,
+    log_legacy_protac_components,
     log_generated_protac,
     log_template_download,
     write_frontend_log,
@@ -541,6 +542,22 @@ def log_protac_frontend():
         ligase_mol = data.get("ligase_mol", "")
         protac_mol = data.get("protac_mol", "")
         protac_smiles = data.get("protac_smiles", "")
+        warhead_smiles = ""
+        linker_smiles = ""
+        ligase_smiles = ""
+
+        try:
+            warhead_smiles = molblock_to_smiles(warhead_mol) or normalize_attachment_smiles(molblock_to_mapped_smiles(warhead_mol))
+        except Exception:
+            warhead_smiles = ""
+        try:
+            linker_smiles = molblock_to_smiles(linker_mol) or normalize_attachment_smiles(molblock_to_mapped_smiles(linker_mol))
+        except Exception:
+            linker_smiles = ""
+        try:
+            ligase_smiles = molblock_to_smiles(ligase_mol) or normalize_attachment_smiles(molblock_to_mapped_smiles(ligase_mol))
+        except Exception:
+            ligase_smiles = ""
 
         log_generated_protac(
             client_ip=client_ip,
@@ -549,6 +566,13 @@ def log_protac_frontend():
             ligase_mol=ligase_mol,
             protac_mol=protac_mol,
             protac_smiles=protac_smiles,
+        )
+        log_legacy_protac_components(
+            client_ip=client_ip,
+            protac_smiles=protac_smiles,
+            warhead_smiles=warhead_smiles,
+            linker_smiles=linker_smiles,
+            ligase_smiles=ligase_smiles,
         )
         write_frontend_log(
             client_ip=client_ip,
@@ -634,6 +658,7 @@ def inspect_linker_csv_route():
 @bp.route("/api/protac/builder/batch", methods=["POST"])
 def protac_builder_batch():
     source = safe_str(request.form.get("source") or "web").lower() or "web"
+    client_ip = get_client_ip(request)
 
     def fail(payload, status_code=400, extra=""):
         try:
@@ -686,7 +711,22 @@ def protac_builder_batch():
                 failures.append({"row": int(index), "name": linker_name, "linker_smiles": linker_smiles, "reason": str(exc)})
                 continue
 
-            results.append({"name": f"{linker_name}_PROTAC", "smiles": product})
+            log_legacy_protac_components(
+                client_ip=client_ip,
+                protac_smiles=product,
+                warhead_smiles=warhead_smiles,
+                linker_smiles=linker_smiles,
+                ligase_smiles=ligase_smiles,
+            )
+            results.append(
+                {
+                    "name": f"{linker_name}_PROTAC",
+                    "smiles": product,
+                    "warhead_smiles": warhead_smiles,
+                    "linker_smiles": linker_smiles,
+                    "ligase_smiles": ligase_smiles,
+                }
+            )
 
         log_builder_usage(source=source, endpoint="batch", status="ok", built=len(results), failed=len(failures))
         return jsonify(

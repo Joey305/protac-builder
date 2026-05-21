@@ -26,6 +26,9 @@ try:
 except Exception:  # pragma: no cover - not available on macOS sandboxed Python builds
     fcntl = None
 
+LEGACY_PROTAC_HEADER = ["Date", "IP", "PROTAC", "WARHEAD", "LINKER", "LIGASE"]
+LEGACY_TWO_COL_HEADER = ["timestamp_utc", "protac_smiles"]
+
 
 DEFAULT_ALLOWED_ORIGINS = (
     "http://127.0.0.1:5069",
@@ -109,8 +112,9 @@ def initialize_runtime_files() -> None:
     )
     ensure_csv(
         LEGACY_PROTAC_LOG,
-        ["timestamp_utc", "protac_smiles"],
+        LEGACY_PROTAC_HEADER,
     )
+    migrate_legacy_protac_log_schema()
     ensure_usage_files()
     migrate_legacy_usage_counts()
 
@@ -176,11 +180,74 @@ def log_generated_protac(
             protac_smiles,
         ],
     )
+    # Keep detailed generated logs in GENERATED_PROTACS_LOG only.
+    # Legacy PROTAC_log.csv is maintained separately in 6-column historical format.
+
+
+def log_legacy_protac_components(
+    *,
+    client_ip: str,
+    protac_smiles: str,
+    warhead_smiles: str = "",
+    linker_smiles: str = "",
+    ligase_smiles: str = "",
+) -> None:
+    migrate_legacy_protac_log_schema()
     append_csv_row(
         LEGACY_PROTAC_LOG,
-        ["timestamp_utc", "protac_smiles"],
-        [now_utc_iso(), protac_smiles],
+        LEGACY_PROTAC_HEADER,
+        [
+            datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            client_ip,
+            protac_smiles,
+            warhead_smiles,
+            linker_smiles,
+            ligase_smiles,
+        ],
     )
+
+
+def migrate_legacy_protac_log_schema() -> None:
+    LEGACY_PROTAC_LOG.parent.mkdir(parents=True, exist_ok=True)
+    if not LEGACY_PROTAC_LOG.exists() or LEGACY_PROTAC_LOG.stat().st_size == 0:
+        with LEGACY_PROTAC_LOG.open("w", newline="", encoding="utf-8") as handle:
+            csv.writer(handle).writerow(LEGACY_PROTAC_HEADER)
+        return
+
+    with LEGACY_PROTAC_LOG.open("r", newline="", encoding="utf-8") as handle:
+        rows = list(csv.reader(handle))
+
+    if not rows:
+        with LEGACY_PROTAC_LOG.open("w", newline="", encoding="utf-8") as handle:
+            csv.writer(handle).writerow(LEGACY_PROTAC_HEADER)
+        return
+
+    normalized: list[list[str]] = []
+    first = [cell.strip() for cell in rows[0]]
+    start_index = 1 if first in (LEGACY_PROTAC_HEADER, LEGACY_TWO_COL_HEADER) else 0
+
+    for row in rows[start_index:]:
+        if not row:
+            continue
+        cells = [str(cell).strip() for cell in row]
+        if cells == LEGACY_PROTAC_HEADER or cells == LEGACY_TWO_COL_HEADER:
+            continue
+        if len(cells) >= 6:
+            normalized.append(cells[:6])
+        elif len(cells) == 2:
+            # Migrate old 2-column rows: timestamp_utc, protac_smiles -> Date,IP,PROTAC,...
+            ts = cells[0]
+            protac = cells[1]
+            date_value = ts.replace("T", "_").split(".")[0].replace(":", "-").rstrip("Z")
+            normalized.append([date_value, "", protac, "", "", ""])
+        else:
+            protac = cells[-1] if cells else ""
+            normalized.append(["", "", protac, "", "", ""])
+
+    with LEGACY_PROTAC_LOG.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(LEGACY_PROTAC_HEADER)
+        writer.writerows(normalized)
 
 
 def write_frontend_log(
