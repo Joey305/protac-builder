@@ -48,6 +48,7 @@ from .io_utils import (
     api_linkers_exists,
     apply_cors_headers,
     get_builder_usage_counts,
+    find_ligand_smiles,
     get_client_ip,
     get_linkers_df,
     get_template_download_count,
@@ -269,51 +270,56 @@ def render_smiles():
 
 @bp.route("/get_ligand_smiles")
 def get_ligand_smiles():
-    ligand_id = request.args.get("ligand", "").strip()
+    ligand_id = request.args.get("ligand", "").strip().upper()
     if not ligand_id:
         return jsonify({"error": "No ligand ID provided"}), 400
     try:
-        warheads = get_warheads_df()
+        ligand_data = find_ligand_smiles(ligand_id)
     except FileNotFoundError as exc:
         return _missing_path_error(Path(str(exc)))
-    row = warheads[warheads["ligand"] == ligand_id]
-    if row.empty:
+    if not ligand_data:
         return jsonify({"error": f"Ligand '{ligand_id}' not found!"}), 404
-    return jsonify({"smiles": row.iloc[0]["smiles"]})
+    return jsonify({"ligand": ligand_data["ligand"], "smiles": ligand_data["smiles"], "source": ligand_data["source"]})
 
 
 @bp.route("/get_ligand_data", methods=["GET"])
 def get_ligand_data():
-    ligand_id = request.args.get("ligand", "").strip()
+    ligand_id = request.args.get("ligand", "").strip().upper()
     if not ligand_id:
         return jsonify({"error": "No ligand specified"}), 400
     try:
-        warheads = get_warheads_df()
+        ligand_data = find_ligand_smiles(ligand_id)
     except FileNotFoundError as exc:
         return _missing_path_error(Path(str(exc)))
-    row = warheads[warheads["ligand"] == ligand_id]
-    if row.empty:
+    if not ligand_data:
         return jsonify({"error": "Ligand not found"}), 404
-    smiles = row.iloc[0]["smiles"]
+    smiles = ligand_data["smiles"]
     mol_block = convert_smiles_to_molblock(smiles)
     if not mol_block:
         return jsonify({"error": "MOL block conversion failed"}), 500
-    return jsonify({"ligand": ligand_id, "smiles": smiles, "mol_block": mol_block})
+    return jsonify(
+        {
+            "ligand": ligand_data["ligand"],
+            "smiles": smiles,
+            "mol_block": mol_block,
+            "name": ligand_data.get("name", ""),
+            "source": ligand_data["source"],
+        }
+    )
 
 
 @bp.route("/ligand_editor")
 def ligand_editor():
-    ligand_id = request.args.get("ligand", "").strip()
+    ligand_id = request.args.get("ligand", "").strip().upper()
     if not ligand_id:
         return jsonify({"error": "No ligand ID provided!"}), 400
     try:
-        warheads = get_warheads_df()
+        ligand_data = find_ligand_smiles(ligand_id)
     except FileNotFoundError as exc:
         return _missing_path_error(Path(str(exc)))
-    row = warheads[warheads["ligand"] == ligand_id]
-    if row.empty:
+    if not ligand_data:
         return jsonify({"error": f"Ligand '{ligand_id}' not found!"}), 404
-    smiles = row.iloc[0]["smiles"]
+    smiles = ligand_data["smiles"]
     mol_block = convert_smiles_to_molblock(smiles)
     if not mol_block:
         return jsonify({"error": "Invalid SMILES format!"}), 400

@@ -395,8 +395,14 @@ function loadLigandFromCode(ligandCode) {
                 console.error("❌ Failed to load ligand.");
             }
         },
-        error: function () {
+        error: function (xhr) {
             console.error("❌ Error fetching ligand data.");
+
+            const fallbackValue = String(ligandCode || "").trim();
+            if (xhr && xhr.status === 404 && fallbackValue) {
+                console.log("↩️ Ligand code lookup missed; retrying incoming value as raw SMILES:", fallbackValue);
+                loadLigand(fallbackValue);
+            }
         }
     });
 }
@@ -2811,8 +2817,8 @@ function validatePdbInput(input) {
 }
 
 function validateLigandInput(input) {
-    // must be exactly 3 uppercase letters/numbers
-    const regex = /^[A-Z0-9]{3}$/;
+    // Accept the ligand code formats currently used by upstream sources.
+    const regex = /^(?:[A-Z0-9]{3}|[A-Z0-9]{5})$/;
 
     if (regex.test(input.value.trim())) {
         input.classList.remove("invalid");
@@ -2961,7 +2967,7 @@ function stopAsyncLoader() {
 
 
 // =========================================================
-// 🧬 NEW URL LOADER: ?lig_smi= (SMILES or 3-letter CODE)
+// 🧬 NEW URL LOADER: ?lig_smi= (SMILES or ligand code)
 // =========================================================
 (function () {
   // decode safely (handles % encoding + '+' spaces)
@@ -2970,9 +2976,9 @@ function stopAsyncLoader() {
     catch { return String(x || ""); }
   }
 
-  // strict 3-letter code (your warhead style)
-  function is3LetterCode(x) {
-    return /^[A-Za-z0-9]{3}$/.test(String(x || "").trim());
+  // Common ligand code shapes used by upstream tools.
+  function isLigandCode(x) {
+    return /^[A-Za-z0-9]{3}$|^[A-Za-z0-9]{5}$/.test(String(x || "").trim());
   }
 
   // wait until ChemDoodle editors exist + sketcher is ready
@@ -2999,8 +3005,8 @@ function stopAsyncLoader() {
     if (window.__LIG_SMI_LOADED) return;
     window.__LIG_SMI_LOADED = true;
 
-    if (is3LetterCode(val)) {
-      console.log("✅ lig_smi treated as 3-letter CODE → get_ligand_data:", val);
+    if (isLigandCode(val)) {
+      console.log("✅ lig_smi treated as ligand code → get_ligand_data:", val);
       loadLigandFromCode(val);          // uses /api/ligand/data
     } else {
       console.log("✅ lig_smi treated as SMILES → convert_smiles_to_mol");
@@ -3024,14 +3030,15 @@ function useWarheadCodes() {
   const pdb = (document.getElementById("warheadPdb")?.value || "").trim().toUpperCase();
   const lig = (document.getElementById("warheadLigand")?.value || "").trim().toUpperCase();
   const status = document.getElementById("warhead-code-status");
+  const ligandCodePattern = /^(?:[0-9A-Z]{3}|[0-9A-Z]{5})$/;
 
   // Basic validation
   if (!/^[0-9A-Z]{4}$/.test(pdb)) {
     if (status) status.textContent = "❌ Warhead PDB must be 4 characters (e.g., 3EKY).";
     return;
   }
-  if (!/^[0-9A-Z]{3}$/.test(lig)) {
-    if (status) status.textContent = "❌ Ligand code must be 3 characters (e.g., DR7).";
+  if (!ligandCodePattern.test(lig)) {
+    if (status) status.textContent = "❌ Ligand code must be 3 or 5 characters (e.g., DR7 or A1A00).";
     return;
   }
 
@@ -3132,15 +3139,15 @@ function clearLigaseOnly() {
         }
     }
 
-    function isLikelyThreeLetterLigandCode(value) {
-        return /^[A-Za-z0-9]{3}$/.test(String(value || "").trim());
+    function isLikelyLigandCode(value) {
+        return /^[A-Za-z0-9]{3}$|^[A-Za-z0-9]{5}$/.test(String(value || "").trim());
     }
 
     function isProbablySmiles(value) {
         const v = String(value || "").trim();
 
         if (!v) return false;
-        if (isLikelyThreeLetterLigandCode(v)) return false;
+        if (isLikelyLigandCode(v)) return false;
 
         // Loose SMILES detector.
         // Avoid being too strict because your ligands include stereochemistry,
@@ -3398,17 +3405,17 @@ function clearLigaseOnly() {
         clearWarheadStateForIncomingHandoff();
 
         // Put whatever came in into the visible warhead SMILES box.
-        // If it is a 3-letter code, this still helps debugging.
+        // If it is a ligand code, this still helps debugging.
         setInputValue("warhead-smiles-input", value);
         openSmilesPanel("warhead-smiles-panel");
 
         console.log("🧬 Incoming warhead handoff detected:", value);
 
         // Preserve older system:
-        // ?lig_smi=HFY should behave as a ligand code.
+        // ?lig_smi=HFY or ?lig_smi=A1A00 should behave as a ligand code.
         // ?lig_smi=c1ccc... should behave as raw SMILES.
-        if (isLikelyThreeLetterLigandCode(value) && !isProbablySmiles(value)) {
-            console.log("✅ Incoming warhead treated as 3-letter ligand code:", value);
+        if (isLikelyLigandCode(value) && !isProbablySmiles(value)) {
+            console.log("✅ Incoming warhead treated as ligand code:", value);
 
             if (typeof window.loadLigandFromCode === "function") {
                 window.loadLigandFromCode(value);

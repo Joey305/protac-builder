@@ -2633,7 +2633,7 @@ $('#curatedLinkersModal').on('shown.bs.modal', function () {
             <input class="form-control" id="warheadPdb" placeholder="Example: 5T35" oninput="this.value=this.value.toUpperCase();">
 
             <label style="margin-top:10px;">Warhead Ligand Code</label>
-            <input class="form-control" id="warheadLigand" placeholder="Example: DR7" maxlength="3" oninput="this.value=this.value.toUpperCase();">
+            <input class="form-control" id="warheadLigand" placeholder="Example: DR7 or A1A00" maxlength="5" oninput="this.value=this.value.toUpperCase();">
 
             <div style="font-size:0.9rem; opacity:0.85; margin-top:8px;">
               Uses RCSB download unless a local job import provides files.
@@ -2732,7 +2732,7 @@ $('#curatedLinkersModal').on('shown.bs.modal', function () {
           <h4 class="electric-title">Manual PROTAC Setup</h4>
 
           <p class="electric-subtext">
-            Enter 4-letter PDB codes and 3-letter ligand identifiers manually.<br>
+            Enter 4-letter PDB codes and 3- or 5-character ligand identifiers manually.<br>
             If you already imported a warhead from Target Builder / Hunter, you may leave warhead fields blank.
           </p>
 
@@ -2746,7 +2746,7 @@ $('#curatedLinkersModal').on('shown.bs.modal', function () {
 
           <div class="electric-input-group">
             <label>Ligase Ligand Code</label>
-            <input class="electric-input" id="manual-ligaseLigand" placeholder="3JF" maxlength="3"
+            <input class="electric-input" id="manual-ligaseLigand" placeholder="3JF or A1A00" maxlength="5"
                    oninput="this.value=this.value.toUpperCase(); validateLigandInput(this)">
           </div>
 
@@ -2758,7 +2758,7 @@ $('#curatedLinkersModal').on('shown.bs.modal', function () {
 
           <div class="electric-input-group">
             <label>Warhead Ligand Code</label>
-            <input class="electric-input" id="manual-warheadLigand" placeholder="DR7" maxlength="3"
+            <input class="electric-input" id="manual-warheadLigand" placeholder="DR7 or A1A00" maxlength="5"
                    oninput="this.value=this.value.toUpperCase(); validateLigandInput(this)">
           </div>
 

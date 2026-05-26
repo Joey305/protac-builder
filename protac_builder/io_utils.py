@@ -12,6 +12,7 @@ from flask import Request, Response
 
 from .paths import (
     API_LINKERS_CSV,
+    COMPONENT_SMILES_PATH,
     GENERATED_PROTACS_LOG,
     LEGACY_PROTAC_LOG,
     LINKER_CSV_PATH,
@@ -135,6 +136,59 @@ def get_warheads_df() -> pd.DataFrame:
         .drop_duplicates(subset="ligand")
         .sort_values(by="ligand")
     )
+
+
+@lru_cache(maxsize=1)
+def get_component_smiles_df() -> pd.DataFrame:
+    if not COMPONENT_SMILES_PATH.exists():
+        raise FileNotFoundError(f"Missing required component SMILES file: {COMPONENT_SMILES_PATH}")
+
+    df = pd.read_csv(
+        COMPONENT_SMILES_PATH,
+        sep="\t",
+        header=None,
+        names=["smiles", "ligand", "name"],
+        usecols=[0, 1, 2],
+        dtype=str,
+        keep_default_na=False,
+    )
+
+    df["smiles"] = df["smiles"].astype(str).str.strip()
+    df["ligand"] = df["ligand"].astype(str).str.strip().str.upper()
+    df["name"] = df["name"].astype(str).str.strip()
+
+    df = df[(df["smiles"] != "") & (df["ligand"] != "")]
+    return df.drop_duplicates(subset="ligand", keep="first").sort_values(by="ligand")
+
+
+def find_ligand_smiles(ligand_id: str) -> dict[str, str] | None:
+    code = str(ligand_id or "").strip().upper()
+    if not code:
+        return None
+
+    component_df = get_component_smiles_df()
+    row = component_df[component_df["ligand"] == code]
+    if not row.empty:
+        record = row.iloc[0]
+        return {
+            "ligand": record["ligand"],
+            "smiles": record["smiles"],
+            "name": record.get("name", ""),
+            "source": "component_smiles",
+        }
+
+    warheads_df = get_warheads_df()
+    row = warheads_df[warheads_df["ligand"].astype(str).str.upper() == code]
+    if row.empty:
+        return None
+
+    record = row.iloc[0]
+    return {
+        "ligand": str(record["ligand"]).strip().upper(),
+        "smiles": str(record["smiles"]).strip(),
+        "name": "",
+        "source": "warheads_csv",
+    }
 
 
 def get_client_ip(request: Request) -> str:

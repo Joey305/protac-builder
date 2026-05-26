@@ -14,6 +14,7 @@ DEEPPK_TOOLS_DIR = BASE_DIR / "tools" / "deeppk"
 
 LINKER_CSV_PATH = DATA_DIR / "linkers.csv"
 WARHEAD_CSV_PATH = DATA_DIR / "output_csvs" / "Ligand_Atoms_Smiles_part1.csv"
+COMPONENT_SMILES_PATH = STATIC_DIR / "smiles" / "Components-smiles-stereo-oe.smi"
 
 LIGASE_DIR = BASE_DIR / "Ligases"
 PDB_STRUCTURES_DIR = LIGASE_DIR / "PDB_Structures"
