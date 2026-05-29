@@ -30,40 +30,73 @@ def normalize_job_id(job_id: str) -> str:
 
 def _configured_dirs() -> list[tuple[str, Path]]:
     sources: list[tuple[str, Path]] = []
+
     for env_name in ("TARGET_BUILDER_JOBS_DIR", "WARHEAD_HUNTER_JOBS_DIR"):
         value = os.environ.get(env_name, "").strip()
         if value:
             sources.append((env_name, Path(value).expanduser()))
+
     sources.append(("runtime_cache", WARHEAD_HUNTER_IMPORTS_DIR))
     sources.append(("static_hunter_jobs_dev_fallback", HUNTER_JOBS_DIR))
     return sources
 
 
+def _remote_base() -> str:
+    return os.environ.get("WARHEAD_HUNTER_JOB_API_BASE", "").strip().rstrip("/")
+
+
+def _remote_token() -> str:
+    return (
+        os.environ.get("WARHEAD_HUNTER_JOB_API_TOKEN", "").strip()
+        or os.environ.get("PROTAC_BACKUP_TOKEN", "").strip()
+    )
+
+
+def _remote_headers() -> dict[str, str]:
+    headers = {
+        "User-Agent": "protac-builder-warhead-import/1.0",
+    }
+    token = _remote_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
 def checked_source_names(include_remote: bool = True) -> list[str]:
     names = [name for name, _path in _configured_dirs()]
-    if include_remote and os.environ.get("WARHEAD_HUNTER_JOB_API_BASE", "").strip():
+    if include_remote and _remote_base():
         names.append("WARHEAD_HUNTER_JOB_API_BASE")
     return names
 
 
 def available_local_job_ids(limit: int = 10) -> list[str]:
     ids: set[str] = set()
+
     for _name, base in _configured_dirs():
         if not base.is_dir():
             continue
-        ids.update(item.name for item in base.iterdir() if item.is_dir() and SAFE_JOB_ID_RE.fullmatch(item.name))
+
+        ids.update(
+            item.name
+            for item in base.iterdir()
+            if item.is_dir() and SAFE_JOB_ID_RE.fullmatch(item.name)
+        )
+
     return sorted(ids)[:limit]
 
 
 def _copy_job_files(source_dir: Path, cache_dir: Path) -> None:
     cache_dir.mkdir(parents=True, exist_ok=True)
     seen: set[str] = set()
+
     for root, _dirs, files in os.walk(source_dir):
         for filename in files:
             if filename in seen or not filename.lower().endswith(WARHEAD_FILE_SUFFIXES):
                 continue
+
             source = Path(root) / filename
             destination = cache_dir / filename
+
             try:
                 shutil.copy2(source, destination)
                 seen.add(filename)
@@ -74,36 +107,76 @@ def _copy_job_files(source_dir: Path, cache_dir: Path) -> None:
 def resolve_job_dir(job_id: str, *, cache_external: bool = True) -> dict[str, Any] | None:
     clean = normalize_job_id(job_id)
     cache_dir = WARHEAD_HUNTER_IMPORTS_DIR / clean
+
     for source_name, base in _configured_dirs():
         job_dir = base / clean
+
         if not job_dir.is_dir():
             continue
+
         if cache_external and source_name in {"TARGET_BUILDER_JOBS_DIR", "WARHEAD_HUNTER_JOBS_DIR"}:
             _copy_job_files(job_dir, cache_dir)
             if cache_dir.is_dir():
                 return {"job_dir": cache_dir, "source": f"{source_name}:cached"}
+
         return {"job_dir": job_dir, "source": source_name}
+
     return None
 
 
 def fetch_remote_job(job_id: str, timeout: float = 12.0) -> dict[str, Any] | None:
     clean = normalize_job_id(job_id)
-    base = os.environ.get("WARHEAD_HUNTER_JOB_API_BASE", "").strip()
+    base = _remote_base()
+
     if not base:
         return None
 
     url = urljoin(base.rstrip("/") + "/", clean)
-    response = requests.get(url, timeout=timeout)
+
+    response = requests.get(
+        url,
+        headers=_remote_headers(),
+        timeout=timeout,
+    )
     response.raise_for_status()
+
     content_type = response.headers.get("content-type", "")
     if "json" not in content_type.lower():
         raise ValueError("Configured Warhead Hunter API did not return JSON.")
 
     payload = response.json()
+
     cache_dir = WARHEAD_HUNTER_IMPORTS_DIR / clean
     cache_dir.mkdir(parents=True, exist_ok=True)
-    (cache_dir / "remote_payload.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    (cache_dir / "remote_payload.json").write_text(
+        json.dumps(payload, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
     return payload
+
+
+def fetch_remote_job_file(job_id: str, filename: str, timeout: float = 20.0) -> tuple[bytes, str]:
+    clean = normalize_job_id(job_id)
+
+    safe_name = Path(filename).name
+    if safe_name != filename or not safe_name.lower().endswith((".pdb", ".sdf", ".svg", ".json")):
+        raise WarheadJobIdError("Invalid remote hunter job filename.")
+
+    base = _remote_base()
+    if not base:
+        raise FileNotFoundError("WARHEAD_HUNTER_JOB_API_BASE is not configured.")
+
+    url = urljoin(base.rstrip("/") + "/", f"{clean}/file/{safe_name}")
+
+    response = requests.get(
+        url,
+        headers=_remote_headers(),
+        timeout=timeout,
+    )
+    response.raise_for_status()
+
+    return response.content, response.headers.get("content-type", "application/octet-stream")
 
 
 def missing_job_payload(job_id: str, *, debug: bool = False) -> dict[str, Any]:
@@ -119,6 +192,8 @@ def missing_job_payload(job_id: str, *, debug: bool = False) -> dict[str, Any]:
         ),
         "available": available_local_job_ids(),
     }
+
     if debug:
         payload["source_paths_checked"] = [str(path) for _name, path in _configured_dirs()]
+
     return payload

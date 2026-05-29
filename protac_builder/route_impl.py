@@ -74,6 +74,7 @@ from .paths import (
 from .warhead_handoff import (
     WarheadJobIdError,
     fetch_remote_job,
+    fetch_remote_job_file,
     missing_job_payload,
     normalize_job_id,
     resolve_job_dir,
@@ -1047,17 +1048,42 @@ def warheadhunter_job_index(job_id: str):
 def warheadhunter_job_file(job_id: str, filename: str):
     try:
         job_id = normalize_job_id(job_id)
+
         if Path(filename).name != filename or not filename.lower().endswith((".pdb", ".sdf", ".svg", ".json")):
             return jsonify({"ok": False, "error": "Invalid filename"}), 400
-        resolved = resolve_job_dir(job_id, cache_external=False)
-        if not resolved:
-            return jsonify(missing_job_payload(job_id)), 404
-        candidate = (Path(resolved["job_dir"]) / filename).resolve()
-        root = Path(resolved["job_dir"]).resolve()
-        if root not in candidate.parents or not candidate.exists():
-            return jsonify({"ok": False, "error": "File not found"}), 404
-        return send_file(candidate)
+
+        resolved = resolve_job_dir(job_id)
+
+        if resolved:
+            base_dir = Path(resolved["job_dir"])
+
+            matches = sorted(base_dir.rglob(filename))
+            if matches:
+                path = matches[0].resolve()
+
+                try:
+                    path.relative_to(base_dir.resolve())
+                except ValueError:
+                    return jsonify({"ok": False, "error": "Invalid resolved file path"}), 400
+
+                return send_file(path, as_attachment=False)
+
+        # Local cache miss: proxy from RANDY using server-side token.
+        content, content_type = fetch_remote_job_file(job_id, filename)
+
+        return Response(
+            content,
+            mimetype=content_type or "application/octet-stream",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Warhead-Handoff-Source": "WARHEAD_HUNTER_JOB_API_BASE",
+            },
+        )
+
     except WarheadJobIdError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        return jsonify({"ok": False, "error": f"Remote file fetch failed: HTTP {status}"}), status
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500
