@@ -581,15 +581,20 @@
     }
   }
 
+  
   function initModalAndVisibility() {
-    window.jQuery(window).on("load", function () {
+    if (window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.modal === "function") {
       window.jQuery("#apiWelcomeModal").modal("show");
-    });
+    } else {
+      console.warn("Bootstrap modal unavailable; API welcome popup not shown.");
+    }
+
     document.addEventListener("visibilitychange", () => {
       const el = document.getElementById("api-counter");
       if (!el) return;
       el.style.animationPlayState = document.hidden ? "paused" : "running";
     });
+  };
   }
 
   window.uploadStructure = uploadStructure;
