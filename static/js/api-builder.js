@@ -930,14 +930,20 @@
     }
   }
 
+  
   async function startApiBuilder() {
     if (API_BUILDER_STARTED) return;
     API_BUILDER_STARTED = true;
 
-    await initSketchers();
+    // Show popup immediately. Do not wait for ChemDoodle.
     initModalAndVisibility();
     updateApiUsageCounter();
     updateTemplateDownloadCount();
+
+    // Initialize editors separately so ChemDoodle cannot block the popup.
+    initSketchers().catch((error) => {
+      console.error("API Builder sketcher initialization failed:", error);
+    });
   }
 
   window.uploadStructure = uploadStructure;
