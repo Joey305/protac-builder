@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import threading
 import time
 from typing import Any
 
@@ -9,6 +10,16 @@ import requests
 
 DEFAULT_TIMEOUT_SECONDS = 2.5
 DEFAULT_READ_TIMEOUT_SECONDS = 3.5
+DEFAULT_BULK_TIMEOUT_SECONDS = 3.0
+DEFAULT_BULK_CHUNK_SIZE = 1000
+
+
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    try:
+        return max(int(os.environ.get(name, str(default))), minimum)
+    except (TypeError, ValueError):
+        return default
+
 
 
 def _env_float(name: str, default: float, minimum: float = 0.1) -> float:
@@ -154,39 +165,57 @@ def get_remote_events(limit: int = 100) -> dict[str, Any] | None:
         return None
 
 
-def backup_events(events: list[dict[str, Any]], *, chunk_size: int = 200) -> bool:
+def _detail_backup_mode() -> str:
+    """Return sync/async/off for high-volume detailed component backups.
+
+    Default is async so batch ZIP responses are not held hostage by RANDY/Funnel
+    network time. Set PROTAC_BACKUP_DETAIL_MODE=sync only for debugging.
+    """
+    mode = os.environ.get("PROTAC_BACKUP_DETAIL_MODE", "async").strip().lower()
+    if mode in {"0", "false", "no", "off", "disabled"}:
+        return "off"
+    if mode in {"sync", "synchronous", "blocking"}:
+        return "sync"
+    return "async"
+
+
+def _prepare_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    clean_events = []
+    for item in events or []:
+        if not isinstance(item, dict):
+            continue
+        body = dict(item)
+        body.setdefault("app", "protac-builder")
+        body.setdefault("runtime", os.environ.get("DYNO", "local"))
+        body.setdefault("sent_at_unix", time.time())
+        clean_events.append(body)
+    return clean_events
+
+
+def backup_events(events: list[dict[str, Any]], *, chunk_size: int | None = None) -> bool:
     """Best-effort bulk event backup.
 
-    Uses RANDY's /backup/protac-events endpoint when available. This keeps
-    batch/CLI runs from making thousands of individual HTTPS requests.
-    Falls back to one-by-one backup_event calls only if the bulk URL is not
-    configured or the bulk request fails.
+    Uses RANDY's /backup/protac-events endpoint when available. This function is
+    still synchronous, so high-volume request handlers should call
+    backup_events_async() instead.
     """
-    clean_events = [dict(item or {}) for item in (events or []) if isinstance(item, dict)]
+    clean_events = _prepare_events(events)
     if not clean_events:
         return False
 
     url = _bulk_events_url()
     token = _backup_token()
     if not url or not token:
-        ok = False
-        for item in clean_events:
-            ok = backup_event(item) or ok
-        return ok
+        return False
 
-    timeout = _env_float("PROTAC_BACKUP_BULK_TIMEOUT_SECONDS", 8.0)
+    actual_chunk_size = chunk_size or _env_int("PROTAC_BACKUP_BULK_CHUNK_SIZE", DEFAULT_BULK_CHUNK_SIZE)
+    timeout = _env_float("PROTAC_BACKUP_BULK_TIMEOUT_SECONDS", DEFAULT_BULK_TIMEOUT_SECONDS)
     all_ok = True
-    for start in range(0, len(clean_events), max(int(chunk_size), 1)):
-        chunk = clean_events[start : start + max(int(chunk_size), 1)]
-        wrapped = []
-        for item in chunk:
-            body = dict(item)
-            body.setdefault("app", "protac-builder")
-            body.setdefault("runtime", os.environ.get("DYNO", "local"))
-            body.setdefault("sent_at_unix", time.time())
-            wrapped.append(body)
+
+    for start in range(0, len(clean_events), max(int(actual_chunk_size), 1)):
+        chunk = clean_events[start : start + max(int(actual_chunk_size), 1)]
         try:
-            response = requests.post(url, json={"events": wrapped}, headers=_headers(), timeout=timeout)
+            response = requests.post(url, json={"events": chunk}, headers=_headers(), timeout=timeout)
             if not (200 <= response.status_code < 300):
                 all_ok = False
         except Exception:
@@ -196,3 +225,38 @@ def backup_events(events: list[dict[str, Any]], *, chunk_size: int = 200) -> boo
 
                 traceback.print_exc()
     return all_ok
+
+
+def backup_events_async(events: list[dict[str, Any]], *, chunk_size: int | None = None) -> bool:
+    """Fire-and-forget detailed backup for large batch/CLI runs.
+
+    Returns immediately after starting a daemon thread. The live ZIP/API response
+    should not wait for RANDY. If async is disabled by config, this can fall back
+    to sync or off.
+    """
+    mode = _detail_backup_mode()
+    if mode == "off":
+        return False
+
+    clean_events = _prepare_events(events)
+    if not clean_events:
+        return False
+
+    if mode == "sync":
+        return backup_events(clean_events, chunk_size=chunk_size)
+
+    thread = threading.Thread(
+        target=backup_events,
+        kwargs={"events": clean_events, "chunk_size": chunk_size},
+        name="protac-randy-backup",
+        daemon=True,
+    )
+    try:
+        thread.start()
+        return True
+    except Exception:
+        if os.environ.get("PROTAC_BACKUP_DEBUG", "").strip().lower() in {"1", "true", "yes"}:
+            import traceback
+
+            traceback.print_exc()
+        return False

@@ -18,7 +18,7 @@ from rdkit import Chem
 from rdkit.Chem import Draw, rdDepictor, rdMolDescriptors
 from rdkit.Chem.Draw import rdMolDraw2D
 
-from .backup_client import backup_events
+from .backup_client import backup_events_async
 from .builder_api import (
     detect_linker_smiles_column,
     detect_name_column,
@@ -771,7 +771,7 @@ def protac_builder_batch():
             )
 
         if component_records:
-            backup_events(component_records)
+            backup_events_async(component_records)
 
         log_builder_usage(source=source, endpoint="builder_batch", status="ok", built=len(results), failed=len(failures), extra=batch_id)
         return jsonify(
@@ -851,7 +851,7 @@ def protac_builder_cli():
         log_lines.append(f"failed: {len(failures)}")
 
         if component_records:
-            backup_events(component_records)
+            backup_events_async(component_records)
 
         log_builder_usage(source=source, endpoint="builder_cli", status="ok", built=len(results), failed=len(failures), extra=run_id)
 
