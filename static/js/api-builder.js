@@ -485,7 +485,7 @@
   function animateCountUpPretty(el, target, ms) {
     const startTime = performance.now();
     const overshoot = Math.max(0, Math.round(target * 0.04));
-    const peak = target + (target > 20 ? overshoot : 0);
+    const peak = target 
     function easeOutBack(t) {
       const c1 = 1.70158;
       const c3 = c1 + 1;
