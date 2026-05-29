@@ -19,6 +19,7 @@ from .paths import (
     LINKER_CSV_PATH,
     LOGS_DIR,
     PROTAC_DOWNLOAD_LOG,
+    PROTAC_LINKER_LIBRARY_LOG,
     PROTAC_USAGE_LOG,
     WARHEAD_CSV_PATH,
     migrate_legacy_runtime_files,
@@ -117,6 +118,24 @@ def initialize_runtime_files() -> None:
     ensure_csv(
         LEGACY_PROTAC_LOG,
         LEGACY_PROTAC_HEADER,
+    )
+    ensure_csv(
+        PROTAC_LINKER_LIBRARY_LOG,
+        [
+            "timestamp_utc",
+            "source",
+            "endpoint",
+            "status",
+            "run_id",
+            "client_ip",
+            "filename",
+            "rows_total",
+            "built",
+            "failed",
+            "name_col",
+            "smiles_col",
+            "extra",
+        ],
     )
     migrate_legacy_protac_log_schema()
     ensure_usage_files()
@@ -385,6 +404,83 @@ def log_builder_usage(
         metadata={"status": status, "built": int(built), "failed": int(failed), "extra": extra},
     )
 
+
+
+def log_linker_library_usage(
+    *,
+    source: str,
+    endpoint: str,
+    status: str,
+    run_id: str = "",
+    client_ip: str = "",
+    filename: str = "",
+    rows_total: int = 0,
+    built: int = 0,
+    failed: int = 0,
+    name_col: str = "",
+    smiles_col: str = "",
+    extra: str = "",
+) -> None:
+    """Persist linker-library usage locally and mirror it to RANDY.
+
+    This tracks how often the API linker template or uploaded linker libraries
+    are actually used in build runs, not just downloaded. It is intentionally
+    one row per run so it stays fast even for thousands of generated PROTACs.
+    """
+    timestamp_utc = now_utc_iso()
+    row = [
+        timestamp_utc,
+        source,
+        endpoint,
+        status,
+        run_id,
+        client_ip,
+        filename,
+        int(rows_total or 0),
+        int(built or 0),
+        int(failed or 0),
+        name_col,
+        smiles_col,
+        extra,
+    ]
+    append_csv_row(
+        PROTAC_LINKER_LIBRARY_LOG,
+        [
+            "timestamp_utc",
+            "source",
+            "endpoint",
+            "status",
+            "run_id",
+            "client_ip",
+            "filename",
+            "rows_total",
+            "built",
+            "failed",
+            "name_col",
+            "smiles_col",
+            "extra",
+        ],
+        row,
+    )
+    backup_event(
+        {
+            "event_type": "linker_library_usage",
+            "timestamp_utc": timestamp_utc,
+            "source": source,
+            "endpoint": endpoint,
+            "status": status,
+            "run_id": run_id,
+            "job_id": run_id,
+            "client_ip": client_ip,
+            "filename": filename,
+            "rows_total": int(rows_total or 0),
+            "built": int(built or 0),
+            "failed": int(failed or 0),
+            "name_col": name_col,
+            "smiles_col": smiles_col,
+            "extra": extra,
+        }
+    )
 
 def get_builder_usage_counts() -> dict[str, object]:
     from .usage import get_usage_summary

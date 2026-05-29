@@ -9,6 +9,7 @@ from .backup_client import backup_event, get_remote_usage_summary
 from .paths import (
     LEGACY_PROTAC_LOG,
     PROTAC_DOWNLOAD_LOG,
+    PROTAC_LINKER_LIBRARY_LOG,
     PROTAC_USAGE_LOG,
     PROTAC_USAGE_SEED_PATH,
     RUNTIME_DATA_DIR,
@@ -78,6 +79,24 @@ def ensure_usage_files() -> None:
     _ensure_csv(
         PROTAC_DOWNLOAD_LOG,
         ["timestamp_utc", "client_ip", "user_agent", "filename"],
+    )
+    _ensure_csv(
+        PROTAC_LINKER_LIBRARY_LOG,
+        [
+            "timestamp_utc",
+            "source",
+            "endpoint",
+            "status",
+            "run_id",
+            "client_ip",
+            "filename",
+            "rows_total",
+            "built",
+            "failed",
+            "name_col",
+            "smiles_col",
+            "extra",
+        ],
     )
     if not PROTAC_USAGE_SEED_PATH.exists():
         PROTAC_USAGE_SEED_PATH.write_text(
@@ -222,5 +241,12 @@ def get_usage_summary() -> dict[str, object]:
 
 
 def get_template_download_count() -> int:
+    remote_summary = get_remote_usage_summary()
+    if remote_summary and "template_downloads" in remote_summary:
+        try:
+            return int(remote_summary.get("template_downloads") or 0)
+        except (TypeError, ValueError):
+            pass
+
     seed = migrate_legacy_usage_counts()
     return int(seed.get("seed_template_downloads", 0) or 0) + _count_non_header_rows(PROTAC_DOWNLOAD_LOG)

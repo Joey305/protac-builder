@@ -36,6 +36,7 @@ WARHEAD_HUNTER_IMPORTS_DIR = UPLOADS_DIR / "warhead_hunter_imports"
 GENERATED_PROTACS_LOG = RUNTIME_DATA_DIR / "Generated_PROTACs.csv"
 PROTAC_USAGE_LOG = RUNTIME_DATA_DIR / "protac_builder_usage.csv"
 PROTAC_DOWNLOAD_LOG = RUNTIME_DATA_DIR / "protac_api_downloads.csv"
+PROTAC_LINKER_LIBRARY_LOG = RUNTIME_DATA_DIR / "protac_linker_library_usage.csv"
 PROTAC_USAGE_SEED_PATH = STATIC_DATA_DIR / "protac_builder_usage_seed.json"
 API_LINKERS_CSV = STATIC_DATA_DIR / "API_Linkers.csv"
 LEGACY_PROTAC_LOG = RUNTIME_DATA_DIR / "PROTAC_log.csv"
@@ -49,6 +50,7 @@ MUTABLE_RUNTIME_FILENAMES = (
     "PROTAC_log.csv",
     "protac_builder_usage.csv",
     "protac_api_downloads.csv",
+    "protac_linker_library_usage.csv",
 )
 
 

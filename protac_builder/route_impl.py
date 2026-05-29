@@ -57,6 +57,7 @@ from .io_utils import (
     log_builder_usage,
     log_legacy_protac_components,
     log_generated_protac,
+    log_linker_library_usage,
     log_template_download,
     write_frontend_log,
 )
@@ -774,6 +775,20 @@ def protac_builder_batch():
             backup_events_async(component_records)
 
         log_builder_usage(source=source, endpoint="builder_batch", status="ok", built=len(results), failed=len(failures), extra=batch_id)
+        log_linker_library_usage(
+            source=source,
+            endpoint="builder_batch",
+            status="ok",
+            run_id=batch_id,
+            client_ip=client_ip,
+            filename=getattr(csv_file, "filename", "") or "uploaded_linker_csv",
+            rows_total=len(df),
+            built=len(results),
+            failed=len(failures),
+            name_col=name_col,
+            smiles_col=smiles_col,
+            extra="api_builder_web_batch",
+        )
         return jsonify(
             {
                 "count": len(results),
@@ -854,6 +869,20 @@ def protac_builder_cli():
             backup_events_async(component_records)
 
         log_builder_usage(source=source, endpoint="builder_cli", status="ok", built=len(results), failed=len(failures), extra=run_id)
+        log_linker_library_usage(
+            source=source,
+            endpoint="builder_cli",
+            status="ok",
+            run_id=run_id,
+            client_ip=get_client_ip(request),
+            filename=getattr(library, "filename", "") or "API_Linkers.csv",
+            rows_total=len(rows),
+            built=len(results),
+            failed=len(failures),
+            name_col="NAME",
+            smiles_col="SMILES",
+            extra="cli_zip_build",
+        )
 
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
