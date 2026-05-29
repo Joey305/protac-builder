@@ -15,63 +15,281 @@
   let VISIBILITY_LISTENER_REGISTERED = false;
   let API_BUILDER_STARTED = false;
 
+
+  const API_BUILDER_DEBUG_VERSION = "2026-05-29-debug-chem-v1";
+  const API_BUILDER_DEBUG = true;
+  let SCRIPT_LOAD_ATTEMPT = 0;
+  let FETCH_COUNTER = 0;
+
+  function debugTimestamp() {
+    try {
+      return new Date().toISOString();
+    } catch (_error) {
+      return String(Date.now());
+    }
+  }
+
+  function debugLog(label, payload) {
+    if (!API_BUILDER_DEBUG) return;
+    if (payload === undefined) {
+      console.log(`[api-builder ${API_BUILDER_DEBUG_VERSION}] ${label}`);
+      return;
+    }
+    console.log(`[api-builder ${API_BUILDER_DEBUG_VERSION}] ${label}`, payload);
+  }
+
+  function debugWarn(label, payload) {
+    if (payload === undefined) {
+      console.warn(`[api-builder ${API_BUILDER_DEBUG_VERSION}] ${label}`);
+      return;
+    }
+    console.warn(`[api-builder ${API_BUILDER_DEBUG_VERSION}] ${label}`, payload);
+  }
+
+  function debugError(label, payload) {
+    if (payload === undefined) {
+      console.error(`[api-builder ${API_BUILDER_DEBUG_VERSION}] ${label}`);
+      return;
+    }
+    console.error(`[api-builder ${API_BUILDER_DEBUG_VERSION}] ${label}`, payload);
+  }
+
+  function shortText(value, limit = 900) {
+    const text = String(value ?? "");
+    const compact = text.replace(/\s+/g, " ").trim();
+    if (compact.length <= limit) return compact;
+    return `${compact.slice(0, limit).trim()}…`;
+  }
+
+  function looksLikeHtml(text) {
+    return /<!doctype html|<html|<head|<body|<title|application error/i.test(String(text || ""));
+  }
+
+  function formatError(error) {
+    if (!error) return { message: "Unknown error" };
+    return {
+      name: error.name || "Error",
+      message: error.message || String(error),
+      stack: error.stack || "",
+    };
+  }
+
+  function formDataSummary(body) {
+    if (!(body instanceof FormData)) return null;
+    const rows = [];
+    body.forEach((value, key) => {
+      if (value instanceof File) {
+        rows.push({
+          key,
+          type: "File",
+          name: value.name,
+          size: value.size,
+          mime: value.type || "",
+        });
+      } else {
+        const text = String(value ?? "");
+        rows.push({
+          key,
+          type: "field",
+          length: text.length,
+          preview: shortText(text, 180),
+        });
+      }
+    });
+    return rows;
+  }
+
+  function headersSummary(headers) {
+    const out = {};
+    try {
+      if (!headers) return out;
+      headers.forEach((value, key) => {
+        out[key] = value;
+      });
+    } catch (_error) {
+      return out;
+    }
+    return out;
+  }
+
+  function getChemDoodleGlobal() {
+    let cd = null;
+
+    try {
+      if (window.ChemDoodle) cd = window.ChemDoodle;
+    } catch (_error) {
+      cd = null;
+    }
+
+    try {
+      if (!cd && typeof globalThis !== "undefined" && globalThis.ChemDoodle) {
+        cd = globalThis.ChemDoodle;
+      }
+    } catch (_error) {
+      // ignore
+    }
+
+    try {
+      // This guarded check avoids the Chrome console ReferenceError caused by ChemDoodle?.readMOL.
+      // eslint-disable-next-line no-undef
+      if (!cd && typeof ChemDoodle !== "undefined") cd = ChemDoodle;
+    } catch (_error) {
+      // ignore
+    }
+
+    if (cd && !window.ChemDoodle) {
+      try {
+        window.ChemDoodle = cd;
+      } catch (_error) {
+        // ignore
+      }
+    }
+
+    return cd;
+  }
+
+  function scriptDiagnostics() {
+    return Array.from(document.scripts || []).map((script) => ({
+      id: script.id || "",
+      src: script.src || "inline",
+      loaded: script.dataset ? script.dataset.loaded || script.dataset.apiBuilderLoaded || "" : "",
+      async: Boolean(script.async),
+      defer: Boolean(script.defer),
+    })).filter((script) => {
+      return /ChemDoodle|api-builder|jquery|bootstrap/i.test(script.src) || /api-builder-chemdoodle/i.test(script.id);
+    });
+  }
+
+  function chemDoodleDiagnostics() {
+    const cd = getChemDoodleGlobal();
+    return {
+      version: API_BUILDER_DEBUG_VERSION,
+      time: debugTimestamp(),
+      href: window.location.href,
+      readyState: document.readyState,
+      bodyDatasetPage: document.body ? document.body.dataset.page || "" : "NO_BODY",
+      hasWindowChemDoodle: Boolean(window.ChemDoodle),
+      hasChemDoodleObject: Boolean(cd),
+      hasSketcherCanvas: Boolean(cd && typeof cd.SketcherCanvas === "function"),
+      hasReadMOL: Boolean(cd && typeof cd.readMOL === "function"),
+      hasWriteMOL: Boolean(cd && typeof cd.writeMOL === "function"),
+      warheadNode: Boolean(document.getElementById("warhead-editor")),
+      ligaseNode: Boolean(document.getElementById("ligase-editor")),
+      hasWarheadSketcher: Boolean(warheadSketcher || window.apiWarheadSketcher),
+      hasLigaseSketcher: Boolean(ligaseSketcher || window.apiLigaseSketcher),
+      scripts: scriptDiagnostics(),
+    };
+  }
+
+  function printDiagnostics(label = "manual") {
+    const diag = chemDoodleDiagnostics();
+    try {
+      console.groupCollapsed(`[api-builder ${API_BUILDER_DEBUG_VERSION}] diagnostics: ${label}`);
+      console.table({
+        readyState: diag.readyState,
+        bodyDatasetPage: diag.bodyDatasetPage,
+        hasWindowChemDoodle: diag.hasWindowChemDoodle,
+        hasChemDoodleObject: diag.hasChemDoodleObject,
+        hasSketcherCanvas: diag.hasSketcherCanvas,
+        hasReadMOL: diag.hasReadMOL,
+        hasWriteMOL: diag.hasWriteMOL,
+        warheadNode: diag.warheadNode,
+        ligaseNode: diag.ligaseNode,
+        hasWarheadSketcher: diag.hasWarheadSketcher,
+        hasLigaseSketcher: diag.hasLigaseSketcher,
+      });
+      console.log("full diagnostics", diag);
+      console.groupEnd();
+    } catch (_error) {
+      console.log(`[api-builder ${API_BUILDER_DEBUG_VERSION}] diagnostics`, diag);
+    }
+    return diag;
+  }
+
+  debugLog("script loaded", {
+    version: API_BUILDER_DEBUG_VERSION,
+    href: window.location.href,
+    readyState: document.readyState,
+  });
+
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   function lockDownChemDoodle() {
-    if (!window.ChemDoodle) return;
+    const CD = getChemDoodleGlobal();
+    if (!CD) {
+      debugWarn("ChemDoodle lockdown skipped; ChemDoodle global is missing.", chemDoodleDiagnostics());
+      return;
+    }
 
     try {
-      ChemDoodle.iChemLabsServer = null;
-      ChemDoodle.servicesAllowed = false;
-      ChemDoodle.monitoring = false;
-      ChemDoodle.licenseCheck = false;
+      CD.iChemLabsServer = null;
+      CD.servicesAllowed = false;
+      CD.monitoring = false;
+      CD.licenseCheck = false;
 
-      if (!ChemDoodle.iChemLabs) ChemDoodle.iChemLabs = {};
-      ChemDoodle.iChemLabs.server = null;
-      ChemDoodle.iChemLabs.useServices = false;
+      if (!CD.iChemLabs) CD.iChemLabs = {};
+      CD.iChemLabs.server = null;
+      CD.iChemLabs.useServices = false;
 
-      if (!ChemDoodle.feature) ChemDoodle.feature = {};
-      if (!ChemDoodle.feature.uil) ChemDoodle.feature.uil = {};
-      ChemDoodle.feature.uil.loadRemote = false;
+      if (!CD.feature) CD.feature = {};
+      if (!CD.feature.uil) CD.feature.uil = {};
+      CD.feature.uil.loadRemote = false;
+
+      debugLog("ChemDoodle cloud/services disabled.");
     } catch (error) {
-      console.warn("ChemDoodle lockdown warning:", error);
+      debugWarn("ChemDoodle lockdown warning", formatError(error));
     }
   }
 
   function chemDoodleReady() {
+    const CD = getChemDoodleGlobal();
     return !!(
-      window.ChemDoodle &&
-      typeof window.ChemDoodle.SketcherCanvas === "function" &&
-      typeof window.ChemDoodle.readMOL === "function" &&
-      typeof window.ChemDoodle.writeMOL === "function"
+      CD &&
+      typeof CD.SketcherCanvas === "function" &&
+      typeof CD.readMOL === "function" &&
+      typeof CD.writeMOL === "function"
     );
   }
 
-  function loadScriptOnce(src, id) {
+  function loadScriptOnce(src, id, options = {}) {
+    const force = Boolean(options.force);
     return new Promise((resolve, reject) => {
-      const existingById = id ? document.getElementById(id) : null;
-      const existingBySrc = Array.from(document.scripts).find((script) => {
-        return script.src && script.src.includes(src.split("?")[0]);
-      });
+      const baseSrc = src.split("?")[0];
+      const existingById = !force && id ? document.getElementById(id) : null;
+      const existingBySrc = !force ? Array.from(document.scripts).find((script) => {
+        return script.src && script.src.includes(baseSrc);
+      }) : null;
 
       const existing = existingById || existingBySrc;
 
       if (existing) {
-        if (existing.dataset.loaded === "true") {
+        debugLog("script already present", {
+          id: existing.id || id || "",
+          src: existing.src,
+          loaded: existing.dataset.loaded || existing.dataset.apiBuilderLoaded || "unknown",
+        });
+
+        if (existing.dataset.loaded === "true" || existing.dataset.apiBuilderLoaded === "true") {
           resolve();
           return;
         }
 
         existing.addEventListener("load", () => {
           existing.dataset.loaded = "true";
+          existing.dataset.apiBuilderLoaded = "true";
+          debugLog("existing script load event", { id: existing.id || "", src: existing.src });
           resolve();
         }, { once: true });
 
-        existing.addEventListener("error", reject, { once: true });
+        existing.addEventListener("error", (event) => {
+          debugError("existing script error event", { id: existing.id || "", src: existing.src, event });
+          reject(new Error(`Existing script failed: ${existing.src || src}`));
+        }, { once: true });
 
-        setTimeout(resolve, 300);
+        // If the script loaded before we attached the listener, this prevents a permanent wait.
+        setTimeout(resolve, 1200);
         return;
       }
 
@@ -80,14 +298,20 @@
       script.async = false;
       script.defer = false;
       script.dataset.loaded = "false";
-      if (id) script.id = id;
+      script.dataset.apiBuilderLoaded = "false";
+      if (id) script.id = force ? `${id}-retry-${SCRIPT_LOAD_ATTEMPT += 1}` : id;
+
+      debugLog("loading script", { id: script.id || "", src: script.src, force });
 
       script.onload = () => {
         script.dataset.loaded = "true";
+        script.dataset.apiBuilderLoaded = "true";
+        debugLog("script loaded", { id: script.id || "", src: script.src });
         resolve();
       };
 
       script.onerror = () => {
+        debugError("script failed to load", { id: script.id || "", src: script.src });
         reject(new Error(`Failed to load script: ${src}`));
       };
 
@@ -96,22 +320,42 @@
   }
 
   async function ensureChemDoodleLoaded() {
-    if (chemDoodleReady()) return true;
-
-    try {
-      const cacheBust = `v=${Date.now()}`;
-
-      await loadScriptOnce(`/static/js/ChemDoodleWeb.js?${cacheBust}`, "api-builder-chemdoodle-core");
-      await loadScriptOnce(`/static/js/ChemDoodleWeb-uis.js?${cacheBust}`, "api-builder-chemdoodle-uis");
-
-      for (let i = 0; i < 40; i += 1) {
-        if (chemDoodleReady()) return true;
-        await sleep(100);
-      }
-    } catch (error) {
-      console.error("Failed to dynamically load ChemDoodle scripts:", error);
+    if (chemDoodleReady()) {
+      lockDownChemDoodle();
+      debugLog("ChemDoodle already ready", chemDoodleDiagnostics());
+      return true;
     }
 
+    debugWarn("ChemDoodle not ready; attempting dynamic load", chemDoodleDiagnostics());
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const force = attempt > 0;
+        const cacheBust = `v=${Date.now()}-${attempt}`;
+
+        await loadScriptOnce(`/static/js/ChemDoodleWeb.js?${cacheBust}`, "api-builder-chemdoodle-core", { force });
+        await loadScriptOnce(`/static/js/ChemDoodleWeb-uis.js?${cacheBust}`, "api-builder-chemdoodle-uis", { force });
+
+        for (let i = 0; i < 30; i += 1) {
+          if (chemDoodleReady()) {
+            lockDownChemDoodle();
+            debugLog("ChemDoodle became ready", { attempt, poll: i, diagnostics: chemDoodleDiagnostics() });
+            return true;
+          }
+          await sleep(100);
+        }
+
+        debugWarn("ChemDoodle still not ready after load attempt", { attempt, diagnostics: chemDoodleDiagnostics() });
+      } catch (error) {
+        debugError("Failed to dynamically load ChemDoodle scripts", {
+          attempt,
+          error: formatError(error),
+          diagnostics: chemDoodleDiagnostics(),
+        });
+      }
+    }
+
+    debugError("ChemDoodle unavailable after all dynamic load attempts", chemDoodleDiagnostics());
     return chemDoodleReady();
   }
 
@@ -120,12 +364,13 @@
     const ligaseNode = document.getElementById("ligase-editor");
 
     if (!warheadNode || !ligaseNode) {
+      if (tries === 0) debugWarn("ChemDoodle editor containers not found yet", chemDoodleDiagnostics());
       if (tries < 100) {
         await sleep(100);
         return initSketchers(tries + 1);
       }
 
-      console.warn("ChemDoodle editor containers not found on API Builder page.");
+      debugError("ChemDoodle editor containers not found on API Builder page", chemDoodleDiagnostics());
       return false;
     }
 
@@ -137,30 +382,44 @@
         return initSketchers(tries + 1);
       }
 
-      console.warn("ChemDoodle unavailable on API Builder page after dynamic load attempt.");
+      debugError("ChemDoodle unavailable on API Builder page after dynamic load attempt", chemDoodleDiagnostics());
       return false;
     }
 
-    if (warheadSketcher && ligaseSketcher) return true;
+    if (warheadSketcher && ligaseSketcher) {
+      window.apiWarheadSketcher = warheadSketcher;
+      window.apiLigaseSketcher = ligaseSketcher;
+      debugLog("API Builder sketchers already initialized", chemDoodleDiagnostics());
+      return true;
+    }
 
     lockDownChemDoodle();
 
     try {
-      warheadSketcher = new ChemDoodle.SketcherCanvas("warhead-editor", 340, 340, {
+      const CD = getChemDoodleGlobal();
+      if (!CD || typeof CD.SketcherCanvas !== "function") {
+        throw new Error("ChemDoodle.SketcherCanvas is not available.");
+      }
+
+      warheadSketcher = new CD.SketcherCanvas("warhead-editor", 340, 340, {
         useServices: false,
       });
 
-      ligaseSketcher = new ChemDoodle.SketcherCanvas("ligase-editor", 340, 340, {
+      ligaseSketcher = new CD.SketcherCanvas("ligase-editor", 340, 340, {
         useServices: false,
       });
 
       window.apiWarheadSketcher = warheadSketcher;
       window.apiLigaseSketcher = ligaseSketcher;
+      window.apiBuilderChemDoodleReadyFlag = true;
 
-      console.log("✅ API Builder ChemDoodle sketchers initialized.");
+      debugLog("API Builder ChemDoodle sketchers initialized", chemDoodleDiagnostics());
       return true;
     } catch (error) {
-      console.error("Failed to initialize API Builder ChemDoodle sketchers:", error);
+      debugError("Failed to initialize API Builder ChemDoodle sketchers", {
+        error: formatError(error),
+        diagnostics: chemDoodleDiagnostics(),
+      });
       return false;
     }
   }
@@ -198,21 +457,170 @@
     window.alert(message);
   }
 
-  async function safeJsonResponse(res) {
-    const contentType = res.headers.get("content-type") || "";
+  function getMolBlockFromResponse(data) {
+    const molBlock = data?.mol_block || data?.molBlock || data?.mol || "";
 
-    if (contentType.toLowerCase().includes("json")) {
-      return res.json();
+    if (!String(molBlock).trim()) {
+      console.error("No MOL block in backend response:", data);
+      throw new Error("Backend response did not include mol_block.");
     }
 
+    return molBlock;
+  }
+
+  function loadMolBlockIntoSketcher(kind, data) {
+    const molBlock = getMolBlockFromResponse(data);
+    const sketcher = kind === "warhead" ? warheadSketcher : ligaseSketcher;
+
+    debugLog("render requested", {
+      kind,
+      molBlockLength: molBlock.length,
+      molBlockPreview: molBlock.slice(0, 240),
+      diagnostics: chemDoodleDiagnostics(),
+    });
+
+    if (!sketcher) {
+      throw new Error(`${kind} sketcher not initialized.`);
+    }
+
+    if (!chemDoodleReady()) {
+      throw new Error("ChemDoodle is not available.");
+    }
+
+    const CD = getChemDoodleGlobal();
+    const mol = CD.readMOL(molBlock);
+
+    if (!mol || !Array.isArray(mol.atoms) || mol.atoms.length === 0) {
+      debugError("ChemDoodle parsed an empty molecule from MOL block", {
+        kind,
+        mol,
+        molBlockPreview: molBlock.slice(0, 800),
+      });
+      throw new Error("ChemDoodle parsed an empty molecule from backend MOL.");
+    }
+
+    sketcher.clear();
+    sketcher.loadMolecule(mol);
+    sketcher.repaint();
+
+    requestAnimationFrame(() => {
+      if (typeof sketcher.center === "function") sketcher.center();
+      sketcher.repaint();
+    });
+
+    debugLog("molecule rendered", {
+      kind,
+      atomCount: mol.atoms.length,
+      bondCount: Array.isArray(mol.bonds) ? mol.bonds.length : null,
+    });
+  }
+
+  async function safeJsonResponse(res, context = {}) {
+    const contentType = res.headers.get("content-type") || "";
     const text = await res.text();
-    return {
-      success: false,
-      error: text ? text.slice(0, 300) : "Server returned a non-JSON response.",
+    const responseInfo = {
+      context,
+      status: res.status,
+      ok: res.ok,
+      statusText: res.statusText,
+      redirected: res.redirected,
+      url: res.url,
+      contentType,
+      headers: headersSummary(res.headers),
+      textLength: text.length,
+      textPreview: shortText(text, 1200),
+      looksLikeHtml: looksLikeHtml(text),
     };
+
+    debugLog("HTTP response", responseInfo);
+
+    if (!text) {
+      return res.ok
+        ? {}
+        : {
+          success: false,
+          error: `Server returned ${res.status} ${res.statusText || ""} with an empty body.`,
+          details: "No response body was returned.",
+          _debug: responseInfo,
+        };
+    }
+
+    if (contentType.toLowerCase().includes("json")) {
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        debugError("JSON parse failed even though content-type was JSON", {
+          error: formatError(error),
+          responseInfo,
+        });
+        return {
+          success: false,
+          error: "Server returned invalid JSON.",
+          details: shortText(text, 700),
+          _debug: responseInfo,
+        };
+      }
+    }
+
+    try {
+      // Sometimes Flask/Heroku forgets a JSON content-type. Accept parseable JSON anyway.
+      const parsed = JSON.parse(text);
+      debugWarn("Response parsed as JSON despite non-JSON content-type", responseInfo);
+      return parsed;
+    } catch (_error) {
+      const message = responseInfo.looksLikeHtml
+        ? `Server returned an HTML page instead of JSON for ${context.url || res.url || "this request"}.`
+        : `Server returned ${contentType || "a non-JSON response"} instead of JSON.`;
+
+      return {
+        success: false,
+        error: message,
+        details: shortText(text, 900),
+        _debug: responseInfo,
+      };
+    }
+  }
+
+  async function apiFetchJson(url, options = {}, label = "request") {
+    const requestId = `api-builder-${Date.now()}-${FETCH_COUNTER += 1}`;
+    const method = (options.method || "GET").toUpperCase();
+    const bodySummary = formDataSummary(options.body);
+    const fetchOptions = {
+      cache: "no-store",
+      credentials: "same-origin",
+      ...options,
+    };
+
+    debugLog("HTTP request", {
+      requestId,
+      label,
+      method,
+      url,
+      href: window.location.href,
+      bodySummary,
+      headers: options.headers || {},
+    });
+
+    try {
+      const res = await fetch(url, fetchOptions);
+      const data = await safeJsonResponse(res, { requestId, label, method, url });
+      debugLog("HTTP parsed payload", { requestId, label, data });
+      return { res, data, requestId };
+    } catch (error) {
+      debugError("HTTP fetch threw before response", {
+        requestId,
+        label,
+        method,
+        url,
+        error: formatError(error),
+      });
+      throw error;
+    }
   }
 
   async function uploadStructure(kind) {
+    debugLog("uploadStructure called", { kind, diagnostics: chemDoodleDiagnostics() });
+
     const input = document.getElementById(`${kind}-file`);
     const file = input && input.files ? input.files[0] : null;
 
@@ -223,48 +631,45 @@
     const ready = await ensureSketchersReady();
     if (!ready) {
       setStatus(kind, false, "Editor unavailable");
+      printDiagnostics(`uploadStructure:${kind}:editor-unavailable`);
       return showError("ChemDoodle editor is unavailable. Please hard-refresh and try again.");
     }
 
     const fd = new FormData();
     fd.append("structure_file", file);
 
-    const res = await fetch("/api/protac/structure/convert", {
+    const { res, data } = await apiFetchJson("/api/protac/structure/convert", {
       method: "POST",
       body: fd,
-    });
-
-    const data = await safeJsonResponse(res);
+    }, `uploadStructure:${kind}`);
 
     if (!res.ok) {
       setStatus(kind, false, "Failed");
-      return showError(data && data.error ? data.error : "Structure conversion failed.");
+      return showError(data && data.error ? `${data.error}\n\n${data.details || ""}`.trim() : "Structure conversion failed.");
     }
 
     try {
-      if (!chemDoodleReady()) throw new Error("ChemDoodle is not available.");
-
-      const mol = ChemDoodle.readMOL(data.mol_block);
-      const sketcher = kind === "warhead" ? warheadSketcher : ligaseSketcher;
-
-      if (!sketcher) throw new Error("ChemDoodle sketcher not initialized.");
-
-      sketcher.clear();
-      sketcher.loadMolecule(mol);
-      sketcher.repaint();
-
+      loadMolBlockIntoSketcher(kind, data);
       setStatus(kind, true, "Loaded");
+      debugLog("structure upload loaded successfully", { kind });
       return true;
     } catch (error) {
-      console.error("Structure render error:", error);
+      debugError("Structure render error", { kind, error: formatError(error), data, diagnostics: chemDoodleDiagnostics() });
       setStatus(kind, false, "Load error");
-      return showError("Backend returned MOL, but ChemDoodle could not render it.");
+      return showError(error.message || "Backend returned MOL, but ChemDoodle could not render it.");
     }
   }
 
   async function pasteSmiles(kind) {
     const textarea = document.getElementById(`${kind}-smiles-paste`);
     const smiles = (textarea && textarea.value ? textarea.value : "").trim();
+
+    debugLog("pasteSmiles called", {
+      kind,
+      smilesLength: smiles.length,
+      smilesPreview: shortText(smiles, 240),
+      diagnostics: chemDoodleDiagnostics(),
+    });
 
     if (!smiles) return window.alert("Paste a SMILES first.");
 
@@ -273,42 +678,32 @@
     const ready = await ensureSketchersReady();
     if (!ready) {
       setStatus(kind, false, "Editor unavailable");
+      printDiagnostics(`pasteSmiles:${kind}:editor-unavailable`);
       return showError("ChemDoodle editor is unavailable. Please hard-refresh and try again.");
     }
 
     const fd = new FormData();
     fd.append("smiles", smiles);
 
-    const res = await fetch("/api/protac/structure/convert", {
+    const { res, data } = await apiFetchJson("/api/protac/structure/convert", {
       method: "POST",
       body: fd,
-    });
-
-    const data = await safeJsonResponse(res);
+    }, `pasteSmiles:${kind}`);
 
     if (!res.ok) {
       setStatus(kind, false, "Failed");
-      return showError(data && data.error ? data.error : "SMILES conversion failed.");
+      return showError(data && data.error ? `${data.error}\n\n${data.details || ""}`.trim() : "SMILES conversion failed.");
     }
 
     try {
-      if (!chemDoodleReady()) throw new Error("ChemDoodle is not available.");
-
-      const mol = ChemDoodle.readMOL(data.mol_block);
-      const sketcher = kind === "warhead" ? warheadSketcher : ligaseSketcher;
-
-      if (!sketcher) throw new Error("ChemDoodle sketcher not initialized.");
-
-      sketcher.clear();
-      sketcher.loadMolecule(mol);
-      sketcher.repaint();
-
+      loadMolBlockIntoSketcher(kind, data);
       setStatus(kind, true, "Loaded");
+      debugLog("SMILES loaded successfully", { kind });
       return true;
     } catch (error) {
-      console.error("SMILES render error:", error);
+      debugError("SMILES render error", { kind, error: formatError(error), data, diagnostics: chemDoodleDiagnostics() });
       setStatus(kind, false, "Load error");
-      return showError("Backend returned MOL, but ChemDoodle could not render it.");
+      return showError(error.message || "Backend returned MOL, but ChemDoodle could not render it.");
     }
   }
 
@@ -323,15 +718,22 @@
     const mol = sketcher.getMolecule();
     if (!mol) return window.alert(`No ${kind} molecule loaded.`);
 
-    const molBlock = ChemDoodle.writeMOL(mol);
+    const CD = getChemDoodleGlobal();
+    if (!CD || typeof CD.writeMOL !== "function") return window.alert("ChemDoodle is not ready.");
 
-    const res = await fetch("/api/protac/structure/mapped-smiles", {
+    const molBlock = CD.writeMOL(mol);
+
+    debugLog("saveMappedSmiles posting", {
+      kind,
+      molBlockLength: molBlock.length,
+      molBlockPreview: molBlock.slice(0, 240),
+    });
+
+    const { res, data } = await apiFetchJson("/api/protac/structure/mapped-smiles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ molBlock }),
-    });
-
-    const data = await safeJsonResponse(res);
+    }, `saveMappedSmiles:${kind}`);
 
     if (!res.ok) {
       return showError(data && data.error ? data.error : "Failed to generate mapped SMILES.");
@@ -367,12 +769,10 @@
     const fd = new FormData();
     fd.append("linker_csv", file);
 
-    const res = await fetch("/api/protac/linkers/inspect", {
+    const { res, data } = await apiFetchJson("/api/protac/linkers/inspect", {
       method: "POST",
       body: fd,
-    });
-
-    const data = await safeJsonResponse(res);
+    }, "inspectLinkerCSV");
     const errBox = document.getElementById("inspect-error");
 
     if (errBox) {
@@ -716,12 +1116,10 @@
       fd.append("smiles_col", SELECTED_SMILES_COL);
       fd.append("source", "web-ui");
 
-      const res = await fetch("/api/protac/builder/batch", {
+      const { res, data } = await apiFetchJson("/api/protac/builder/batch", {
         method: "POST",
         body: fd,
-      });
-
-      const data = await safeJsonResponse(res);
+      }, "runBatchProtac");
 
       if (!res.ok) {
         showError(data && data.error ? data.error : "Batch build failed.");
@@ -829,13 +1227,12 @@
 
   async function updateApiUsageCounter() {
     try {
-      const res = await fetch("/api/protac/builder/usage", {
+      const { res, data } = await apiFetchJson("/api/protac/builder/usage", {
+        method: "GET",
         cache: "no-store",
-      });
+      }, "updateApiUsageCounter");
 
       if (!res.ok) throw new Error("usage fetch failed");
-
-      const data = await safeJsonResponse(res);
       const counterEl = document.getElementById("api-counter");
 
       if (counterEl) animateCountUpPretty(counterEl, Number(data.total || 0), 1200);
@@ -846,13 +1243,12 @@
 
   async function updateTemplateDownloadCount() {
     try {
-      const res = await fetch("/api/protac/builder/template/download-count", {
+      const { res, data } = await apiFetchJson("/api/protac/builder/template/download-count", {
+        method: "GET",
         cache: "no-store",
-      });
+      }, "updateTemplateDownloadCount");
 
       if (!res.ok) throw new Error("download count failed");
-
-      const data = await safeJsonResponse(res);
       const el = document.getElementById("api-linker-download-count");
 
       if (el && typeof data.downloads === "number") {
@@ -931,9 +1327,44 @@
   }
 
   
+
+  async function apiBuilderTestConvert(smiles = "CCO", kind = "warhead") {
+    const cleanKind = kind === "ligase" ? "ligase" : "warhead";
+    const cleanSmiles = String(smiles || "").trim() || "CCO";
+
+    printDiagnostics(`testConvert:${cleanKind}:before`);
+
+    const ready = await ensureSketchersReady();
+    if (!ready) {
+      const diag = printDiagnostics(`testConvert:${cleanKind}:editor-unavailable`);
+      throw new Error(`ChemDoodle editor is unavailable. Diagnostics: ${JSON.stringify(diag)}`);
+    }
+
+    const fd = new FormData();
+    fd.append("smiles", cleanSmiles);
+
+    const { res, data, requestId } = await apiFetchJson("/api/protac/structure/convert", {
+      method: "POST",
+      body: fd,
+    }, `manualTestConvert:${cleanKind}`);
+
+    if (!res.ok) {
+      const message = data && data.error ? `${data.error}\n\n${data.details || ""}`.trim() : `Request failed with status ${res.status}`;
+      debugError("manual test convert failed", { requestId, status: res.status, data });
+      throw new Error(message);
+    }
+
+    loadMolBlockIntoSketcher(cleanKind, data);
+    setStatus(cleanKind, true, "Loaded by test");
+    printDiagnostics(`testConvert:${cleanKind}:after`);
+    return { ok: true, requestId, status: res.status, data };
+  }
+
   async function startApiBuilder() {
     if (API_BUILDER_STARTED) return;
     API_BUILDER_STARTED = true;
+
+    debugLog("startApiBuilder", chemDoodleDiagnostics());
 
     // Show popup immediately. Do not wait for ChemDoodle.
     initModalAndVisibility();
@@ -941,10 +1372,21 @@
     updateTemplateDownloadCount();
 
     // Initialize editors separately so ChemDoodle cannot block the popup.
-    initSketchers().catch((error) => {
-      console.error("API Builder sketcher initialization failed:", error);
-    });
+    initSketchers()
+      .then((ready) => {
+        debugLog("initSketchers completed", { ready, diagnostics: chemDoodleDiagnostics() });
+      })
+      .catch((error) => {
+        debugError("API Builder sketcher initialization failed", formatError(error));
+      });
   }
+
+  window.apiBuilderDiagnostics = printDiagnostics;
+  window.apiBuilderTestConvert = apiBuilderTestConvert;
+  window.apiBuilderEnsureChemDoodle = ensureChemDoodleLoaded;
+  window.apiBuilderEnsureSketchers = ensureSketchersReady;
+  window.apiBuilderChemDoodleReady = chemDoodleReady;
+  window.apiBuilderDebugVersion = API_BUILDER_DEBUG_VERSION;
 
   window.uploadStructure = uploadStructure;
   window.pasteSmiles = pasteSmiles;
