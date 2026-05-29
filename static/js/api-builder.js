@@ -13,6 +13,11 @@
   let LAST_RESULTS = [];
   let LAST_FAILURES = [];
   let VISIBILITY_LISTENER_REGISTERED = false;
+  let API_BUILDER_STARTED = false;
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
   function lockDownChemDoodle() {
     if (!window.ChemDoodle) return;
@@ -35,29 +40,108 @@
     }
   }
 
-  function initSketchers(tries = 0) {
+  function chemDoodleReady() {
+    return !!(
+      window.ChemDoodle &&
+      typeof window.ChemDoodle.SketcherCanvas === "function" &&
+      typeof window.ChemDoodle.readMOL === "function" &&
+      typeof window.ChemDoodle.writeMOL === "function"
+    );
+  }
+
+  function loadScriptOnce(src, id) {
+    return new Promise((resolve, reject) => {
+      const existingById = id ? document.getElementById(id) : null;
+      const existingBySrc = Array.from(document.scripts).find((script) => {
+        return script.src && script.src.includes(src.split("?")[0]);
+      });
+
+      const existing = existingById || existingBySrc;
+
+      if (existing) {
+        if (existing.dataset.loaded === "true") {
+          resolve();
+          return;
+        }
+
+        existing.addEventListener("load", () => {
+          existing.dataset.loaded = "true";
+          resolve();
+        }, { once: true });
+
+        existing.addEventListener("error", reject, { once: true });
+
+        setTimeout(resolve, 300);
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = false;
+      script.defer = false;
+      script.dataset.loaded = "false";
+      if (id) script.id = id;
+
+      script.onload = () => {
+        script.dataset.loaded = "true";
+        resolve();
+      };
+
+      script.onerror = () => {
+        reject(new Error(`Failed to load script: ${src}`));
+      };
+
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureChemDoodleLoaded() {
+    if (chemDoodleReady()) return true;
+
+    try {
+      const cacheBust = `v=${Date.now()}`;
+
+      await loadScriptOnce(`/static/js/ChemDoodleWeb.js?${cacheBust}`, "api-builder-chemdoodle-core");
+      await loadScriptOnce(`/static/js/ChemDoodleWeb-uis.js?${cacheBust}`, "api-builder-chemdoodle-uis");
+
+      for (let i = 0; i < 40; i += 1) {
+        if (chemDoodleReady()) return true;
+        await sleep(100);
+      }
+    } catch (error) {
+      console.error("Failed to dynamically load ChemDoodle scripts:", error);
+    }
+
+    return chemDoodleReady();
+  }
+
+  async function initSketchers(tries = 0) {
     const warheadNode = document.getElementById("warhead-editor");
     const ligaseNode = document.getElementById("ligase-editor");
 
     if (!warheadNode || !ligaseNode) {
       if (tries < 100) {
-        return setTimeout(() => initSketchers(tries + 1), 100);
+        await sleep(100);
+        return initSketchers(tries + 1);
       }
 
       console.warn("ChemDoodle editor containers not found on API Builder page.");
-      return;
+      return false;
     }
 
-    if (!window.ChemDoodle || typeof ChemDoodle.SketcherCanvas !== "function") {
-      if (tries < 100) {
-        return setTimeout(() => initSketchers(tries + 1), 100);
+    const ready = await ensureChemDoodleLoaded();
+
+    if (!ready) {
+      if (tries < 20) {
+        await sleep(250);
+        return initSketchers(tries + 1);
       }
 
-      console.warn("ChemDoodle unavailable on API Builder page after waiting.");
-      return;
+      console.warn("ChemDoodle unavailable on API Builder page after dynamic load attempt.");
+      return false;
     }
 
-    if (warheadSketcher && ligaseSketcher) return;
+    if (warheadSketcher && ligaseSketcher) return true;
 
     lockDownChemDoodle();
 
@@ -74,9 +158,16 @@
       window.apiLigaseSketcher = ligaseSketcher;
 
       console.log("✅ API Builder ChemDoodle sketchers initialized.");
+      return true;
     } catch (error) {
       console.error("Failed to initialize API Builder ChemDoodle sketchers:", error);
+      return false;
     }
+  }
+
+  async function ensureSketchersReady() {
+    if (warheadSketcher && ligaseSketcher && chemDoodleReady()) return true;
+    return initSketchers();
   }
 
   function setStatus(kind, ok, message) {
@@ -107,6 +198,20 @@
     window.alert(message);
   }
 
+  async function safeJsonResponse(res) {
+    const contentType = res.headers.get("content-type") || "";
+
+    if (contentType.toLowerCase().includes("json")) {
+      return res.json();
+    }
+
+    const text = await res.text();
+    return {
+      success: false,
+      error: text ? text.slice(0, 300) : "Server returned a non-JSON response.",
+    };
+  }
+
   async function uploadStructure(kind) {
     const input = document.getElementById(`${kind}-file`);
     const file = input && input.files ? input.files[0] : null;
@@ -114,6 +219,12 @@
     if (!file) return window.alert(`Select a ${kind} file first.`);
 
     setStatus(kind, false, "Converting…");
+
+    const ready = await ensureSketchersReady();
+    if (!ready) {
+      setStatus(kind, false, "Editor unavailable");
+      return showError("ChemDoodle editor is unavailable. Please hard-refresh and try again.");
+    }
 
     const fd = new FormData();
     fd.append("structure_file", file);
@@ -123,7 +234,7 @@
       body: fd,
     });
 
-    const data = await res.json();
+    const data = await safeJsonResponse(res);
 
     if (!res.ok) {
       setStatus(kind, false, "Failed");
@@ -131,7 +242,7 @@
     }
 
     try {
-      if (!window.ChemDoodle) throw new Error("ChemDoodle is not available.");
+      if (!chemDoodleReady()) throw new Error("ChemDoodle is not available.");
 
       const mol = ChemDoodle.readMOL(data.mol_block);
       const sketcher = kind === "warhead" ? warheadSketcher : ligaseSketcher;
@@ -143,10 +254,11 @@
       sketcher.repaint();
 
       setStatus(kind, true, "Loaded");
+      return true;
     } catch (error) {
       console.error("Structure render error:", error);
       setStatus(kind, false, "Load error");
-      showError("Backend returned MOL, but ChemDoodle could not render it.");
+      return showError("Backend returned MOL, but ChemDoodle could not render it.");
     }
   }
 
@@ -158,6 +270,12 @@
 
     setStatus(kind, false, "Converting…");
 
+    const ready = await ensureSketchersReady();
+    if (!ready) {
+      setStatus(kind, false, "Editor unavailable");
+      return showError("ChemDoodle editor is unavailable. Please hard-refresh and try again.");
+    }
+
     const fd = new FormData();
     fd.append("smiles", smiles);
 
@@ -166,7 +284,7 @@
       body: fd,
     });
 
-    const data = await res.json();
+    const data = await safeJsonResponse(res);
 
     if (!res.ok) {
       setStatus(kind, false, "Failed");
@@ -174,7 +292,7 @@
     }
 
     try {
-      if (!window.ChemDoodle) throw new Error("ChemDoodle is not available.");
+      if (!chemDoodleReady()) throw new Error("ChemDoodle is not available.");
 
       const mol = ChemDoodle.readMOL(data.mol_block);
       const sketcher = kind === "warhead" ? warheadSketcher : ligaseSketcher;
@@ -186,14 +304,18 @@
       sketcher.repaint();
 
       setStatus(kind, true, "Loaded");
+      return true;
     } catch (error) {
       console.error("SMILES render error:", error);
       setStatus(kind, false, "Load error");
-      showError("Backend returned MOL, but ChemDoodle could not render it.");
+      return showError("Backend returned MOL, but ChemDoodle could not render it.");
     }
   }
 
   async function saveMappedSmiles(kind) {
+    const ready = await ensureSketchersReady();
+    if (!ready) return window.alert("Molecule editor is not ready.");
+
     const sketcher = kind === "warhead" ? warheadSketcher : ligaseSketcher;
 
     if (!sketcher) return window.alert("Molecule editor is not ready.");
@@ -209,7 +331,7 @@
       body: JSON.stringify({ molBlock }),
     });
 
-    const data = await res.json();
+    const data = await safeJsonResponse(res);
 
     if (!res.ok) {
       return showError(data && data.error ? data.error : "Failed to generate mapped SMILES.");
@@ -237,6 +359,8 @@
     if (Array.isArray(data.warnings) && data.warnings.length) {
       console.warn("Mapping warnings:", data.warnings);
     }
+
+    return true;
   }
 
   async function inspectLinkerCSV(file) {
@@ -248,7 +372,7 @@
       body: fd,
     });
 
-    const data = await res.json();
+    const data = await safeJsonResponse(res);
     const errBox = document.getElementById("inspect-error");
 
     if (errBox) {
@@ -597,7 +721,7 @@
         body: fd,
       });
 
-      const data = await res.json();
+      const data = await safeJsonResponse(res);
 
       if (!res.ok) {
         showError(data && data.error ? data.error : "Batch build failed.");
@@ -711,7 +835,7 @@
 
       if (!res.ok) throw new Error("usage fetch failed");
 
-      const data = await res.json();
+      const data = await safeJsonResponse(res);
       const counterEl = document.getElementById("api-counter");
 
       if (counterEl) animateCountUpPretty(counterEl, Number(data.total || 0), 1200);
@@ -728,7 +852,7 @@
 
       if (!res.ok) throw new Error("download count failed");
 
-      const data = await res.json();
+      const data = await safeJsonResponse(res);
       const el = document.getElementById("api-linker-download-count");
 
       if (el && typeof data.downloads === "number") {
@@ -806,8 +930,11 @@
     }
   }
 
-  function startApiBuilder() {
-    initSketchers();
+  async function startApiBuilder() {
+    if (API_BUILDER_STARTED) return;
+    API_BUILDER_STARTED = true;
+
+    await initSketchers();
     initModalAndVisibility();
     updateApiUsageCounter();
     updateTemplateDownloadCount();
@@ -826,6 +953,6 @@
   if (document.readyState === "complete") {
     startApiBuilder();
   } else {
-    window.addEventListener("load", startApiBuilder);
+    window.addEventListener("load", startApiBuilder, { once: true });
   }
 })();
