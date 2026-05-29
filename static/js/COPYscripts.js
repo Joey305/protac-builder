@@ -979,6 +979,8 @@ async function logProtacToServer(warheadMol, linkerMol, ligaseMol, protacMol, pr
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+                source: "web",
+                count_usage: true,
                 warhead_mol: warheadMol,
                 linker_mol: linkerMol,
                 ligase_mol: ligaseMol,
@@ -997,7 +999,6 @@ async function logProtacToServer(warheadMol, linkerMol, ligaseMol, protacMol, pr
         console.error("❌ Error logging PROTAC:", error);
     }
 }
-
 
 
 window.combineMolecules = async function () {

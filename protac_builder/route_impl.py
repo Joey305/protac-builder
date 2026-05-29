@@ -594,14 +594,17 @@ def log_protac_frontend():
             protac_mol=protac_mol,
             protac_smiles=protac_smiles,
         )
+
         if data.get("count_usage") and protac_smiles:
             log_builder_usage(
                 source=str(data.get("source") or "web").strip().lower() or "web",
                 endpoint="generate",
-                status="ok",
-                built=1,
-                failed=0,
-                extra="frontend_generate",
+                metadata={
+                    "status": "ok",
+                    "built": 1,
+                    "failed": 0,
+                    "extra": "frontend_generate",
+                },
             )
         return jsonify({"success": True})
     except Exception as exc:
