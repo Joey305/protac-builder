@@ -31,16 +31,38 @@
     }
   }
 
-  function initSketchers() {
-    if (!window.ChemDoodle) {
-      console.warn("ChemDoodle unavailable on API Builder page.");
-      return;
-    }
+  
+  function initSketchers(tries = 0) {
     const warheadNode = document.getElementById("warhead-editor");
     const ligaseNode = document.getElementById("ligase-editor");
-    if (!warheadNode || !ligaseNode) return;
+
+    if (!warheadNode || !ligaseNode) {
+      if (tries < 100) {
+        return setTimeout(() => initSketchers(tries + 1), 100);
+      }
+      console.warn("ChemDoodle editor containers not found on API Builder page.");
+      return;
+    }
+
+    if (!window.ChemDoodle || typeof ChemDoodle.SketcherCanvas !== "function") {
+      if (tries < 100) {
+        return setTimeout(() => initSketchers(tries + 1), 100);
+      }
+      console.warn("ChemDoodle unavailable on API Builder page after waiting.");
+      return;
+    }
+
+    if (warheadSketcher && ligaseSketcher) return;
+
+    lockDownChemDoodle();
+
     warheadSketcher = new ChemDoodle.SketcherCanvas("warhead-editor", 340, 340, { useServices: false });
     ligaseSketcher = new ChemDoodle.SketcherCanvas("ligase-editor", 340, 340, { useServices: false });
+
+    window.apiWarheadSketcher = warheadSketcher;
+    window.apiLigaseSketcher = ligaseSketcher;
+
+    console.log("✅ API Builder ChemDoodle sketchers initialized.");
   }
 
   function setStatus(kind, ok, message) {
@@ -580,8 +602,7 @@
   window.downloadFailuresCSV = downloadFailuresCSV;
   window.copyCodeBlock = copyCodeBlock;
 
-  document.addEventListener("DOMContentLoaded", () => {
-    lockDownChemDoodle();
+  window.addEventListener("load", () => {
     initSketchers();
     initModalAndVisibility();
     updateApiUsageCounter();
