@@ -26,6 +26,17 @@ def _event_url() -> str:
     return os.environ.get("PROTAC_BACKUP_URL", "").strip().rstrip("/")
 
 
+
+
+def _bulk_events_url() -> str:
+    explicit = os.environ.get("PROTAC_BACKUP_BULK_URL", "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    event_url = _event_url()
+    if event_url.endswith("/backup/protac-event"):
+        return event_url[: -len("/backup/protac-event")] + "/backup/protac-events"
+    return ""
+
 def _summary_url() -> str:
     explicit = os.environ.get("PROTAC_BACKUP_SUMMARY_URL", "").strip().rstrip("/")
     if explicit:
@@ -141,3 +152,47 @@ def get_remote_events(limit: int = 100) -> dict[str, Any] | None:
         return payload
     except Exception:
         return None
+
+
+def backup_events(events: list[dict[str, Any]], *, chunk_size: int = 200) -> bool:
+    """Best-effort bulk event backup.
+
+    Uses RANDY's /backup/protac-events endpoint when available. This keeps
+    batch/CLI runs from making thousands of individual HTTPS requests.
+    Falls back to one-by-one backup_event calls only if the bulk URL is not
+    configured or the bulk request fails.
+    """
+    clean_events = [dict(item or {}) for item in (events or []) if isinstance(item, dict)]
+    if not clean_events:
+        return False
+
+    url = _bulk_events_url()
+    token = _backup_token()
+    if not url or not token:
+        ok = False
+        for item in clean_events:
+            ok = backup_event(item) or ok
+        return ok
+
+    timeout = _env_float("PROTAC_BACKUP_BULK_TIMEOUT_SECONDS", 8.0)
+    all_ok = True
+    for start in range(0, len(clean_events), max(int(chunk_size), 1)):
+        chunk = clean_events[start : start + max(int(chunk_size), 1)]
+        wrapped = []
+        for item in chunk:
+            body = dict(item)
+            body.setdefault("app", "protac-builder")
+            body.setdefault("runtime", os.environ.get("DYNO", "local"))
+            body.setdefault("sent_at_unix", time.time())
+            wrapped.append(body)
+        try:
+            response = requests.post(url, json={"events": wrapped}, headers=_headers(), timeout=timeout)
+            if not (200 <= response.status_code < 300):
+                all_ok = False
+        except Exception:
+            all_ok = False
+            if os.environ.get("PROTAC_BACKUP_DEBUG", "").strip().lower() in {"1", "true", "yes"}:
+                import traceback
+
+                traceback.print_exc()
+    return all_ok

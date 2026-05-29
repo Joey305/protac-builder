@@ -18,6 +18,7 @@ from rdkit import Chem
 from rdkit.Chem import Draw, rdDepictor, rdMolDescriptors
 from rdkit.Chem.Draw import rdMolDraw2D
 
+from .backup_client import backup_events
 from .builder_api import (
     detect_linker_smiles_column,
     detect_name_column,
@@ -681,6 +682,7 @@ def inspect_linker_csv_route():
 def protac_builder_batch():
     source = safe_str(request.form.get("source") or "web").lower() or "web"
     client_ip = get_client_ip(request)
+    batch_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(4)
 
     def fail(payload, status_code=400, extra=""):
         try:
@@ -717,6 +719,7 @@ def protac_builder_batch():
 
         results = []
         failures = []
+        component_records = []
 
         for index, row in df.iterrows():
             raw_linker = safe_str(row.get(smiles_col))
@@ -740,17 +743,37 @@ def protac_builder_batch():
                 linker_smiles=linker_smiles,
                 ligase_smiles=ligase_smiles,
             )
+            protac_name = f"{linker_name}_PROTAC"
             results.append(
                 {
-                    "name": f"{linker_name}_PROTAC",
+                    "name": protac_name,
                     "smiles": product,
                     "warhead_smiles": warhead_smiles,
                     "linker_smiles": linker_smiles,
                     "ligase_smiles": ligase_smiles,
                 }
             )
+            component_records.append(
+                {
+                    "event_type": "protac_component_record",
+                    "source": source,
+                    "endpoint": "builder_batch",
+                    "status": "ok",
+                    "run_id": batch_id,
+                    "job_id": batch_id,
+                    "row_number": int(index) + 1,
+                    "protac_name": protac_name,
+                    "warhead_smiles": warhead_smiles,
+                    "linker_smiles": linker_smiles,
+                    "ligase_smiles": ligase_smiles,
+                    "protac_smiles": product,
+                }
+            )
 
-        log_builder_usage(source=source, endpoint="builder_batch", status="ok", built=len(results), failed=len(failures))
+        if component_records:
+            backup_events(component_records)
+
+        log_builder_usage(source=source, endpoint="builder_batch", status="ok", built=len(results), failed=len(failures), extra=batch_id)
         return jsonify(
             {
                 "count": len(results),
@@ -788,6 +811,7 @@ def protac_builder_cli():
         rows = read_name_smiles_csv(library)
         results = []
         failures = []
+        component_records = []
         log_lines = [
             f"run_id: {run_id}",
             f"started: {datetime.utcnow().isoformat()}Z",
@@ -801,13 +825,33 @@ def protac_builder_cli():
                     raise ValueError("Missing NAME")
                 if not linker_smiles:
                     raise ValueError("Missing SMILES")
-                results.append((name, build_protac_smiles(target, linker_smiles, ligase)))
+                product = build_protac_smiles(target, linker_smiles, ligase)
+                results.append((name, product))
+                component_records.append(
+                    {
+                        "event_type": "protac_component_record",
+                        "source": source,
+                        "endpoint": "builder_cli",
+                        "status": "ok",
+                        "run_id": run_id,
+                        "job_id": run_id,
+                        "row_number": int(row_number),
+                        "protac_name": name,
+                        "warhead_smiles": target,
+                        "linker_smiles": linker_smiles,
+                        "ligase_smiles": ligase,
+                        "protac_smiles": product,
+                    }
+                )
             except Exception as exc:
                 failures.append((row_number, name, str(exc), linker_smiles))
                 log_lines.append(f"[FAIL row={row_number} name={name}] {type(exc).__name__}: {exc}")
 
         log_lines.append(f"built: {len(results)}")
         log_lines.append(f"failed: {len(failures)}")
+
+        if component_records:
+            backup_events(component_records)
 
         log_builder_usage(source=source, endpoint="builder_cli", status="ok", built=len(results), failed=len(failures), extra=run_id)
 
