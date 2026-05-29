@@ -10,6 +10,7 @@ from typing import Iterable
 import pandas as pd
 from flask import Request, Response
 
+from .backup_client import backup_event
 from .paths import (
     API_LINKERS_CSV,
     COMPONENT_SMILES_PATH,
@@ -213,6 +214,7 @@ def log_generated_protac(
     protac_smiles: str = "",
     source: str = "web",
 ) -> None:
+    timestamp_utc = now_utc_iso()
     append_csv_row(
         GENERATED_PROTACS_LOG,
         [
@@ -226,7 +228,7 @@ def log_generated_protac(
             "protac_smiles",
         ],
         [
-            now_utc_iso(),
+            timestamp_utc,
             source,
             client_ip,
             warhead_mol,
@@ -235,6 +237,19 @@ def log_generated_protac(
             protac_mol,
             protac_smiles,
         ],
+    )
+    backup_event(
+        {
+            "event_type": "generated_protac",
+            "timestamp_utc": timestamp_utc,
+            "source": source,
+            "client_ip": client_ip,
+            "protac_smiles": protac_smiles,
+            "warhead_mol": warhead_mol,
+            "linker_mol": linker_mol,
+            "ligase_mol": ligase_mol,
+            "protac_mol": protac_mol,
+        }
     )
     # Keep detailed generated logs in GENERATED_PROTACS_LOG only.
     # Legacy PROTAC_log.csv is maintained separately in 6-column historical format.
@@ -249,17 +264,30 @@ def log_legacy_protac_components(
     ligase_smiles: str = "",
 ) -> None:
     migrate_legacy_protac_log_schema()
+    date_value = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     append_csv_row(
         LEGACY_PROTAC_LOG,
         LEGACY_PROTAC_HEADER,
         [
-            datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            date_value,
             client_ip,
             protac_smiles,
             warhead_smiles,
             linker_smiles,
             ligase_smiles,
         ],
+    )
+    backup_event(
+        {
+            "event_type": "legacy_protac_components",
+            "date": date_value,
+            "timestamp_utc": now_utc_iso(),
+            "client_ip": client_ip,
+            "protac_smiles": protac_smiles,
+            "warhead_smiles": warhead_smiles,
+            "linker_smiles": linker_smiles,
+            "ligase_smiles": ligase_smiles,
+        }
     )
 
 
@@ -365,15 +393,27 @@ def get_builder_usage_counts() -> dict[str, object]:
 
 
 def log_template_download(*, request: Request, filename: str) -> None:
+    timestamp_utc = now_utc_iso()
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent", "")
     append_csv_row(
         PROTAC_DOWNLOAD_LOG,
         ["timestamp_utc", "client_ip", "user_agent", "filename"],
         [
-            now_utc_iso(),
-            get_client_ip(request),
-            request.headers.get("User-Agent", ""),
+            timestamp_utc,
+            client_ip,
+            user_agent,
             filename,
         ],
+    )
+    backup_event(
+        {
+            "event_type": "template_download",
+            "timestamp_utc": timestamp_utc,
+            "client_ip": client_ip,
+            "user_agent": user_agent,
+            "filename": filename,
+        }
     )
 
 

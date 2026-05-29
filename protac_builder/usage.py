@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .backup_client import backup_event, get_remote_usage_summary
 from .paths import (
     LEGACY_PROTAC_LOG,
     PROTAC_DOWNLOAD_LOG,
@@ -130,10 +131,23 @@ def log_builder_usage(source: str, endpoint: str, metadata: dict[str, object] | 
     built = int(metadata.get("built", 1 if status == "ok" else 0) or 0)
     failed = int(metadata.get("failed", 0) or 0)
     extra = str(metadata.get("extra", ""))
+    timestamp_utc = now_utc_iso()
     _append_csv_row(
         PROTAC_USAGE_LOG,
         ["timestamp_utc", "source", "endpoint", "status", "built", "failed", "extra"],
-        [now_utc_iso(), source, endpoint, status, built, failed, extra],
+        [timestamp_utc, source, endpoint, status, built, failed, extra],
+    )
+    backup_event(
+        {
+            "event_type": "usage_log",
+            "timestamp_utc": timestamp_utc,
+            "source": source,
+            "endpoint": endpoint,
+            "status": status,
+            "built": built,
+            "failed": failed,
+            "extra": extra,
+        }
     )
 
 
@@ -168,7 +182,7 @@ def _count_local_actions() -> tuple[int, dict[str, int], dict[str, int]]:
     return local_actions, by_source, by_endpoint
 
 
-def get_usage_summary() -> dict[str, object]:
+def _get_local_usage_summary() -> dict[str, object]:
     ensure_usage_files()
     seed = migrate_legacy_usage_counts()
     seed_total = int(seed.get("seed_total", 0) or 0)
@@ -185,7 +199,26 @@ def get_usage_summary() -> dict[str, object]:
         "notes": seed.get("notes"),
         "by_source": by_source,
         "by_endpoint": by_endpoint,
+        "persistence_source": "heroku_local_fallback",
     }
+
+
+def get_usage_summary() -> dict[str, object]:
+    local_summary = _get_local_usage_summary()
+    remote_summary = get_remote_usage_summary()
+    if not remote_summary:
+        return local_summary
+
+    # Preserve the frontend/API shape while indicating that RANDY is canonical.
+    remote_summary.setdefault("seed_total", local_summary.get("seed_total", 0))
+    remote_summary.setdefault("source_file", "randy_backup_receiver")
+    remote_summary.setdefault("canonical_log_file", "randy:protac_backup.sqlite3")
+    remote_summary.setdefault("runtime_data_dir", "randy:PROTAC_BUILDER/data")
+    remote_summary.setdefault("counting_rule", "RANDY canonical usage_log events; local Heroku logs are fallback only")
+    remote_summary.setdefault("notes", "Persistent usage summary served from RANDY backup receiver.")
+    remote_summary["persistence_source"] = "randy_backup_receiver"
+    remote_summary["local_fallback"] = local_summary
+    return remote_summary
 
 
 def get_template_download_count() -> int:

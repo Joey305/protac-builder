@@ -1,0 +1,143 @@
+from __future__ import annotations
+
+import os
+import time
+from typing import Any
+
+import requests
+
+
+DEFAULT_TIMEOUT_SECONDS = 2.5
+DEFAULT_READ_TIMEOUT_SECONDS = 3.5
+
+
+def _env_float(name: str, default: float, minimum: float = 0.1) -> float:
+    try:
+        return max(float(os.environ.get(name, str(default))), minimum)
+    except (TypeError, ValueError):
+        return default
+
+
+def _backup_token() -> str:
+    return os.environ.get("PROTAC_BACKUP_TOKEN", "").strip()
+
+
+def _event_url() -> str:
+    return os.environ.get("PROTAC_BACKUP_URL", "").strip().rstrip("/")
+
+
+def _summary_url() -> str:
+    explicit = os.environ.get("PROTAC_BACKUP_SUMMARY_URL", "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    event_url = _event_url()
+    if event_url.endswith("/backup/protac-event"):
+        return event_url[: -len("/backup/protac-event")] + "/backup/summary"
+    return ""
+
+
+def _events_url() -> str:
+    explicit = os.environ.get("PROTAC_BACKUP_EVENTS_URL", "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    event_url = _event_url()
+    if event_url.endswith("/backup/protac-event"):
+        return event_url[: -len("/backup/protac-event")] + "/backup/events"
+    return ""
+
+
+def _headers() -> dict[str, str]:
+    token = _backup_token()
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "protac-builder-heroku-backup/1.0",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def backup_enabled() -> bool:
+    return bool(_event_url() and _backup_token())
+
+
+def remote_counts_enabled() -> bool:
+    raw = os.environ.get("PROTAC_BACKUP_USE_REMOTE_COUNTS", "true").strip().lower()
+    return raw not in {"0", "false", "no", "off"}
+
+
+def backup_event(payload: dict[str, Any]) -> bool:
+    """Best-effort write-through event backup.
+
+    This function must never break a user request. It returns False on any
+    configuration, network, HTTP, or JSON error.
+    """
+    url = _event_url()
+    token = _backup_token()
+    if not url or not token:
+        return False
+
+    body = dict(payload or {})
+    body.setdefault("app", "protac-builder")
+    body.setdefault("runtime", os.environ.get("DYNO", "local"))
+    body.setdefault("sent_at_unix", time.time())
+
+    timeout = _env_float("PROTAC_BACKUP_TIMEOUT_SECONDS", DEFAULT_TIMEOUT_SECONDS)
+    try:
+        response = requests.post(url, json=body, headers=_headers(), timeout=timeout)
+        return 200 <= response.status_code < 300
+    except Exception:
+        if os.environ.get("PROTAC_BACKUP_DEBUG", "").strip().lower() in {"1", "true", "yes"}:
+            import traceback
+
+            traceback.print_exc()
+        return False
+
+
+def get_remote_usage_summary() -> dict[str, Any] | None:
+    """Return RANDY-backed usage summary if configured and reachable.
+
+    Returns None when disabled/unconfigured/unreachable so callers can fall back
+    to local Heroku runtime logs.
+    """
+    if not remote_counts_enabled():
+        return None
+    url = _summary_url()
+    token = _backup_token()
+    if not url or not token:
+        return None
+
+    timeout = _env_float("PROTAC_BACKUP_READ_TIMEOUT_SECONDS", DEFAULT_READ_TIMEOUT_SECONDS)
+    try:
+        response = requests.get(url, headers=_headers(), timeout=timeout)
+        if response.status_code != 200:
+            return None
+        payload = response.json()
+        if not isinstance(payload, dict) or not payload.get("ok"):
+            return None
+        return payload
+    except Exception:
+        if os.environ.get("PROTAC_BACKUP_DEBUG", "").strip().lower() in {"1", "true", "yes"}:
+            import traceback
+
+            traceback.print_exc()
+        return None
+
+
+def get_remote_events(limit: int = 100) -> dict[str, Any] | None:
+    url = _events_url()
+    token = _backup_token()
+    if not url or not token:
+        return None
+
+    timeout = _env_float("PROTAC_BACKUP_READ_TIMEOUT_SECONDS", DEFAULT_READ_TIMEOUT_SECONDS)
+    try:
+        response = requests.get(url, headers=_headers(), params={"limit": int(limit)}, timeout=timeout)
+        if response.status_code != 200:
+            return None
+        payload = response.json()
+        if not isinstance(payload, dict) or not payload.get("ok"):
+            return None
+        return payload
+    except Exception:
+        return None
