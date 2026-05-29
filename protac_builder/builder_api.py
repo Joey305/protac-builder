@@ -143,21 +143,45 @@ def parse_structure_input(smiles_text: str, file_obj) -> tuple[str, str]:
 
 def _rdkit_from_uploaded_file(file_path: str):
     ext = os.path.splitext(file_path)[1].lower().lstrip(".")
+
+    def _relaxed(mol):
+        if mol is None:
+            return None
+        try:
+            mol.UpdatePropertyCache(strict=False)
+        except Exception:
+            pass
+        try:
+            Chem.SanitizeMol(mol)
+        except Exception:
+            # Keep the molecule anyway for frontend editing/rendering.
+            # Later mapped-SMILES generation can enforce stricter chemistry.
+            pass
+        return mol
+
     if ext == "mol":
-        return Chem.MolFromMolFile(file_path, sanitize=True, removeHs=False)
+        mol = Chem.MolFromMolFile(file_path, sanitize=False, removeHs=False)
+        return _relaxed(mol)
+
     if ext == "sdf":
-        supplier = Chem.SDMolSupplier(file_path, sanitize=True, removeHs=False)
-        return next((mol for mol in supplier if mol is not None), None)
+        supplier = Chem.SDMolSupplier(file_path, sanitize=False, removeHs=False)
+        mol = next((m for m in supplier if m is not None), None)
+        return _relaxed(mol)
+
     if ext == "mol2":
-        return Chem.MolFromMol2File(file_path, sanitize=True, removeHs=False)
+        mol = Chem.MolFromMol2File(file_path, sanitize=False, removeHs=False)
+        return _relaxed(mol)
+
     if ext in {"smi", "smiles", "txt"}:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as handle:
             smiles = handle.read().strip().split()[0]
         return Chem.MolFromSmiles(smiles)
-    if ext in {"pdb", "pdbqt"}:
-        return Chem.MolFromPDBFile(file_path, sanitize=False, removeHs=False)
-    return None
 
+    if ext in {"pdb", "pdbqt"}:
+        mol = Chem.MolFromPDBFile(file_path, sanitize=False, removeHs=False)
+        return _relaxed(mol)
+
+    return None
 
 def _openbabel_to_smiles(file_path: str) -> str | None:
     obabel = shutil.which("obabel")
