@@ -320,9 +320,12 @@ Important variables:
 | `PROTAC_PUBLIC_BASE_URL` | Public URL shown in hosted API docs and examples. |
 | `PROTAC_LOCAL_BASE_URL` | Local development URL shown in docs and examples. |
 | `PROTAC_ALLOWED_ORIGINS` | CORS allowlist for deployed frontend origins. |
-| `DEEPPK_MAX_WAIT_SECONDS` | Maximum wait time for DeepPK-style jobs. |
+| `PROTAC_RUNTIME_DATA_DIR` | Persistent directory for mutable runtime CSV logs. Defaults to `uploads/runtime_data`. |
+| `DEEPPK_MAX_WAIT_SECONDS` | Maximum synchronous wait for DeepPK external polling. Default is request-safe for hosted dynos. |
 | `DEEPPK_CHECK_INTERVAL_SECONDS` | Polling interval for DeepPK job completion checks. |
-| `TARGET_BUILDER_JOBS_DIR` | Runtime location for target-builder job outputs. |
+| `TARGET_BUILDER_JOBS_DIR` | Shared/persistent Target Builder job output directory. |
+| `WARHEAD_HUNTER_JOBS_DIR` | Shared/persistent Warhead Hunter job output directory. |
+| `WARHEAD_HUNTER_JOB_API_BASE` | Optional remote JSON endpoint base for fetching Warhead Hunter jobs by ID. |
 | `PROTAC_CONVERTED_SESSION_BASE` | Runtime location for converted session assets. |
 
 Recommended local `.env` starter:
@@ -333,9 +336,12 @@ PORT=5069
 PROTAC_PUBLIC_BASE_URL=https://protacbuilder.com
 PROTAC_LOCAL_BASE_URL=http://127.0.0.1:5069
 PROTAC_ALLOWED_ORIGINS=http://127.0.0.1:5069,https://protacbuilder.com
-DEEPPK_MAX_WAIT_SECONDS=120
-DEEPPK_CHECK_INTERVAL_SECONDS=2
-TARGET_BUILDER_JOBS_DIR=static/hunter_jobs
+PROTAC_RUNTIME_DATA_DIR=/absolute/path/to/persistent/protac_runtime_data
+DEEPPK_MAX_WAIT_SECONDS=15
+DEEPPK_CHECK_INTERVAL_SECONDS=5
+TARGET_BUILDER_JOBS_DIR=/absolute/path/to/shared/target_builder_jobs
+WARHEAD_HUNTER_JOBS_DIR=/absolute/path/to/shared/warhead_hunter_jobs
+# WARHEAD_HUNTER_JOB_API_BASE=https://warheadhunter.example/api/job
 PROTAC_CONVERTED_SESSION_BASE=static/converted_sessions
 ```
 
@@ -485,7 +491,22 @@ Confirm runtime folders are ignored:
 git check-ignore -v logs/example.log
 git check-ignore -v uploads/example_file
 git check-ignore -v outputs/deeppk_reports/example.pdf
+git check-ignore -v uploads/runtime_data/test.csv
+git check-ignore -v uploads/warhead_hunter_imports/example/file.json
 ```
+
+Mutable runtime CSVs are copied once from old `static/data` locations into `PROTAC_RUNTIME_DATA_DIR` when needed, then all new writes go to runtime storage. Keep seed/reference files in `static/data` trackable, but do not commit these mutable logs:
+
+```bash
+git rm --cached static/data/Generated_PROTACs.csv
+git rm --cached static/data/PROTAC_log.csv
+git rm --cached static/data/protac_api_downloads.csv
+git rm --cached static/data/protac_builder_usage.csv
+```
+
+`static/hunter_jobs` is only a local development fallback. Online Target Builder / Warhead Hunter import requires shared deployed storage via `TARGET_BUILDER_JOBS_DIR` or `WARHEAD_HUNTER_JOBS_DIR`, or a configured `WARHEAD_HUNTER_JOB_API_BASE`.
+
+DeepPK runs RDKit descriptors first so the molecular parameter table remains available even if the slower external report workflow fails or times out. Hosted platforms with short request limits should keep `DEEPPK_MAX_WAIT_SECONDS` low, or move DeepPK report generation to a background queue in a future pass.
 
 ---
 
@@ -518,8 +539,9 @@ PROTAC_ALLOWED_ORIGINS=https://protacbuilder.com
 ```text
 logs/
 uploads/
+uploads/runtime_data/
+uploads/warhead_hunter_imports/
 outputs/deeppk_reports/
-static/hunter_jobs/
 ```
 
 5. Keep generated outputs out of Git.

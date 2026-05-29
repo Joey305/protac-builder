@@ -57,14 +57,25 @@ function setParameterButton(button, text, disabled) {
 }
 
 async function readJsonResponse(response) {
+  const contentType = response.headers.get("content-type") || "";
   const text = await response.text();
+  const looksLikeHtml = /<!doctype html|<html|<head|<body|application error/i.test(text || "");
+  if (!contentType.toLowerCase().includes("json") && looksLikeHtml) {
+    return {
+      success: false,
+      error: "DeepPK service unavailable.",
+      details: "The server returned a platform error page instead of JSON. RDKit descriptors remain available; please retry shortly.",
+      retryable: true,
+    };
+  }
   try {
     return text ? JSON.parse(text) : {};
   } catch (_error) {
     return {
       success: false,
       error: "Unexpected response from the DeepPK service.",
-      details: text ? text.slice(0, 280) : "No response body was returned.",
+      details: text ? text.replace(/\s+/g, " ").slice(0, 180) : "No response body was returned.",
+      retryable: true,
     };
   }
 }

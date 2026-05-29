@@ -67,15 +67,17 @@ def generate_svg_image(smiles, filename="Protac.svg", image_size=(1200, 1200)):
 
 ### ---- 2️⃣ Submit SMILES to Deep-PK ---- ###
 def submit_to_deep_pk(smiles):
+    curl_timeout = int(os.environ.get("DEEPPK_CURL_TIMEOUT_SECONDS", "20"))
     curl_command = [
         "curl", "https://biosig.lab.uq.edu.au/deeppk/api/predict",
+        "--silent", "--show-error", "--max-time", str(curl_timeout),
         "-X", "POST", "-i",
         "-F", f"smiles={smiles}",
         "-F", "pred_type=admet"
     ]
 
     try:
-        result = subprocess.run(curl_command, capture_output=True, text=True)
+        result = subprocess.run(curl_command, capture_output=True, text=True, timeout=curl_timeout + 5)
         output = result.stdout
 
         job_id_start = output.find('{"job_id":')
@@ -102,16 +104,18 @@ def submit_to_deep_pk(smiles):
 ### ---- 3️⃣ Retrieve ADMET Predictions ---- ###
 def get_deep_pk_results(job_id, max_wait_time=3600, check_interval=30):
     start_time = time.time()
+    curl_timeout = int(os.environ.get("DEEPPK_CURL_TIMEOUT_SECONDS", "20"))
 
     while True:
         try:
             curl_command = [
                 "curl", "https://biosig.lab.uq.edu.au/deeppk/api/predict",
+                "--silent", "--show-error", "--max-time", str(curl_timeout),
                 "-X", "GET",
                 "-F", f"job_id={job_id}"
             ]
 
-            result = subprocess.run(curl_command, capture_output=True, text=True)
+            result = subprocess.run(curl_command, capture_output=True, text=True, timeout=curl_timeout + 5)
             output = result.stdout
 
             if '"status": "running"' in output:
@@ -123,6 +127,8 @@ def get_deep_pk_results(job_id, max_wait_time=3600, check_interval=30):
                 print(f"⏳ Still processing... Retrying in {check_interval} seconds.")
                 time.sleep(check_interval)
             else:
+                if "<html" in output.lower() or "<!doctype html" in output.lower():
+                    return {"Error": "Deep-PK returned an HTML error page"}
                 print("✅ Results received!")
                 return json.loads(output)
 
@@ -302,6 +308,5 @@ if __name__ == "__main__":
 ###Changes to theoretically make a call like
 
 #####         python3 SmilesDrugProps.py "COC(=O)N[C@H](C(=O)NN(Cc1ccc(-c2ccccn2)cc1)C[C@H](O)..."
-
 
 

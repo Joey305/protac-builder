@@ -148,18 +148,12 @@ def inspect_linkers():
 
 @api_bp.post("/api/protac/builder/batch")
 def builder_batch():
-    response = make_response(impl.protac_builder_batch())
-    if response.status_code < 400:
-        _log_success("builder_batch", source=_usage_source("api"), built=1)
-    return response
+    return impl.protac_builder_batch()
 
 
 @api_bp.post("/api/protac/builder/cli")
 def builder_cli():
-    response = make_response(impl.protac_builder_cli())
-    if response.status_code < 400:
-        _log_success("builder_cli", source=_usage_source("cli"), built=1)
-    return response
+    return impl.protac_builder_cli()
 
 
 @api_bp.get("/api/protac/builder/usage")
@@ -180,8 +174,14 @@ def template_download_count():
 
 
 @api_bp.get("/api/warheadhunter/job/<job_id>")
+@api_bp.get("/api/warheadhunter/job/<path:job_id>")
 def warhead_hunter_job(job_id: str):
     return impl.warheadhunter_job_index(job_id)
+
+
+@api_bp.get("/api/warheadhunter/job/<job_id>/file/<filename>")
+def warhead_hunter_job_file(job_id: str, filename: str):
+    return impl.warheadhunter_job_file(job_id, filename)
 
 
 @api_bp.post("/api/deeppk/run")

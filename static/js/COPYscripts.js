@@ -1926,11 +1926,23 @@ async function getParameters() {
     }
 
     try {
-        const r = await fetch(`/api/warheadhunter/job/${jobId}`)
-        const data = await r.json();
+        const r = await fetch(`/api/warheadhunter/job/${encodeURIComponent(jobId)}`)
+        const text = await r.text();
+        let data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (_error) {
+          data = {
+            ok: false,
+            error: "The Target Builder handoff returned a non-JSON response. Check deployed route/domain configuration.",
+          };
+        }
 
         if (!r.ok || !data.ok) {
-          if (status) status.innerHTML = `❌ ${data.error || "Failed to load job"}${data.hint ? "<br><small>" + data.hint + "</small>" : ""}`;
+          const guidance = data.guidance ? `<br><small>${data.guidance}</small>` : "";
+          const sources = data.sources_checked?.length ? `<br><small>Sources checked: ${data.sources_checked.join(", ")}</small>` : "";
+          const hint = data.hint ? `<br><small>${data.hint}</small>` : "";
+          if (status) status.innerHTML = `❌ ${data.error || "Failed to load job"}${sources}${hint}${guidance}`;
           return;
         }
 
@@ -1976,7 +1988,7 @@ async function getParameters() {
     // Normalize API response: backend returns options[] + public_base; frontend expects detected + warhead
     const first = data.options?.[0];
     if (first && data.public_base && !data.detected) {
-      const base = (data.public_base + "/").replace(/\/+/g, "/");
+      const base = (data.public_base.replace(/\/+$/, "") + "/");
       data.detected = {
         target_pdb: (base + (first.pdb_file || "")).replace(/^\/+/, ""),
         warhead_sdf: (base + (first.sdf || "")).replace(/^\/+/, "")
@@ -2014,8 +2026,8 @@ async function getParameters() {
       if (!pdbRel) throw new Error("Backend payload missing detected.target_pdb");
       if (!sdfRel) throw new Error("Backend payload missing detected.warhead_sdf");
 
-      const pdbUrl = "/" + pdbRel.replace(/^\/+/, "");
-      const sdfUrl = "/" + sdfRel.replace(/^\/+/, "");
+      const pdbUrl = /^https?:\/\//i.test(pdbRel) ? pdbRel : "/" + pdbRel.replace(/^\/+/, "");
+      const sdfUrl = /^https?:\/\//i.test(sdfRel) ? sdfRel : "/" + sdfRel.replace(/^\/+/, "");
 
       // Fetch local PDB -> store blob URL
       const pdbResp = await fetch(pdbUrl);

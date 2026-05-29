@@ -101,15 +101,23 @@ def _run_script(
     timeout: int,
 ) -> str:
     command = [sys.executable, str(_tool_path(script_name))]
-    result = subprocess.run(
-        command,
-        cwd=job_dir,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            command,
+            cwd=job_dir,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        with (job_dir / PIPELINE_LOG_NAME).open("a", encoding="utf-8") as handle:
+            handle.write(f"\n===== {script_name} timed out after {timeout}s =====\n")
+            handle.write((exc.stdout or "") if isinstance(exc.stdout, str) else "")
+            handle.write((exc.stderr or "") if isinstance(exc.stderr, str) else "")
+            handle.write("\n")
+        raise
     combined = (result.stdout or "") + ("\n" + result.stderr if result.stderr else "")
     with (job_dir / PIPELINE_LOG_NAME).open("a", encoding="utf-8") as handle:
         handle.write(f"\n===== {script_name} =====\n")
@@ -154,12 +162,25 @@ def _shorten(text: str, limit: int = 280) -> str:
     return compact[: limit - 1].rstrip() + "…"
 
 
+def _looks_like_html(text: str) -> bool:
+    lowered = str(text or "").lower()
+    return (
+        "<!doctype html" in lowered
+        or "<html" in lowered
+        or "<head" in lowered
+        or "<body" in lowered
+        or "application error" in lowered
+    )
+
+
 def _safe_error_details(stage: str, exc: Exception) -> str:
     raw = _shorten(str(exc) or exc.__class__.__name__, 420)
     lowered = raw.lower()
 
     if isinstance(exc, subprocess.TimeoutExpired):
         return "DeepPK timed out while waiting for the external prediction service."
+    if _looks_like_html(raw):
+        return "The external DeepPK service returned an unexpected HTML error page and appears temporarily unavailable."
     if "could not resolve host" in lowered or "failed to connect" in lowered:
         return "The external DeepPK service is temporarily unavailable."
     if "submission failed" in lowered or "could not extract job id" in lowered:
@@ -203,6 +224,13 @@ def _failure_payload(
     }
 
 
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    try:
+        return max(int(os.environ.get(name, str(default))), minimum)
+    except ValueError:
+        return default
+
+
 def run_deeppk_pipeline(smiles: str = "", mol_block: str = "") -> dict[str, object]:
     stage = "validate_input"
     job_id: str | None = None
@@ -224,17 +252,19 @@ def run_deeppk_pipeline(smiles: str = "", mol_block: str = "") -> dict[str, obje
         _ensure_static_assets(job_dir)
         _ensure_png(job_dir, mol)
 
-        max_wait = int(os.environ.get("DEEPPK_MAX_WAIT_SECONDS", "300"))
-        check_interval = int(os.environ.get("DEEPPK_CHECK_INTERVAL_SECONDS", "15"))
+        max_wait = _env_int("DEEPPK_MAX_WAIT_SECONDS", 15)
+        check_interval = _env_int("DEEPPK_CHECK_INTERVAL_SECONDS", 5)
+        request_timeout = _env_int("DEEPPK_REQUEST_TIMEOUT_SECONDS", 25)
         env = os.environ.copy()
         env["SMILES_INPUT"] = canonical_smiles
         env["DEEPPK_MAX_WAIT_SECONDS"] = str(max_wait)
         env["DEEPPK_CHECK_INTERVAL_SECONDS"] = str(check_interval)
+        env["DEEPPK_CURL_TIMEOUT_SECONDS"] = str(min(max_wait, request_timeout))
         env["MPLCONFIGDIR"] = str(job_dir / ".matplotlib")
         Path(env["MPLCONFIGDIR"]).mkdir(parents=True, exist_ok=True)
 
         stage = "run_smiles_drug_props"
-        _run_script("SmilesDrugProps.py", job_dir=job_dir, env=env, timeout=max_wait + 90)
+        _run_script("SmilesDrugProps.py", job_dir=job_dir, env=env, timeout=min(max_wait + 8, request_timeout))
 
         stage = "run_json_analyzer"
         _run_script("JSONANALYZER.py", job_dir=job_dir, env=env, timeout=90)

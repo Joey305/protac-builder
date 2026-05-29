@@ -181,8 +181,14 @@ def legacy_template_download_count():
 
 
 @legacy_bp.get("/copy/api/warheadhunter/job/<job_id>")
+@legacy_bp.get("/copy/api/warheadhunter/job/<path:job_id>")
 def legacy_warheadhunter_job(job_id: str):
     return api_routes.warhead_hunter_job(job_id)
+
+
+@legacy_bp.get("/copy/api/warheadhunter/job/<job_id>/file/<filename>")
+def legacy_warheadhunter_job_file(job_id: str, filename: str):
+    return api_routes.warhead_hunter_job_file(job_id, filename)
 
 
 @legacy_bp.post("/run-drug-analysis")

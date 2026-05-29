@@ -5,7 +5,14 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .paths import LEGACY_PROTAC_LOG, PROTAC_DOWNLOAD_LOG, PROTAC_USAGE_LOG, PROTAC_USAGE_SEED_PATH
+from .paths import (
+    LEGACY_PROTAC_LOG,
+    PROTAC_DOWNLOAD_LOG,
+    PROTAC_USAGE_LOG,
+    PROTAC_USAGE_SEED_PATH,
+    RUNTIME_DATA_DIR,
+    STATIC_DATA_DIR,
+)
 
 
 COUNTED_BUILD_ENDPOINTS = {
@@ -87,7 +94,7 @@ def _load_seed() -> dict[str, object]:
 
 
 def _legacy_static_data_dir() -> Path:
-    return PROTAC_USAGE_SEED_PATH.parents[3] / "static" / "data"
+    return STATIC_DATA_DIR
 
 
 def migrate_legacy_usage_counts() -> dict[str, object]:
@@ -145,7 +152,19 @@ def _count_local_actions() -> tuple[int, dict[str, int], dict[str, int]]:
             by_source[source] = by_source.get(source, 0) + 1
             by_endpoint[endpoint] = by_endpoint.get(endpoint, 0) + 1
 
-    local_actions = _count_non_header_rows(LEGACY_PROTAC_LOG)
+    local_actions = 0
+    with PROTAC_USAGE_LOG.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            endpoint = (row.get("endpoint") or "").strip()
+            status = (row.get("status") or "").strip().lower()
+            if status != "ok" or endpoint not in COUNTED_BUILD_ENDPOINTS:
+                continue
+            try:
+                built = int(row.get("built") or 1)
+            except ValueError:
+                built = 1
+            local_actions += max(built, 0)
     return local_actions, by_source, by_endpoint
 
 
@@ -160,7 +179,8 @@ def get_usage_summary() -> dict[str, object]:
         "local_actions": local_actions,
         "source": seed.get("source"),
         "source_file": seed.get("source_file"),
-        "canonical_log_file": "static/data/PROTAC_log.csv",
+        "canonical_log_file": str(LEGACY_PROTAC_LOG),
+        "runtime_data_dir": str(RUNTIME_DATA_DIR),
         "counting_rule": seed.get("counting_rule"),
         "notes": seed.get("notes"),
         "by_source": by_source,

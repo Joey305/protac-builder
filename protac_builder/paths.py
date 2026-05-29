@@ -1,3 +1,5 @@
+import os
+import shutil
 from pathlib import Path
 
 
@@ -27,17 +29,43 @@ LIGASE_IMAGE_DIR = STATIC_DIR / "Ligase_Images"
 STATIC_DATA_DIR = STATIC_DIR / "data"
 HUNTER_JOBS_DIR = STATIC_DIR / "hunter_jobs"
 STATIC_PYTHON_DIR = STATIC_DIR / "python"
+_runtime_data_dir_env = os.environ.get("PROTAC_RUNTIME_DATA_DIR", "").strip()
+RUNTIME_DATA_DIR = Path(_runtime_data_dir_env).expanduser() if _runtime_data_dir_env else UPLOADS_DIR / "runtime_data"
+WARHEAD_HUNTER_IMPORTS_DIR = UPLOADS_DIR / "warhead_hunter_imports"
 
-GENERATED_PROTACS_LOG = STATIC_DATA_DIR / "Generated_PROTACs.csv"
-PROTAC_USAGE_LOG = STATIC_DATA_DIR / "protac_builder_usage.csv"
-PROTAC_DOWNLOAD_LOG = STATIC_DATA_DIR / "protac_api_downloads.csv"
+GENERATED_PROTACS_LOG = RUNTIME_DATA_DIR / "Generated_PROTACs.csv"
+PROTAC_USAGE_LOG = RUNTIME_DATA_DIR / "protac_builder_usage.csv"
+PROTAC_DOWNLOAD_LOG = RUNTIME_DATA_DIR / "protac_api_downloads.csv"
 PROTAC_USAGE_SEED_PATH = STATIC_DATA_DIR / "protac_builder_usage_seed.json"
 API_LINKERS_CSV = STATIC_DATA_DIR / "API_Linkers.csv"
-LEGACY_PROTAC_LOG = STATIC_DATA_DIR / "PROTAC_log.csv"
+LEGACY_PROTAC_LOG = RUNTIME_DATA_DIR / "PROTAC_log.csv"
 LIGASES_JSON_PATH = STATIC_DATA_DIR / "ligases.json"
 RECRUITER_PDB_MAP_PATH = STATIC_DATA_DIR / "recruiter_pdb_map.json"
 GENERATED_SMILES_PATH = BASE_DIR / "generated_protac.smi"
 PREPFILES_PATH = STATIC_PYTHON_DIR / "PrepFiles.py"
+
+MUTABLE_RUNTIME_FILENAMES = (
+    "Generated_PROTACs.csv",
+    "PROTAC_log.csv",
+    "protac_builder_usage.csv",
+    "protac_api_downloads.csv",
+)
+
+
+def legacy_static_runtime_path(filename: str) -> Path:
+    return STATIC_DATA_DIR / filename
+
+
+def migrate_legacy_runtime_files() -> None:
+    """Copy old tracked static runtime logs into the configured runtime store once."""
+    RUNTIME_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    for filename in MUTABLE_RUNTIME_FILENAMES:
+        destination = RUNTIME_DATA_DIR / filename
+        source = legacy_static_runtime_path(filename)
+        if destination.exists() or not source.exists():
+            continue
+        shutil.copy2(source, destination)
+        print(f"[protac-runtime] copied legacy static/data/{filename} to {destination}")
 
 
 def ensure_runtime_dirs() -> None:
@@ -50,6 +78,8 @@ def ensure_runtime_dirs() -> None:
         LINKER_IMAGE_DIR,
         LIGASE_IMAGE_DIR,
         HUNTER_JOBS_DIR,
+        RUNTIME_DATA_DIR,
+        WARHEAD_HUNTER_IMPORTS_DIR,
         UPLOADS_DIR,
         ADMET_REPORTS_DIR,
         DEEPPK_OUTPUT_DIR,

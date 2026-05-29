@@ -1,4 +1,0 @@
-timestamp_utc,source,endpoint,status,built,failed,extra
-2026-05-19T08:43:25.851460Z,web,admet,ok,1,0,
-2026-05-19T08:44:50.398748Z,download,template_linkers_download,ok,1,0,
-2026-05-19T08:54:06.371635Z,web,admet,ok,1,0,

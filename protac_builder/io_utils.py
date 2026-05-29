@@ -20,6 +20,7 @@ from .paths import (
     PROTAC_DOWNLOAD_LOG,
     PROTAC_USAGE_LOG,
     WARHEAD_CSV_PATH,
+    migrate_legacy_runtime_files,
 )
 
 try:
@@ -98,6 +99,7 @@ def ensure_csv(path: Path, header: Iterable[str]) -> None:
 def initialize_runtime_files() -> None:
     from .usage import ensure_usage_files, migrate_legacy_usage_counts
 
+    migrate_legacy_runtime_files()
     ensure_csv(
         GENERATED_PROTACS_LOG,
         [

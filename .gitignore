@@ -29,6 +29,12 @@ uploads/admet_reports/*
 !uploads/admet_reports/.gitkeep
 uploads/deeppk/*
 !uploads/deeppk/.gitkeep
+!uploads/runtime_data/
+uploads/runtime_data/*
+!uploads/runtime_data/.gitkeep
+!uploads/warhead_hunter_imports/
+uploads/warhead_hunter_imports/*
+!uploads/warhead_hunter_imports/.gitkeep
 *.log
 
 # Generated reports and temporary jobs
@@ -48,10 +54,10 @@ instance/
 
 # Project runtime artifacts
 generated_protac.smi
-#static/data/Generated_PROTACs.csv
-#static/data/PROTAC_log.csv
-#static/data/protac_api_downloads.csv
-#static/data/protac_builder_usage.csv
+static/data/Generated_PROTACs.csv
+static/data/PROTAC_log.csv
+static/data/protac_api_downloads.csv
+static/data/protac_builder_usage.csv
 
 # Keep required static/data seed files trackable
 # Do not ignore static/data/*.csv globally

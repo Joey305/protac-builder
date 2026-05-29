@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import base64
 import io
+import json
 import os
 import re
 import secrets
-import shutil
 import traceback
 import zipfile
 from datetime import datetime
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pandas as pd
 import requests
-from flask import Blueprint, Response, jsonify, render_template, request, send_file
+from flask import Blueprint, Response, current_app, jsonify, render_template, request, send_file
 from rdkit import Chem
 from rdkit.Chem import Draw, rdDepictor, rdMolDescriptors
 from rdkit.Chem.Draw import rdMolDraw2D
@@ -62,13 +62,19 @@ from .io_utils import (
 from .paths import (
     API_LINKERS_CSV,
     GENERATED_SMILES_PATH,
-    HUNTER_JOBS_DIR,
     LIGASE_DIR,
     LIGASE_IMAGE_DIR,
     LINKER_IMAGE_DIR,
     PDB_STRUCTURES_DIR,
     RECRUITER_LIGASES_DIR,
     RECRUITER_TMP_DIR,
+)
+from .warhead_handoff import (
+    WarheadJobIdError,
+    fetch_remote_job,
+    missing_job_payload,
+    normalize_job_id,
+    resolve_job_dir,
 )
 
 
@@ -668,7 +674,7 @@ def protac_builder_batch():
 
     def fail(payload, status_code=400, extra=""):
         try:
-            log_builder_usage(source=source, endpoint="batch", status="error", extra=extra)
+            log_builder_usage(source=source, endpoint="builder_batch", status="error", extra=extra)
         except Exception:
             pass
         return jsonify(payload), status_code
@@ -734,7 +740,7 @@ def protac_builder_batch():
                 }
             )
 
-        log_builder_usage(source=source, endpoint="batch", status="ok", built=len(results), failed=len(failures))
+        log_builder_usage(source=source, endpoint="builder_batch", status="ok", built=len(results), failed=len(failures))
         return jsonify(
             {
                 "count": len(results),
@@ -746,7 +752,7 @@ def protac_builder_batch():
             }
         )
     except Exception as exc:
-        log_builder_usage(source=source, endpoint="batch", status="error", extra="exception")
+        log_builder_usage(source=source, endpoint="builder_batch", status="error", extra="exception")
         return jsonify({"error": str(exc), "traceback": traceback.format_exc()}), 500
 
 
@@ -757,7 +763,7 @@ def protac_builder_cli():
 
     def fail(payload, status_code=400, extra=""):
         try:
-            log_builder_usage(source=source, endpoint="cli", status="error", extra=extra or run_id)
+            log_builder_usage(source=source, endpoint="builder_cli", status="error", extra=extra or run_id)
         except Exception:
             pass
         return jsonify(payload), status_code
@@ -793,7 +799,7 @@ def protac_builder_cli():
         log_lines.append(f"built: {len(results)}")
         log_lines.append(f"failed: {len(failures)}")
 
-        log_builder_usage(source=source, endpoint="cli", status="ok", built=len(results), failed=len(failures), extra=run_id)
+        log_builder_usage(source=source, endpoint="builder_cli", status="ok", built=len(results), failed=len(failures), extra=run_id)
 
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
@@ -803,7 +809,7 @@ def protac_builder_cli():
         buffer.seek(0)
         return send_file(buffer, as_attachment=True, download_name=f"protac_batch_{run_id}.zip", mimetype="application/zip")
     except Exception as exc:
-        log_builder_usage(source=source, endpoint="cli", status="error", extra=run_id)
+        log_builder_usage(source=source, endpoint="builder_cli", status="error", extra=run_id)
         return jsonify({"error": str(exc), "run_id": run_id, "traceback": traceback.format_exc()}), 500
 
 
@@ -827,17 +833,6 @@ def protac_template_download_count():
     return jsonify({"downloads": get_template_download_count()})
 
 
-def _hunter_jobs_static_dir() -> Path:
-    return HUNTER_JOBS_DIR
-
-
-def _list_available_hunter_job_ids() -> list[str]:
-    base = _hunter_jobs_static_dir()
-    if not base.is_dir():
-        return []
-    return [item.name for item in base.iterdir() if item.is_dir()]
-
-
 def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
     pattern = re.compile(
         r"^(?P<pdb>[0-9a-zA-Z]{4})_(?P<chain>[A-Za-z0-9])_(?P<ligand>[A-Za-z0-9]{3})_(?P<resid>[0-9]+)"
@@ -845,6 +840,33 @@ def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
     no_resid_pattern = re.compile(r"^(?P<pdb>[0-9a-zA-Z]{4})_(?P<chain>[A-Za-z0-9])_(?P<ligand>[A-Za-z0-9]{3})\.pdb$")
     options: dict[str, dict[str, str | None]] = {}
     pdb_no_resid: dict[tuple[str, str, str], str] = {}
+
+    manifest_path = base_dir / "manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            files = manifest.get("files") or {}
+            pdb_file = files.get("pdb") or manifest.get("pdb_file")
+            sdf_file = files.get("sdf") or manifest.get("sdf")
+            pdb = str(manifest.get("pdb") or "")[:4].lower()
+            ligand = str(manifest.get("warhead") or manifest.get("ligand") or "").upper()
+            chain = str(manifest.get("chain") or "")
+            resid = manifest.get("resid")
+            if pdb_file or sdf_file:
+                key = "_".join(part for part in [pdb, chain, ligand, str(resid or "")] if part)
+                options[key or "manifest"] = {
+                    "key": key or "manifest",
+                    "pdb": pdb,
+                    "chain": chain,
+                    "ligand": ligand,
+                    "resid": str(resid) if resid else None,
+                    "svg_plain": files.get("svg_plain") or files.get("plain_svg"),
+                    "svg_exposed": files.get("svg_exposed") or files.get("exposed_svg"),
+                    "sdf": sdf_file,
+                    "pdb_file": pdb_file,
+                }
+        except Exception:
+            pass
 
     for root, _dirs, files in os.walk(base_dir):
         for filename in files:
@@ -892,54 +914,67 @@ def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
             if lookup in pdb_no_resid:
                 option["pdb_file"] = pdb_no_resid[lookup]
 
-    return [item for item in options.values() if item["svg_plain"] or item["svg_exposed"]]
+    return [item for item in options.values() if item["svg_plain"] or item["svg_exposed"] or item["sdf"] or item["pdb_file"]]
 
 
 @bp.route("/api/warheadhunter/job/<job_id>", methods=["GET"])
 def warheadhunter_job_index(job_id: str):
     try:
-        job_id = job_id.strip()
-        if not re.fullmatch(r"[A-Za-z0-9_-]{4,64}", job_id):
-            return jsonify({"ok": False, "error": "Invalid job_id"}), 400
+        job_id = normalize_job_id(job_id)
 
-        base_dir = _hunter_jobs_static_dir() / job_id
-        if not base_dir.is_dir():
-            external = os.environ.get("TARGET_BUILDER_JOBS_DIR", "").strip()
-            if external:
-                external_job_dir = Path(external) / job_id
-                if external_job_dir.is_dir():
-                    options = _scan_hunter_job_dir(external_job_dir)
-                    if options:
-                        base_dir.mkdir(parents=True, exist_ok=True)
-                        seen: set[str] = set()
-                        for root, _dirs, files in os.walk(external_job_dir):
-                            for filename in files:
-                                if filename in seen:
-                                    continue
-                                if filename.endswith((".pdb", ".sdf", ".svg")):
-                                    source = Path(root) / filename
-                                    destination = base_dir / filename
-                                    try:
-                                        shutil.copy2(source, destination)
-                                        seen.add(filename)
-                                    except Exception:
-                                        continue
+        resolved = resolve_job_dir(job_id)
+        if not resolved:
+            try:
+                remote_payload = fetch_remote_job(job_id)
+                if remote_payload:
+                    remote_payload.setdefault("ok", True)
+                    remote_payload.setdefault("job_id", job_id)
+                    remote_payload.setdefault("source", "WARHEAD_HUNTER_JOB_API_BASE")
+                    return jsonify(remote_payload)
+            except Exception as exc:
+                payload = missing_job_payload(job_id, debug=bool(current_app.debug))
+                payload["remote_error"] = str(exc)
+                return jsonify(payload), 502
 
-        if not base_dir.is_dir():
-            available = _list_available_hunter_job_ids()
-            hint = ", ".join(sorted(available)[:10])
-            return jsonify(
-                {
-                    "ok": False,
-                    "error": "Job not found. Add job folder to static/hunter_jobs/<job_id> or set TARGET_BUILDER_JOBS_DIR.",
-                    "hint": hint,
-                }
-            ), 404
+            payload = missing_job_payload(job_id, debug=False)
+            payload["hint"] = ", ".join(payload.get("available", []))
+            return jsonify(payload), 404
 
+        base_dir = Path(resolved["job_dir"])
         options = _scan_hunter_job_dir(base_dir)
         if not options:
-            return jsonify({"ok": False, "error": "No valid warhead options found"}), 404
+            return jsonify({"ok": False, "job_id": job_id, "error": "No valid warhead options found", "source": resolved["source"]}), 404
 
-        return jsonify({"ok": True, "job_id": job_id, "public_base": f"/static/hunter_jobs/{job_id}", "options": options})
+        return jsonify(
+            {
+                "ok": True,
+                "job_id": job_id,
+                "public_base": f"/api/warheadhunter/job/{job_id}/file",
+                "source": resolved["source"],
+                "options": options,
+            }
+        )
+    except WarheadJobIdError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@bp.route("/api/warheadhunter/job/<job_id>/file/<filename>", methods=["GET"])
+def warheadhunter_job_file(job_id: str, filename: str):
+    try:
+        job_id = normalize_job_id(job_id)
+        if Path(filename).name != filename or not filename.lower().endswith((".pdb", ".sdf", ".svg", ".json")):
+            return jsonify({"ok": False, "error": "Invalid filename"}), 400
+        resolved = resolve_job_dir(job_id, cache_external=False)
+        if not resolved:
+            return jsonify(missing_job_payload(job_id)), 404
+        candidate = (Path(resolved["job_dir"]) / filename).resolve()
+        root = Path(resolved["job_dir"]).resolve()
+        if root not in candidate.parents or not candidate.exists():
+            return jsonify({"ok": False, "error": "File not found"}), 404
+        return send_file(candidate)
+    except WarheadJobIdError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500

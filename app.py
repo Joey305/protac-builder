@@ -1,6 +1,8 @@
 import os
+import traceback
 
-from flask import Flask
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException
 
 try:
     from dotenv import load_dotenv
@@ -9,7 +11,7 @@ except ImportError:  # pragma: no cover - optional until requirements are instal
         return False
 
 from protac_builder.io_utils import initialize_runtime_files
-from protac_builder.paths import BASE_DIR, ensure_runtime_dirs
+from protac_builder.paths import BASE_DIR, LOGS_DIR, ensure_runtime_dirs
 from protac_builder.api_routes import api_bp
 from protac_builder.legacy_routes import legacy_bp
 from protac_builder.routes import ui_bp
@@ -49,6 +51,30 @@ def create_app() -> Flask:
     app.register_blueprint(ui_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(legacy_bp)
+
+    @app.errorhandler(Exception)
+    def api_json_error(exc):
+        api_prefixes = ("/api/deeppk", "/api/admet", "/run-drug-analysis")
+        if not request.path.startswith(api_prefixes):
+            raise exc
+        status_code = exc.code if isinstance(exc, HTTPException) else 500
+        if request.path.startswith(("/api/deeppk", "/run-drug-analysis")):
+            LOGS_DIR.mkdir(parents=True, exist_ok=True)
+            with (LOGS_DIR / "deeppk_errors.log").open("a", encoding="utf-8") as handle:
+                handle.write(f"[global-error] path={request.path}\n")
+                handle.write(traceback.format_exc())
+                handle.write("\n")
+        return jsonify(
+            {
+                "success": False,
+                "error": "DeepPK report generation failed." if "deeppk" in request.path.lower() or request.path == "/run-drug-analysis" else "ADMET request failed.",
+                "details": str(exc) or exc.__class__.__name__,
+                "stage": "flask_error_handler",
+                "job_id": None,
+                "rdkit_descriptors": {},
+                "retryable": status_code >= 500,
+            }
+        ), status_code
 
     return app
 
