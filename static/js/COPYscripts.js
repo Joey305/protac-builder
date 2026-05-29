@@ -1245,6 +1245,25 @@ async function generateProtac() {
             // **Display the SMILES in the PROTAC Sketcher**
             console.log("⏳ Converting SMILES to MOL for visualization...");
             await renderProtacFromSmiles(smiles);
+            try {
+                await fetch("/api/protac/log", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        source: "web",
+                        count_usage: true,
+                        warhead_mol: sessionStorage.getItem("savedMolecule") || "",
+                        linker_mol: sessionStorage.getItem("savedLinker") || "",
+                        ligase_mol: sessionStorage.getItem("savedLigase") || "",
+                        protac_mol: molBlockData || "",
+                        protac_smiles: smiles
+                    })
+                });
+                console.log("✅ Builder usage logged.");
+            } catch (logError) {
+                console.warn("⚠️ PROTAC usage log failed, but generation succeeded:", logError);
+            }
+
         } else {
             console.warn("❌ No SMILES generated. Possible issue with attachment points.");
             document.getElementById("smiles-output").textContent = "⚠️ No SMILES generated.";
