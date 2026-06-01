@@ -1725,13 +1725,25 @@ async function getParameters() {
     // Clear status + previews (both target route + hunter route)
     clearHTML("target-status");
     setDisplay("target-preview", false);
-    const timg = $id("target-warhead-img"); if (timg) timg.src = "";
+    clearHTML("target-ligand-options");
+    clearText("target-selected-title");
+    clearText("target-selected-sub");
+    clearText("target-svg-mode");
+    setDisplay("target-2d-panel", false);
+    const timg = $id("target-svg-img"); if (timg) timg.src = "";
     clearText("target-files");
+    const targetConfirm = $id("target-confirm-btn"); if (targetConfirm) targetConfirm.disabled = true;
 
     clearHTML("hunter-status");
     setDisplay("hunter-preview", false);
-    const himg = $id("hunter-warhead-img"); if (himg) himg.src = "";
+    clearHTML("hunter-ligand-options");
+    clearText("hunter-selected-title");
+    clearText("hunter-selected-sub");
+    clearText("hunter-svg-mode");
+    setDisplay("hunter-2d-panel", false);
+    const himg = $id("hunter-svg-img"); if (himg) himg.src = "";
     clearText("hunter-files");
+    const hunterConfirm = $id("hunter-confirm-btn"); if (hunterConfirm) hunterConfirm.disabled = true;
 
     // Clear form fields
     [
@@ -1930,14 +1942,205 @@ async function getParameters() {
       .replace(/[^A-Z0-9]/g, "");
   };
 
+  const IMPORT_UI_CONFIG = {
+    TARGET_IMPORT: {
+      previewId: "target-preview",
+      optionListId: "target-ligand-options",
+      panelId: "target-2d-panel",
+      titleId: "target-selected-title",
+      subId: "target-selected-sub",
+      svgModeId: "target-svg-mode",
+      imgId: "target-svg-img",
+      confirmButtonId: "target-confirm-btn",
+      filesId: "target-files",
+    },
+    HUNTER_IMPORT: {
+      previewId: "hunter-preview",
+      optionListId: "hunter-ligand-options",
+      panelId: "hunter-2d-panel",
+      titleId: "hunter-selected-title",
+      subId: "hunter-selected-sub",
+      svgModeId: "hunter-svg-mode",
+      imgId: "hunter-svg-img",
+      confirmButtonId: "hunter-confirm-btn",
+      filesId: "hunter-files",
+    }
+  };
 
-  async function _loadJobGeneric({ inputId, statusId, previewId, imgId, filesId, globalStoreKey }) {
+  function _getImportUi(globalStoreKey) {
+    return IMPORT_UI_CONFIG[globalStoreKey] || {};
+  }
+
+  function _escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function _describeImportOption(option) {
+    const bits = [];
+    if (option.pdb) bits.push(String(option.pdb).toUpperCase());
+    if (option.chain) bits.push(`chain ${String(option.chain).toUpperCase()}`);
+    if (option.ligand) bits.push(`ligand ${String(option.ligand).toUpperCase()}`);
+    if (option.resid) bits.push(`resid ${option.resid}`);
+    return bits.join(" • ");
+  }
+
+  function _optionSvgUrls(option) {
+    return [option.svg_plain_url || option.preview_url, option.svg_exposed_url].filter(Boolean);
+  }
+
+  function _findSelectedOption(data) {
+    if (!data) return null;
+    const options = Array.isArray(data.options) ? data.options : [];
+    const selectedId = data.selected_option_id || data.selectedOptionId || data.selectedOption?.option_id;
+    if (data.requires_selection && !selectedId && !data.selectedOption) {
+      return null;
+    }
+    if (selectedId) {
+      const matched = options.find((option) => option.option_id === selectedId);
+      if (matched) return matched;
+    }
+    if (data.selectedOption && typeof data.selectedOption === "object") return data.selectedOption;
+    return options.find((option) => option.is_valid) || options[0] || null;
+  }
+
+  function _syncDetectedFromOption(data, option) {
+    if (!data || !option) return;
+    if (option.target_pdb_url && option.warhead_sdf_url) {
+      data.detected = {
+        target_pdb: option.target_pdb_url,
+        warhead_sdf: option.warhead_sdf_url,
+      };
+    }
+    data.selected_option_id = option.option_id || null;
+    data.selectedOptionId = option.option_id || null;
+    data.selectedOption = option;
+    data.warhead = {
+      pdb_id: String(option.pdb || option.pdb_id || "").toUpperCase(),
+      ligand: String(option.ligand || "").toUpperCase(),
+      chain: option.chain || "",
+      resid: option.resid || "",
+    };
+  }
+
+  function _updateImportPreview(globalStoreKey) {
+    const data = window[globalStoreKey];
+    const ui = _getImportUi(globalStoreKey);
+    const option = _findSelectedOption(data);
+    const panel = $id(ui.panelId);
+    const img = $id(ui.imgId);
+    const title = $id(ui.titleId);
+    const sub = $id(ui.subId);
+    const mode = $id(ui.svgModeId);
+    const confirmButton = $id(ui.confirmButtonId);
+
+    if (confirmButton) confirmButton.disabled = !option || !option.is_valid;
+
+    if (!option) {
+      if (panel) panel.style.display = "none";
+      return;
+    }
+
+    if (!data._svgIndexes) data._svgIndexes = {};
+    const svgUrls = _optionSvgUrls(option);
+    const currentIndex = Math.min(data._svgIndexes[option.option_id] || 0, Math.max(svgUrls.length - 1, 0));
+    data._svgIndexes[option.option_id] = currentIndex;
+
+    if (title) title.textContent = option.label || "Warhead option";
+    if (sub) {
+      const filenameBits = [_basename(option.pdb_file), _basename(option.sdf)].filter(Boolean).join(" • ");
+      const detail = _describeImportOption(option);
+      sub.textContent = [detail, filenameBits, option.invalid_reason].filter(Boolean).join(" | ");
+    }
+
+    if (!svgUrls.length) {
+      if (mode) mode.textContent = option.is_valid ? "No SVG" : "Unavailable";
+      if (img) img.removeAttribute("src");
+      if (panel) panel.style.display = "block";
+      return;
+    }
+
+    if (img) img.src = svgUrls[currentIndex];
+    if (mode) mode.textContent = svgUrls.length > 1 ? (currentIndex === 0 ? "Plain" : "Exposed") : "Preview";
+    if (panel) panel.style.display = "block";
+  }
+
+  function _renderImportOptions(globalStoreKey) {
+    const data = window[globalStoreKey];
+    const ui = _getImportUi(globalStoreKey);
+    const container = $id(ui.optionListId);
+    const filesBox = $id(ui.filesId);
+    const confirmButton = $id(ui.confirmButtonId);
+    if (!container) return;
+
+    const options = Array.isArray(data?.options) ? data.options : [];
+    container.innerHTML = "";
+
+    options.forEach((option, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "btn text-start";
+      button.style.minWidth = "220px";
+      button.style.maxWidth = "280px";
+      button.style.borderRadius = "14px";
+      button.style.border = option.is_valid ? "1px solid var(--tron-cyan)" : "1px solid rgba(248,113,113,0.7)";
+      button.style.background = option.option_id === data.selected_option_id ? "rgba(34,211,238,0.16)" : "rgba(15,23,42,0.86)";
+      button.style.color = "#dbeafe";
+      button.style.padding = "12px";
+      button.disabled = !option.is_valid;
+      button.innerHTML = `
+        <div class="fw-bold">${_escapeHtml(option.label || `Warhead option ${index + 1}`)}</div>
+        <div style="font-size:0.85rem; opacity:0.9; margin-top:4px;">${_escapeHtml(_describeImportOption(option) || "Metadata unavailable")}</div>
+        <div style="font-size:0.82rem; opacity:0.75; margin-top:6px;">${_escapeHtml([_basename(option.pdb_file), _basename(option.sdf)].filter(Boolean).join(" • "))}</div>
+        ${option.preview_url ? `<img alt="Option preview" src="${_escapeHtml(option.preview_url)}" style="margin-top:10px; width:100%; border-radius:10px; border:1px solid rgba(56,189,248,0.35); background:#000;">` : ""}
+        ${option.invalid_reason ? `<div style="font-size:0.82rem; color:#fca5a5; margin-top:8px;">${_escapeHtml(option.invalid_reason)}</div>` : ""}
+      `;
+      button.addEventListener("click", () => {
+        _syncDetectedFromOption(data, option);
+        _renderImportOptions(globalStoreKey);
+        _updateImportPreview(globalStoreKey);
+      });
+      container.appendChild(button);
+    });
+
+    if (filesBox) {
+      filesBox.textContent = JSON.stringify(options, null, 2);
+    }
+    if (confirmButton) confirmButton.disabled = !_findSelectedOption(data)?.is_valid;
+    _updateImportPreview(globalStoreKey);
+  }
+
+  function _buildImportErrorMessage(jobId, data) {
+    const base = data?.error || `Failed to load job ${jobId}`;
+    const detailBits = [];
+    if (data?.remote_configured === false) {
+      detailBits.push("Backend checked local cache, but remote Warhead Hunter API is not configured.");
+    } else if (data?.remote_status_code === 404) {
+      detailBits.push("Backend checked local cache and remote Warhead Hunter API, but the remote job service returned 404.");
+    } else if (data?.remote_attempted && data?.remote_status_code) {
+      detailBits.push(`Backend checked local cache and remote Warhead Hunter API, and the remote job service returned HTTP ${data.remote_status_code}.`);
+    } else if (Array.isArray(data?.sources_checked) && data.sources_checked.length) {
+      detailBits.push(`Sources checked: ${data.sources_checked.join(", ")}.`);
+    }
+    if (data?.debug_hint) detailBits.push(data.debug_hint);
+    return `${base}${detailBits.length ? " " + detailBits.join(" ") : ""}`;
+  }
+
+
+  async function _loadJobGeneric({ inputId, statusId, globalStoreKey }) {
 
     const jobId = (document.getElementById(inputId)?.value || "").trim();
     const status = document.getElementById(statusId);
-    const preview = document.getElementById(previewId);
+    const ui = _getImportUi(globalStoreKey);
+    const preview = document.getElementById(ui.previewId);
+    const confirmButton = $id(ui.confirmButtonId);
 
     if (preview) preview.style.display = "none";
+    if (confirmButton) confirmButton.disabled = true;
     if (status) status.innerHTML = "Loading job…";
 
     if (!jobId) {
@@ -1959,38 +2162,41 @@ async function getParameters() {
         }
 
         if (!r.ok || !data.ok) {
-          const guidance = data.guidance ? `<br><small>${data.guidance}</small>` : "";
-          const sources = data.sources_checked?.length ? `<br><small>Sources checked: ${data.sources_checked.join(", ")}</small>` : "";
-          const hint = data.hint ? `<br><small>${data.hint}</small>` : "";
-          if (status) status.innerHTML = `❌ ${data.error || "Failed to load job"}${sources}${hint}${guidance}`;
+          console.warn("Warhead import load failed", data);
+          if (status) status.textContent = `❌ ${_buildImportErrorMessage(jobId, data)}`;
           return;
         }
 
         window[globalStoreKey] = data;
+        const validOptions = Array.isArray(data.options) ? data.options.filter((option) => option && option.is_valid) : [];
+        const defaultOption = validOptions.length === 1
+          ? validOptions[0]
+          : (validOptions.find((option) => option.option_id === data.selected_option_id) || null);
 
-        if (status) status.innerHTML = `✅ Loaded job ${data.job_id}`;
-
-        const img = document.getElementById(imgId);
-        const filesBox = document.getElementById(filesId);
-
-        const first = data.options?.[0];
-
-        if (!first) {
-        if (status) status.innerHTML = "❌ No warhead options found.";
-        return;
+        if (defaultOption) {
+          _syncDetectedFromOption(data, defaultOption);
+        } else {
+          data.selected_option_id = null;
+          data.selectedOptionId = null;
+          data.selectedOption = null;
         }
 
-        if (img && first.svg_plain) {
-        img.src = `${data.public_base}/${first.svg_plain}`;
+        if (!data.options?.length) {
+          console.warn("Warhead import returned no options", data);
+          if (status) status.textContent = `❌ ${_buildImportErrorMessage(jobId, { ...data, error: "No valid warhead options found" })}`;
+          return;
         }
 
-        if (filesBox) {
-        filesBox.textContent = JSON.stringify(first, null, 2);
-        }
-
+        _renderImportOptions(globalStoreKey);
         if (preview) preview.style.display = "block";
+        if (status) {
+          status.textContent = validOptions.length > 1
+            ? `✅ Loaded job ${data.job_id}. Select the correct ligand option before importing.`
+            : `✅ Loaded job ${data.job_id}.`;
+        }
 
     } catch (e) {
+        console.error(e);
         if (status) status.innerHTML = `❌ Network error: ${e}`;
     }
 }
@@ -2005,18 +2211,12 @@ async function getParameters() {
       return;
     }
 
-    // Normalize API response: backend returns options[] + public_base; frontend expects detected + warhead
-    const first = data.options?.[0];
-    if (first && data.public_base && !data.detected) {
-      const base = (data.public_base.replace(/\/+$/, "") + "/");
-      data.detected = {
-        target_pdb: (base + (first.pdb_file || "")).replace(/^\/+/, ""),
-        warhead_sdf: (base + (first.sdf || "")).replace(/^\/+/, "")
-      };
-      data.warhead = {
-        pdb_id: (first.pdb || "").toUpperCase(),
-        ligand: (first.ligand || "").toUpperCase()
-      };
+    const selectedOption = _findSelectedOption(data);
+    if (selectedOption) {
+      _syncDetectedFromOption(data, selectedOption);
+    } else if (Array.isArray(data.options) && data.options.length > 1) {
+      if (status) status.innerHTML = "❌ Select a ligand option before importing.";
+      return;
     }
 
     try {
@@ -2092,9 +2292,6 @@ async function getParameters() {
     return _loadJobGeneric({
       inputId: "targetJobId",
       statusId: "target-status",
-      previewId: "target-preview",
-      imgId: "target-warhead-img",
-      filesId: "target-files",
       globalStoreKey: "TARGET_IMPORT"
     });
   };
@@ -2116,9 +2313,6 @@ async function getParameters() {
     return _loadJobGeneric({
       inputId: "hunterJobId",
       statusId: "hunter-status",
-      previewId: "hunter-preview",
-      imgId: "hunter-warhead-img",
-      filesId: "hunter-files",
       globalStoreKey: "HUNTER_IMPORT"
     });
   };
@@ -2130,6 +2324,34 @@ async function getParameters() {
       statusId: "hunter-status",
       afterConfirmStep: "warhead-section"
     });
+  };
+
+  function _cycleImportPreview(globalStoreKey, delta) {
+    const data = window[globalStoreKey];
+    const option = _findSelectedOption(data);
+    if (!data || !option) return;
+    const urls = _optionSvgUrls(option);
+    if (!urls.length) return;
+    if (!data._svgIndexes) data._svgIndexes = {};
+    const currentIndex = data._svgIndexes[option.option_id] || 0;
+    data._svgIndexes[option.option_id] = (currentIndex + delta + urls.length) % urls.length;
+    _updateImportPreview(globalStoreKey);
+  }
+
+  window.targetPrevSvg = function targetPrevSvg() {
+    _cycleImportPreview("TARGET_IMPORT", -1);
+  };
+
+  window.targetNextSvg = function targetNextSvg() {
+    _cycleImportPreview("TARGET_IMPORT", 1);
+  };
+
+  window.hunterPrevSvg = function hunterPrevSvg() {
+    _cycleImportPreview("HUNTER_IMPORT", -1);
+  };
+
+  window.hunterNextSvg = function hunterNextSvg() {
+    _cycleImportPreview("HUNTER_IMPORT", 1);
   };
 
   // --------------------------------------------------------------------------

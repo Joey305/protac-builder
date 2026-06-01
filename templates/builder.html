@@ -2651,18 +2651,44 @@ body.fade-out {
             <div id="target-status" style="margin-top:12px; font-size:0.95rem;"></div>
 
             <div id="target-preview" style="margin-top:12px; display:none;">
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="fw-bold">Warhead Preview</div>
-                  <img id="target-warhead-img" style="max-width:100%; border-radius:10px;">
+              <div class="mb-2" style="opacity:0.9;">
+                Choose a warhead from this job:
+              </div>
+
+              <div id="target-ligand-options" class="d-flex flex-wrap gap-2"></div>
+
+              <div id="target-2d-panel" style="display:none; margin-top:14px;">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div id="target-selected-title"
+                         class="fw-bold"
+                         style="font-size:1.1rem; color: var(--tron-yellow);">
+                    </div>
+                    <div id="target-selected-sub"
+                         style="font-size:0.9rem; opacity:0.85;">
+                    </div>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-info" onclick="targetPrevSvg()" aria-label="Previous preview">←</button>
+                    <div id="target-svg-mode" class="fw-bold" style="min-width:90px; text-align:center;"></div>
+                    <button type="button" class="btn btn-sm btn-outline-info" onclick="targetNextSvg()" aria-label="Next preview">→</button>
+                  </div>
                 </div>
-                <div class="col-md-6" style="display:none;" aria-hidden="true">
-                  <div class="fw-bold">Detected Files</div>
+
+                <div style="margin-top:10px; background:#000; border:1px solid var(--tron-cyan); border-radius:12px; padding:10px;">
+                  <img id="target-svg-img"
+                       alt="Target Builder 2D preview"
+                       style="width:100%; height:auto; display:block; border-radius:10px;">
                 </div>
               </div>
 
+              <pre id="target-files" style="display:none;"></pre>
+
               <button type="button"
+                      id="target-confirm-btn"
                       class="selection-button assisted mt-3"
+                      disabled
                       onclick="confirmTargetImport()">
                 Confirm Import → Continue to Ligase Selection
               </button>
@@ -2814,9 +2840,13 @@ body.fade-out {
                 </div>
               </div>
 
+              <pre id="hunter-files" style="display:none;"></pre>
+
               <button type="button"
+                      id="hunter-confirm-btn"
                       class="selection-button assisted"
                       style="margin-top:15px;"
+                      disabled
                       onclick="confirmHunterImport()">
                 Confirm Target Selection
               </button>

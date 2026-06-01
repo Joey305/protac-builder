@@ -112,6 +112,10 @@ def _remote_headers() -> dict[str, str]:
     return headers
 
 
+def remote_job_api_configured() -> bool:
+    return bool(_remote_base())
+
+
 def checked_source_names(include_remote: bool = True) -> list[str]:
     names = [name for name, _path in _configured_dirs()]
     if include_remote and _remote_base():
@@ -206,6 +210,74 @@ def fetch_remote_job(job_id: str, timeout: float = 12.0) -> dict[str, Any] | Non
     return payload
 
 
+def fetch_remote_job_diagnostics(job_id: str, timeout: float = 12.0) -> dict[str, Any]:
+    clean = normalize_job_id(job_id)
+    base = _remote_base()
+    result: dict[str, Any] = {
+        "configured": bool(base),
+        "attempted": False,
+        "status_code": None,
+        "payload": None,
+        "error": None,
+        "debug_hint": "",
+    }
+
+    if not base:
+        result["error"] = "remote_not_configured"
+        result["debug_hint"] = "WARHEAD_HUNTER_JOB_API_BASE is not configured."
+        return result
+
+    url = urljoin(base.rstrip("/") + "/", clean)
+    result["attempted"] = True
+
+    try:
+        response = requests.get(
+            url,
+            headers=_remote_headers(),
+            timeout=timeout,
+        )
+        result["status_code"] = response.status_code
+
+        if response.status_code == 404:
+            result["error"] = "remote_not_found"
+            result["debug_hint"] = "Remote API returned 404 for this job ID."
+            return result
+
+        response.raise_for_status()
+
+        content_type = response.headers.get("content-type", "")
+        if "json" not in content_type.lower():
+            result["error"] = "remote_non_json"
+            result["debug_hint"] = "Configured Warhead Hunter API did not return JSON."
+            return result
+
+        payload = response.json()
+        cache_dir = WARHEAD_HUNTER_IMPORTS_DIR / clean
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        (cache_dir / "remote_payload.json").write_text(
+            json.dumps(payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        result["payload"] = payload
+        result["debug_hint"] = "Remote API returned a JSON payload."
+        return result
+    except requests.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response is not None else None
+        result["status_code"] = status_code
+        result["error"] = "remote_http_error"
+        result["debug_hint"] = f"Remote API returned HTTP {status_code or 502}."
+        return result
+    except requests.RequestException as exc:
+        result["error"] = "remote_request_error"
+        result["debug_hint"] = str(exc) or "Remote request failed."
+        return result
+    except ValueError as exc:
+        result["error"] = "remote_payload_error"
+        result["debug_hint"] = str(exc) or "Remote payload could not be parsed."
+        return result
+
+
 def fetch_remote_job_file(job_id: str, filename: str, timeout: float = 20.0) -> tuple[bytes, str]:
     clean = normalize_job_id(job_id)
     safe_name = normalize_safe_warhead_file_ref(filename)
@@ -232,7 +304,12 @@ def missing_job_payload(job_id: str, *, debug: bool = False) -> dict[str, Any]:
         "ok": False,
         "job_id": job_id,
         "error": "Job not found in configured Warhead Hunter / Target Builder handoff sources.",
+        "status": "not_found",
         "sources_checked": checked_source_names(),
+        "remote_configured": remote_job_api_configured(),
+        "remote_attempted": False,
+        "remote_status_code": None,
+        "debug_hint": "No local job matched this ID.",
         "guidance": (
             "For online deployment, configure TARGET_BUILDER_JOBS_DIR, WARHEAD_HUNTER_JOBS_DIR, "
             "WARHEAD_HUNTER_JOB_API_BASE, or equivalent shared persistent storage. Local static/hunter_jobs "
