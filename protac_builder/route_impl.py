@@ -10,6 +10,7 @@ import traceback
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import quote
 
 import pandas as pd
 import requests
@@ -73,10 +74,12 @@ from .paths import (
 )
 from .warhead_handoff import (
     WarheadJobIdError,
+    extract_safe_warhead_file_ref,
     fetch_remote_job,
     fetch_remote_job_file,
     missing_job_payload,
     normalize_job_id,
+    normalize_safe_warhead_file_ref,
     resolve_job_dir,
 )
 
@@ -954,6 +957,7 @@ def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
 
     for root, _dirs, files in os.walk(base_dir):
         for filename in files:
+            rel_ref = (Path(root) / filename).relative_to(base_dir).as_posix()
             match = pattern.match(filename)
             if match:
                 key = f"{match.group('pdb')}_{match.group('chain')}_{match.group('ligand')}_{match.group('resid')}"
@@ -973,13 +977,13 @@ def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
                 )
                 lower = filename.lower()
                 if lower.endswith("_plain.svg"):
-                    option["svg_plain"] = filename
+                    option["svg_plain"] = rel_ref
                 elif lower.endswith("_exposed.svg"):
-                    option["svg_exposed"] = filename
+                    option["svg_exposed"] = rel_ref
                 elif lower.endswith(".sdf"):
-                    option["sdf"] = filename
+                    option["sdf"] = rel_ref
                 elif lower.endswith(".pdb"):
-                    option["pdb_file"] = filename
+                    option["pdb_file"] = rel_ref
                 continue
 
             no_resid_match = no_resid_pattern.match(filename)
@@ -990,7 +994,7 @@ def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
                         no_resid_match.group("chain"),
                         no_resid_match.group("ligand"),
                     )
-                ] = filename
+                ] = rel_ref
 
     for option in options.values():
         if not option["pdb_file"]:
@@ -999,6 +1003,135 @@ def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
                 option["pdb_file"] = pdb_no_resid[lookup]
 
     return [item for item in options.values() if item["svg_plain"] or item["svg_exposed"] or item["sdf"] or item["pdb_file"]]
+
+
+def _warheadhunter_public_base(job_id: str) -> str:
+    return f"/api/warheadhunter/job/{job_id}/file"
+
+
+def _warheadhunter_public_file_url(job_id: str, file_ref: str | None) -> str | None:
+    safe_ref = extract_safe_warhead_file_ref(file_ref)
+    if not safe_ref:
+        return None
+    return f"{_warheadhunter_public_base(job_id)}/{quote(safe_ref, safe='/')}"
+
+
+def _normalize_hunter_option(option: dict[str, object]) -> dict[str, object]:
+    normalized = dict(option)
+    pdb_ref = extract_safe_warhead_file_ref(
+        option.get("pdb_file") or option.get("pdb_path") or option.get("target_pdb")
+    )
+    sdf_ref = extract_safe_warhead_file_ref(
+        option.get("sdf") or option.get("sdf_path") or option.get("warhead_sdf")
+    )
+    svg_plain_ref = extract_safe_warhead_file_ref(option.get("svg_plain") or option.get("svg_plain_path"))
+    svg_exposed_ref = extract_safe_warhead_file_ref(option.get("svg_exposed") or option.get("svg_exposed_path"))
+
+    normalized["pdb_file"] = pdb_ref
+    normalized["sdf"] = sdf_ref
+    normalized["svg_plain"] = svg_plain_ref
+    normalized["svg_exposed"] = svg_exposed_ref
+    return normalized
+
+
+def normalize_hunter_payload_for_frontend(
+    job_id: str,
+    payload: dict[str, object] | None,
+    *,
+    source: str | None = None,
+) -> dict[str, object]:
+    raw = dict(payload or {})
+    public_base = _warheadhunter_public_base(job_id)
+
+    raw_options = raw.get("options")
+    if isinstance(raw_options, dict):
+        options_source = [raw_options]
+    elif isinstance(raw_options, list):
+        options_source = [item for item in raw_options if isinstance(item, dict)]
+    else:
+        options_source = []
+
+    if not options_source:
+        fallback_option = {
+            key: raw.get(key)
+            for key in (
+                "pdb",
+                "pdb_id",
+                "chain",
+                "ligand",
+                "resid",
+                "pdb_file",
+                "pdb_path",
+                "pdb_url",
+                "target_pdb",
+                "sdf",
+                "sdf_path",
+                "sdf_url",
+                "warhead_sdf",
+                "svg_plain",
+                "svg_plain_path",
+                "svg_plain_url",
+                "svg_exposed",
+                "svg_exposed_path",
+                "svg_exposed_url",
+            )
+            if raw.get(key) not in (None, "")
+        }
+        if fallback_option:
+            options_source = [fallback_option]
+
+    options = [_normalize_hunter_option(option) for option in options_source]
+
+    normalized: dict[str, object] = dict(raw)
+    normalized["ok"] = bool(raw.get("ok", True))
+    normalized["job_id"] = job_id
+    normalized["source"] = source or str(raw.get("source") or "unknown")
+    normalized["public_base"] = public_base
+    normalized["options"] = options
+    normalized["option_count"] = len(options)
+    normalized["first_option"] = options[0] if options else {}
+
+    detected_source = raw.get("detected") if isinstance(raw.get("detected"), dict) else {}
+    first_complete = next((option for option in options if option.get("pdb_file") and option.get("sdf")), None)
+
+    detected_pdb = None
+    detected_sdf = None
+    if first_complete:
+        detected_pdb = _warheadhunter_public_file_url(job_id, str(first_complete.get("pdb_file")))
+        detected_sdf = _warheadhunter_public_file_url(job_id, str(first_complete.get("sdf")))
+    else:
+        detected_pdb = _warheadhunter_public_file_url(
+            job_id,
+            detected_source.get("target_pdb") or raw.get("target_pdb"),
+        )
+        detected_sdf = _warheadhunter_public_file_url(
+            job_id,
+            detected_source.get("warhead_sdf") or raw.get("warhead_sdf"),
+        )
+
+    if detected_pdb and detected_sdf:
+        normalized["detected"] = {
+            "target_pdb": detected_pdb,
+            "warhead_sdf": detected_sdf,
+        }
+    else:
+        normalized.pop("detected", None)
+
+    warhead_source = first_complete or (options[0] if options else {})
+    warhead = {
+        "pdb_id": str(warhead_source.get("pdb") or warhead_source.get("pdb_id") or "").upper(),
+        "ligand": str(warhead_source.get("ligand") or "").upper(),
+    }
+    if warhead_source.get("chain"):
+        warhead["chain"] = str(warhead_source.get("chain"))
+    if warhead_source.get("resid"):
+        warhead["resid"] = str(warhead_source.get("resid"))
+    if any(warhead.values()):
+        normalized["warhead"] = warhead
+
+    normalized["has_detected_target_pdb"] = bool(normalized.get("detected", {}).get("target_pdb")) if isinstance(normalized.get("detected"), dict) else False
+    normalized["has_detected_warhead_sdf"] = bool(normalized.get("detected", {}).get("warhead_sdf")) if isinstance(normalized.get("detected"), dict) else False
+    return normalized
 
 
 @bp.route("/api/warheadhunter/job/<job_id>", methods=["GET"])
@@ -1011,65 +1144,85 @@ def warheadhunter_job_index(job_id: str):
             try:
                 remote_payload = fetch_remote_job(job_id)
                 if remote_payload:
-                    remote_payload.setdefault("ok", True)
-                    remote_payload.setdefault("job_id", job_id)
-                    remote_payload.setdefault("source", "WARHEAD_HUNTER_JOB_API_BASE")
-                    return jsonify(remote_payload)
+                    normalized = normalize_hunter_payload_for_frontend(
+                        job_id,
+                        remote_payload,
+                        source="WARHEAD_HUNTER_JOB_API_BASE",
+                    )
+                    return jsonify(normalized), (200 if normalized.get("ok") else 502)
             except Exception as exc:
                 payload = missing_job_payload(job_id, debug=bool(current_app.debug))
                 payload["remote_error"] = str(exc)
+                payload["option_count"] = 0
+                payload["first_option"] = {}
+                payload["has_detected_target_pdb"] = False
+                payload["has_detected_warhead_sdf"] = False
                 return jsonify(payload), 502
 
             payload = missing_job_payload(job_id, debug=False)
             payload["hint"] = ", ".join(payload.get("available", []))
+            payload["option_count"] = 0
+            payload["first_option"] = {}
+            payload["has_detected_target_pdb"] = False
+            payload["has_detected_warhead_sdf"] = False
             return jsonify(payload), 404
 
         base_dir = Path(resolved["job_dir"])
         options = _scan_hunter_job_dir(base_dir)
         if not options:
-            return jsonify({"ok": False, "job_id": job_id, "error": "No valid warhead options found", "source": resolved["source"]}), 404
+            normalized = normalize_hunter_payload_for_frontend(
+                job_id,
+                {"ok": False, "error": "No valid warhead options found", "options": []},
+                source=str(resolved["source"]),
+            )
+            return jsonify(normalized), 404
 
-        return jsonify(
+        normalized = normalize_hunter_payload_for_frontend(
+            job_id,
             {
                 "ok": True,
-                "job_id": job_id,
-                "public_base": f"/api/warheadhunter/job/{job_id}/file",
-                "source": resolved["source"],
                 "options": options,
-            }
+            },
+            source=str(resolved["source"]),
         )
+        return jsonify(normalized)
     except WarheadJobIdError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500
 
 
-@bp.route("/api/warheadhunter/job/<job_id>/file/<filename>", methods=["GET"])
+@bp.route("/api/warheadhunter/job/<job_id>/file/<path:filename>", methods=["GET"])
 def warheadhunter_job_file(job_id: str, filename: str):
     try:
         job_id = normalize_job_id(job_id)
-
-        if Path(filename).name != filename or not filename.lower().endswith((".pdb", ".sdf", ".svg", ".json")):
-            return jsonify({"ok": False, "error": "Invalid filename"}), 400
+        safe_ref = normalize_safe_warhead_file_ref(filename)
 
         resolved = resolve_job_dir(job_id)
 
         if resolved:
             base_dir = Path(resolved["job_dir"])
+            base_dir_resolved = base_dir.resolve()
+            direct_path = (base_dir / safe_ref).resolve()
+            try:
+                direct_path.relative_to(base_dir_resolved)
+            except ValueError:
+                return jsonify({"ok": False, "error": "Invalid resolved file path"}), 400
 
-            matches = sorted(base_dir.rglob(filename))
-            if matches:
-                path = matches[0].resolve()
+            if direct_path.is_file():
+                return send_file(direct_path, as_attachment=False)
 
+            basename = Path(safe_ref).name
+            for match in sorted(base_dir.rglob(basename)):
+                path = match.resolve()
                 try:
-                    path.relative_to(base_dir.resolve())
+                    path.relative_to(base_dir_resolved)
                 except ValueError:
-                    return jsonify({"ok": False, "error": "Invalid resolved file path"}), 400
-
+                    continue
                 return send_file(path, as_attachment=False)
 
         # Local cache miss: proxy from RANDY using server-side token.
-        content, content_type = fetch_remote_job_file(job_id, filename)
+        content, content_type = fetch_remote_job_file(job_id, safe_ref)
 
         return Response(
             content,

@@ -325,7 +325,9 @@ Important variables:
 | `DEEPPK_CHECK_INTERVAL_SECONDS` | Polling interval for DeepPK job completion checks. |
 | `TARGET_BUILDER_JOBS_DIR` | Shared/persistent Target Builder job output directory. |
 | `WARHEAD_HUNTER_JOBS_DIR` | Shared/persistent Warhead Hunter job output directory. |
-| `WARHEAD_HUNTER_JOB_API_BASE` | Optional remote JSON endpoint base for fetching Warhead Hunter jobs by ID. |
+| `WARHEAD_HUNTER_JOB_API_BASE` | Optional deployed RANDY / Warhead Hunter job API base used for JSON job lookup and safe server-side file proxying. |
+| `WARHEAD_HUNTER_JOB_API_TOKEN` | Optional bearer token for the remote Warhead Hunter backup API. |
+| `PROTAC_BACKUP_TOKEN` | Fallback bearer token name accepted for the same remote backup API integration. |
 | `PROTAC_CONVERTED_SESSION_BASE` | Runtime location for converted session assets. |
 
 Recommended local `.env` starter:
@@ -342,8 +344,12 @@ DEEPPK_CHECK_INTERVAL_SECONDS=5
 TARGET_BUILDER_JOBS_DIR=/absolute/path/to/shared/target_builder_jobs
 WARHEAD_HUNTER_JOBS_DIR=/absolute/path/to/shared/warhead_hunter_jobs
 # WARHEAD_HUNTER_JOB_API_BASE=https://warheadhunter.example/api/job
+# WARHEAD_HUNTER_JOB_API_TOKEN=replace-with-matching-server-side-token
+# PROTAC_BACKUP_TOKEN=optional-fallback-token-name
 PROTAC_CONVERTED_SESSION_BASE=static/converted_sessions
 ```
+
+`WARHEAD_HUNTER_JOB_API_BASE` should point to the deployed RANDY hunter-job backup API base. `WARHEAD_HUNTER_JOB_API_TOKEN` or `PROTAC_BACKUP_TOKEN` must be set to the matching server-side bearer token when the remote backup API requires authentication.
 
 ---
 

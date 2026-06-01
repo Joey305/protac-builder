@@ -179,7 +179,7 @@ def warhead_hunter_job(job_id: str):
     return impl.warheadhunter_job_index(job_id)
 
 
-@api_bp.get("/api/warheadhunter/job/<job_id>/file/<filename>")
+@api_bp.get("/api/warheadhunter/job/<job_id>/file/<path:filename>")
 def warhead_hunter_job_file(job_id: str, filename: str):
     return impl.warheadhunter_job_file(job_id, filename)
 

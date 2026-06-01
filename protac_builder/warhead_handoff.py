@@ -6,7 +6,7 @@ import re
 import shutil
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import quote, unquote, urljoin, urlparse
 
 import requests
 
@@ -26,6 +26,56 @@ def normalize_job_id(job_id: str) -> str:
     if not SAFE_JOB_ID_RE.fullmatch(clean):
         raise WarheadJobIdError("Invalid job_id. Use only letters, numbers, underscores, and hyphens.")
     return clean
+
+
+def normalize_safe_warhead_file_ref(value: str) -> str:
+    clean = str(value or "").strip().replace("\\", "/")
+    if not clean:
+        raise WarheadJobIdError("Invalid hunter job file reference.")
+    if clean.startswith("/") or clean.startswith("~") or clean.startswith("//"):
+        raise WarheadJobIdError("Invalid hunter job file reference.")
+    if re.match(r"^[A-Za-z]:", clean):
+        raise WarheadJobIdError("Invalid hunter job file reference.")
+
+    parts = clean.split("/")
+    if any(part in {"", ".", ".."} for part in parts):
+        raise WarheadJobIdError("Invalid hunter job file reference.")
+
+    suffix = Path(parts[-1]).suffix.lower()
+    if suffix not in WARHEAD_FILE_SUFFIXES:
+        raise WarheadJobIdError("Invalid hunter job file reference.")
+
+    return "/".join(parts)
+
+
+def extract_safe_warhead_file_ref(value: Any) -> str | None:
+    if value is None:
+        return None
+
+    raw = str(value).strip()
+    if not raw:
+        return None
+
+    candidate = raw.replace("\\", "/")
+    parsed = urlparse(candidate)
+
+    if parsed.scheme or parsed.netloc:
+        candidate = parsed.path or ""
+    if candidate.startswith("/"):
+        marker = "/file/"
+        lower = candidate.lower()
+        idx = lower.find(marker)
+        if idx >= 0:
+            candidate = candidate[idx + len(marker):]
+        else:
+            candidate = candidate.lstrip("/")
+
+    candidate = unquote(candidate)
+
+    try:
+        return normalize_safe_warhead_file_ref(candidate)
+    except WarheadJobIdError:
+        return None
 
 
 def _configured_dirs() -> list[tuple[str, Path]]:
@@ -158,16 +208,14 @@ def fetch_remote_job(job_id: str, timeout: float = 12.0) -> dict[str, Any] | Non
 
 def fetch_remote_job_file(job_id: str, filename: str, timeout: float = 20.0) -> tuple[bytes, str]:
     clean = normalize_job_id(job_id)
-
-    safe_name = Path(filename).name
-    if safe_name != filename or not safe_name.lower().endswith((".pdb", ".sdf", ".svg", ".json")):
-        raise WarheadJobIdError("Invalid remote hunter job filename.")
+    safe_name = normalize_safe_warhead_file_ref(filename)
 
     base = _remote_base()
     if not base:
         raise FileNotFoundError("WARHEAD_HUNTER_JOB_API_BASE is not configured.")
 
-    url = urljoin(base.rstrip("/") + "/", f"{clean}/file/{safe_name}")
+    quoted_name = quote(safe_name, safe="/")
+    url = urljoin(base.rstrip("/") + "/", f"{clean}/file/{quoted_name}")
 
     response = requests.get(
         url,

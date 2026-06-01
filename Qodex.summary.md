@@ -1,87 +1,77 @@
 # Qodex.summary
 
 ## Task
-Runtime persistence, Warhead Hunter online handoff, and DeepPK diagnostics.
+Fix PROTAC Builder Warhead Hunter / Target Builder remote import handoff.
 
 ## Original Goal
-Fix PROTAC Builder logging so CSV/JSON usage data persists long-term and is not overwritten by Git pushes, fix Warhead Hunter / Target Builder online job import so PROTAC Builder can retain and load imported warhead job information, and debug DeepPK failures that return an HTML Application Error while preserving RDKit descriptor fallback.
+Make sure PROTAC Builder can communicate with the backend/RANDY service, see Warhead Hunter job assets, and import target PDB/SDF files without `Backend payload missing detected.target_pdb`.
 
 ## Assumptions
-- `d02e20ab` is an online Warhead Hunter / Target Builder job and is not expected to exist locally.
-- `static/data` should keep seed/reference assets trackable, but mutable runtime CSVs should not be Git-tracked.
-- A full Redis/Celery background queue is out of scope for this pass.
+- The failing deployed job payload can come from a remote RANDY-style handoff where file refs are provided as `pdb_path` / `sdf_path` / `svg_*_path` instead of frontend-ready `detected.*`.
+- Live production-only job IDs were not guaranteed to be available locally, so mocked normalization checks were used alongside local route validation.
+- Existing frontend fallback normalization in `static/js/COPYscripts.js` should remain as a defensive fallback, but the backend should now provide a normalized payload directly.
 
 ## Files Inspected
-- `protac_builder/paths.py` — mutable CSV path definitions.
-- `protac_builder/io_utils.py` — CSV initialization and append helpers.
-- `protac_builder/usage.py` — usage seed and counter logic.
-- `protac_builder/route_impl.py` — Warhead Hunter lookup and builder route logging.
-- `protac_builder/api_routes.py` and `protac_builder/legacy_routes.py` — public API and legacy aliases.
-- `protac_builder/deeppk.py` and `tools/deeppk/SmilesDrugProps.py` — DeepPK pipeline timeout/error behavior.
-- `static/js/COPYscripts.js` and `static/js/protac-admet.js` — Target Builder import and DeepPK frontend parsing.
-- `.gitignore` and `README.md` — runtime storage and deployment guidance.
+- `protac_builder/route_impl.py` — identified the main `/api/warheadhunter/job/<job_id>` and `/api/warheadhunter/job/<job_id>/file/<filename>` implementations and confirmed the raw remote passthrough.
+- `protac_builder/warhead_handoff.py` — inspected remote fetch helpers, token handling, and existing filename restrictions.
+- `protac_builder/api_routes.py` — confirmed API blueprint aliases for the Warhead Hunter job and file routes.
+- `protac_builder/legacy_routes.py` — confirmed legacy `/copy/api/...` aliases for the same job and file routes.
+- `static/js/COPYscripts.js` — confirmed the frontend already performs partial normalization from `public_base + options[0]`, and that the thrown error comes from missing `detected.target_pdb`.
+- `README.md` — checked current env-var documentation for Warhead Hunter deployment config.
+- `Qodex.summary.md` — replaced the previous task summary with this one.
 
 ## Files Changed
-- `.gitignore` — ignores mutable static CSVs and new runtime/cache directories.
-- `README.md` — documents persistence, Warhead handoff env vars, DeepPK timeout behavior, and safe untracking commands.
-- `app.py` — adds JSON fallback handling for ADMET/DeepPK API exceptions.
-- `protac_builder/paths.py` — centralizes runtime data and Warhead import cache paths.
-- `protac_builder/io_utils.py` — migrates legacy static runtime CSVs into runtime storage before initialization.
-- `protac_builder/usage.py` — reads verified static seed data and counts new successful runtime usage rows without double-counting copied legacy logs.
-- `protac_builder/route_impl.py` — uses robust Warhead job resolution, same-origin job file serving, manifest fallback scanning, and single batch/CLI usage logging.
-- `protac_builder/api_routes.py` and `protac_builder/legacy_routes.py` — preserve aliases and expose Warhead job file routes.
-- `protac_builder/deeppk.py` — makes DeepPK synchronous timeouts request-safe and logs subprocess timeouts.
-- `static/js/COPYscripts.js` — handles non-JSON handoff failures and remote/same-origin import URLs.
-- `static/js/protac-admet.js` — avoids dumping platform HTML into the DeepPK UI.
-- `tools/deeppk/SmilesDrugProps.py` — adds curl/subprocess timeouts and HTML response detection.
-- `static/data/protac_builder_usage_seed.json` — updated to the verified local legacy seed count.
+- `protac_builder/route_impl.py` — added frontend payload normalization, local option enrichment, safe nested file serving, and structured diagnostics.
+- `protac_builder/warhead_handoff.py` — added safe relative file-ref validation/extraction and updated remote file proxying to support nested safe paths.
+- `protac_builder/api_routes.py` — widened the API file route to `<path:filename>`.
+- `protac_builder/legacy_routes.py` — widened the legacy `/copy/api/...` file route to `<path:filename>`.
+- `README.md` — added non-secret guidance for remote Warhead Hunter API base and bearer-token env vars.
 
 ## Files Created
-- `protac_builder/warhead_handoff.py` — central Warhead Hunter / Target Builder job ID validation, source lookup, remote fetch, cache helpers, and safe missing-job payloads.
-- `uploads/runtime_data/.gitkeep` — keeps the ignored runtime data directory present.
-- `uploads/warhead_hunter_imports/.gitkeep` — keeps the ignored Warhead import cache directory present.
+- `Qodex.summary.md` — documented the root cause, route map, implementation, and validation results for this fix.
 
 ## Implementation Summary
-Mutable runtime logs now resolve to `PROTAC_RUNTIME_DATA_DIR` or `uploads/runtime_data`, with one-time copy migration from old `static/data` files. Warhead job import now checks configured deployed sources, runtime cache, local dev fallback, and optional remote API handoff, returning safe JSON diagnostics when missing. DeepPK remains RDKit-first, but synchronous report generation now has safer defaults, structured app-level failures, and frontend protection against platform HTML pages.
+The backend now normalizes Warhead Hunter job payloads into one frontend-compatible contract for both local and remote jobs. Remote RANDY-style responses that only expose `pdb_path`, `sdf_path`, or nested `job_files/...` asset refs are converted into normalized `options`, `public_base`, `option_count`, `first_option`, `warhead`, and `detected.target_pdb` / `detected.warhead_sdf` fields. The file-serving route now accepts `<path:filename>`, validates safe relative refs, serves nested local files directly when present, falls back to basename lookup for older flat-cache behavior, and proxies safe nested remote paths through the configured backup API without exposing tokens.
 
 ## Key Decisions
-- Kept seed/reference files under `static/data` trackable and ignored only known mutable runtime CSVs.
-- Used same-origin `/api/warheadhunter/job/<job_id>/file/<filename>` URLs so imported PDB/SDF/SVG files can be fetched from configured storage without exposing private paths.
-- Did not implement a heavy background queue; instead DeepPK now fails gracefully within a request-safe timeout.
+- Root cause was confirmed as both a schema mismatch and a path-handling mismatch: remote job payloads were returned mostly raw, and the file route rejected nested safe relative refs used by remote payloads.
+- Kept frontend changes out of scope because the backend can now satisfy the existing frontend contract directly, while preserving the defensive fallback already present in `static/js/COPYscripts.js`.
+- Normalized local job responses too so remote and local imports share the same response shape and diagnostics.
+- Preserved CORS behavior and existing local-source resolution order while adding only safe JSON diagnostics.
 
 ## Commands Run
-- `pwd` — confirmed project root.
-- `git status --short` — found pre-existing `Procfile` deletion and `protac_builder/deeppk.py` modification.
-- Required grep searches — mapped runtime CSV, Warhead handoff, and DeepPK references.
-- `git ls-files | grep -E 'static/data/(Generated_PROTACs|PROTAC_log|protac_api_downloads|protac_builder_usage)\.csv'` — confirmed mutable CSVs were tracked.
-- `git rm --cached ...` — untracked mutable CSVs without deleting local files.
-- `python -m compileall app.py protac_builder tools/deeppk` — passed.
-- `python -m pytest` — failed because `pytest` is not installed.
-- Targeted Flask test-client checks — validated Warhead JSON errors, local fallback job load, ADMET descriptors, and DeepPK JSON response shape.
-- Runtime and `git check-ignore` checks — confirmed runtime dirs exist and mutable CSV/cache paths are ignored.
+- `rg -n "warheadhunter|target_pdb|warhead_sdf|public_base|pdb_file|sdf_path|pdb_path|fetch_remote_job|fetch_remote_job_file|WARHEAD_HUNTER_JOB_API_BASE" protac_builder/route_impl.py protac_builder/warhead_handoff.py protac_builder/api_routes.py protac_builder/legacy_routes.py static/js/COPYscripts.js README.md Qodex.summary.md` — mapped routes, helpers, env-var docs, and frontend expectations.
+- `sed -n '1,260p' protac_builder/route_impl.py` and `sed -n '880,1105p' protac_builder/route_impl.py` — inspected the Warhead Hunter route implementations and local option scanning.
+- `sed -n '1,260p' protac_builder/warhead_handoff.py` — inspected remote job/file fetch logic and source resolution.
+- `sed -n '1,260p' protac_builder/api_routes.py` — confirmed API blueprint aliases.
+- `sed -n '1,260p' protac_builder/legacy_routes.py` — confirmed legacy `/copy/api/...` aliases.
+- `sed -n '1930,2065p' static/js/COPYscripts.js` — confirmed frontend fallback normalization and the exact thrown import error path.
+- `python -m py_compile app.py protac_builder/route_impl.py protac_builder/warhead_handoff.py protac_builder/api_routes.py protac_builder/legacy_routes.py` — passed.
+- `python - <<'PY' ... from app import app; print(app.url_map) ... PY` — passed and confirmed both API and legacy Warhead Hunter routes.
+- `python - <<'PY' ... normalize_safe_warhead_file_ref(...) ... PY` — passed allow/block smoke tests for nested safe refs and traversal rejection.
+- `python - <<'PY' ... normalize_hunter_payload_for_frontend(...) ... PY` — passed mocked remote-payload normalization and produced `detected`, `public_base`, and normalized `options`.
+- `python - <<'PY' ... app.test_client() with patched fetch_remote_job ... PY` — passed route-level smoke test for normalized remote JSON and `400` traversal blocking on the file endpoint.
+- `flask --app app routes | grep -i warhead` — passed and confirmed deployed route patterns use `<path:filename>` for API and legacy aliases.
 
 ## Validation Results
-- Compile passed.
-- `pytest` could not run: `No module named pytest`.
-- `/api/warheadhunter/job/d02e20ab` returned JSON 404 with deployment guidance locally.
-- `/api/warheadhunter/job/../../bad` returned JSON 400.
-- `/api/warheadhunter/job/406167aa` returned JSON 200 via local development fallback.
-- `/api/admet/run` with `CCO` returned successful RDKit descriptors.
-- `/api/deeppk/run` with `CCO` and the provided large PROTAC SMILES returned structured JSON successfully in local low-timeout checks.
-- Git ignore checks passed for mutable static CSVs and new runtime/cache paths.
+- Syntax checks passed for `app.py`, `protac_builder/route_impl.py`, `protac_builder/warhead_handoff.py`, `protac_builder/api_routes.py`, and `protac_builder/legacy_routes.py`.
+- Flask import and route-map checks passed; `GET /api/warheadhunter/job/<job_id>` is served by `protac_builder.route_impl.warheadhunter_job_index`, and `GET /api/warheadhunter/job/<job_id>/file/<path:filename>` is served by `protac_builder.route_impl.warheadhunter_job_file` through both direct and API-blueprint aliases.
+- API blueprint aliases exist in `protac_builder/api_routes.py`, and legacy `/copy/api/...` aliases exist in `protac_builder/legacy_routes.py`.
+- Frontend normalization already existed in `static/js/COPYscripts.js`, but it depended on backend-compatible `public_base` and option refs; the backend now provides those consistently.
+- Mocked remote normalization produced `detected.target_pdb`, `detected.warhead_sdf`, `public_base`, `option_count`, and normalized option refs as expected.
+- Flask test-client smoke checks confirmed `/api/warheadhunter/job/7511ee2d` returns normalized remote JSON under a patched remote payload and that traversal attempts against `/api/warheadhunter/job/7511ee2d/file/job_files/../../secret.json` return structured JSON `400`.
+- Safe-path smoke tests allowed `6euc_A_RM0.pdb` and `job_files/WAR_PDB/6euc_A_RM0.pdb`, and rejected `../secret.txt`, `/etc/passwd`, `foo.py`, and `job_files/../../secret.json`.
 
 ## Known Issues
-- `d02e20ab` could not be validated locally because it is an online job, not a local fixture.
-- Production must configure shared Warhead storage or `WARHEAD_HUNTER_JOB_API_BASE`; a redirect with only a job ID is insufficient unless PROTAC Builder can retrieve that job from deployed storage/API.
-- Existing platform logs are still needed to prove whether the observed hosted HTML Application Error was a request timeout, dyno crash, memory issue, or reverse-proxy platform error.
-- `Procfile` was already deleted before this pass and was not restored.
+- No live deployed remote job fetch was run from this workspace because production-only job availability and matching remote credentials are environment-dependent.
+- A full end-to-end browser import test against the deployed UI was not run inside this pass, so final confirmation still depends on post-deploy verification with a known remote job ID.
+- If a remote service returns unusable or unsafe file refs, the backend now reports structured diagnostics, but import will still fail correctly rather than fabricating paths.
 
 ## Manual Verification
-1. Start the Flask app and open `/builder`.
-2. Enter an invalid Target Builder job ID and confirm a short JSON-derived error appears.
-3. Configure deployed Warhead shared storage/API, enter a real online job ID, and confirm preview/import continues to E3 ligase selection.
-4. Generate a PROTAC and confirm CSV rows append under `PROTAC_RUNTIME_DATA_DIR` or `uploads/runtime_data`.
-5. Run molecular parameters and confirm RDKit descriptors remain visible if DeepPK retries or fails.
+1. Run `curl -s "https://protacbuilder.com/api/warheadhunter/job/10b84b46" | jq .` after deploy.
+2. Confirm the response includes `public_base`, `options[0].pdb_file`, `options[0].sdf`, and ideally `detected.target_pdb` plus `detected.warhead_sdf`.
+3. Run `curl -I "https://protacbuilder.com/api/warheadhunter/job/10b84b46/file/8wb1_A_W3T_204_plain.svg"` and confirm a `200` response for an existing asset.
+4. In the deployed UI, load a known Warhead Hunter job, verify the preview renders, then click confirm import and confirm the builder advances without the missing-`detected.target_pdb` error.
 
 ## Suggested Next Prompt
-Validate the deployed Heroku environment variables and platform logs for Warhead Hunter job `d02e20ab` and the DeepPK HTML Application Error, then decide whether DeepPK should move to a background worker.
+Run a post-deploy verification against a known remote Warhead Hunter job ID and, if needed, capture one real normalized `/api/warheadhunter/job/<job_id>` response so we can verify the frontend import step against production data.
