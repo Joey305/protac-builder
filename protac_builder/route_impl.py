@@ -1005,6 +1005,63 @@ def _scan_hunter_job_dir(base_dir: Path) -> list[dict[str, str | None]]:
     return [item for item in options.values() if item["svg_plain"] or item["svg_exposed"] or item["sdf"] or item["pdb_file"]]
 
 
+def _scan_hunter_file_refs(file_refs: list[str]) -> list[dict[str, str | None]]:
+    pattern = re.compile(
+        r"^(?P<pdb>[0-9a-zA-Z]{4})_(?P<chain>[A-Za-z0-9])_(?P<ligand>[A-Za-z0-9]{3})_(?P<resid>[0-9]+)"
+    )
+    no_resid_pattern = re.compile(r"^(?P<pdb>[0-9a-zA-Z]{4})_(?P<chain>[A-Za-z0-9])_(?P<ligand>[A-Za-z0-9]{3})\.pdb$")
+    options: dict[str, dict[str, str | None]] = {}
+    pdb_no_resid: dict[tuple[str, str, str], str] = {}
+
+    for ref in file_refs:
+        filename = Path(ref).name
+        match = pattern.match(filename)
+        if match:
+            key = f"{match.group('pdb')}_{match.group('chain')}_{match.group('ligand')}_{match.group('resid')}"
+            option = options.setdefault(
+                key,
+                {
+                    "key": key,
+                    "pdb": match.group("pdb").lower(),
+                    "chain": match.group("chain"),
+                    "ligand": match.group("ligand"),
+                    "resid": match.group("resid"),
+                    "svg_plain": None,
+                    "svg_exposed": None,
+                    "sdf": None,
+                    "pdb_file": None,
+                },
+            )
+            lower = filename.lower()
+            if lower.endswith("_plain.svg"):
+                option["svg_plain"] = ref
+            elif lower.endswith("_exposed.svg"):
+                option["svg_exposed"] = ref
+            elif lower.endswith(".sdf"):
+                option["sdf"] = ref
+            elif lower.endswith(".pdb"):
+                option["pdb_file"] = ref
+            continue
+
+        no_resid_match = no_resid_pattern.match(filename)
+        if no_resid_match:
+            pdb_no_resid[
+                (
+                    no_resid_match.group("pdb").lower(),
+                    no_resid_match.group("chain"),
+                    no_resid_match.group("ligand"),
+                )
+            ] = ref
+
+    for option in options.values():
+        if not option["pdb_file"]:
+            lookup = (str(option["pdb"]), str(option["chain"]), str(option["ligand"]))
+            if lookup in pdb_no_resid:
+                option["pdb_file"] = pdb_no_resid[lookup]
+
+    return [item for item in options.values() if item["svg_plain"] or item["svg_exposed"] or item["sdf"] or item["pdb_file"]]
+
+
 def _warheadhunter_public_base(job_id: str) -> str:
     return f"/api/warheadhunter/job/{job_id}/file"
 
@@ -1035,13 +1092,28 @@ def _normalize_hunter_option(option: dict[str, object]) -> dict[str, object]:
 
 
 def _extract_remote_options(raw: dict[str, object]) -> list[dict[str, object]]:
+    files = raw.get("files")
+    if isinstance(files, list):
+        curated_refs = []
+        for item in files:
+            if not isinstance(item, dict):
+                continue
+            ref = item.get("relative_path") or item.get("path_in_root") or item.get("name")
+            root = str(item.get("root") or "")
+            if root != "job" or not isinstance(ref, str) or "/" in ref:
+                continue
+            safe_ref = extract_safe_warhead_file_ref(ref)
+            if safe_ref:
+                curated_refs.append(safe_ref)
+        curated_options = _scan_hunter_file_refs(sorted(set(curated_refs)))
+        if curated_options:
+            return [dict(option) for option in curated_options]
+
     raw_options = raw.get("options")
     if isinstance(raw_options, dict):
         return [raw_options]
     if isinstance(raw_options, list):
         return [item for item in raw_options if isinstance(item, dict)]
-
-    files = raw.get("files")
     if isinstance(files, dict):
         return [files]
 
