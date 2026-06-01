@@ -2118,13 +2118,11 @@ async function getParameters() {
     const base = data?.error || `Failed to load job ${jobId}`;
     const detailBits = [];
     if (data?.remote_configured === false) {
-      detailBits.push("Backend checked local cache, but remote Warhead Hunter API is not configured.");
+      detailBits.push("Remote Warhead Hunter handoff is not configured on this server.");
     } else if (data?.remote_status_code === 404) {
-      detailBits.push("Backend checked local cache and remote Warhead Hunter API, but the remote job service returned 404.");
+      detailBits.push("RANDY did not find this job ID.");
     } else if (data?.remote_attempted && data?.remote_status_code) {
-      detailBits.push(`Backend checked local cache and remote Warhead Hunter API, and the remote job service returned HTTP ${data.remote_status_code}.`);
-    } else if (Array.isArray(data?.sources_checked) && data.sources_checked.length) {
-      detailBits.push(`Sources checked: ${data.sources_checked.join(", ")}.`);
+      detailBits.push(`RANDY returned HTTP ${data.remote_status_code}.`);
     }
     if (data?.debug_hint) detailBits.push(data.debug_hint);
     return `${base}${detailBits.length ? " " + detailBits.join(" ") : ""}`;

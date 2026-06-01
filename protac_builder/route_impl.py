@@ -71,17 +71,16 @@ from .paths import (
     PDB_STRUCTURES_DIR,
     RECRUITER_LIGASES_DIR,
     RECRUITER_TMP_DIR,
+    WARHEAD_HUNTER_IMPORTS_DIR,
 )
 from .warhead_handoff import (
     WarheadJobIdError,
     extract_safe_warhead_file_ref,
-    fetch_remote_job,
     fetch_remote_job_diagnostics,
     fetch_remote_job_file,
     missing_job_payload,
     normalize_job_id,
     normalize_safe_warhead_file_ref,
-    resolve_job_dir,
 )
 
 
@@ -1035,6 +1034,50 @@ def _normalize_hunter_option(option: dict[str, object]) -> dict[str, object]:
     return normalized
 
 
+def _extract_remote_options(raw: dict[str, object]) -> list[dict[str, object]]:
+    raw_options = raw.get("options")
+    if isinstance(raw_options, dict):
+        return [raw_options]
+    if isinstance(raw_options, list):
+        return [item for item in raw_options if isinstance(item, dict)]
+
+    files = raw.get("files")
+    if isinstance(files, dict):
+        return [files]
+
+    fallback_option = {
+        key: raw.get(key)
+        for key in (
+            "pdb",
+            "pdb_id",
+            "chain",
+            "ligand",
+            "resid",
+            "residue",
+            "label",
+            "pdb_file",
+            "pdb_path",
+            "pdb_url",
+            "target_pdb",
+            "sdf",
+            "sdf_path",
+            "sdf_url",
+            "warhead_sdf",
+            "svg_plain",
+            "svg_plain_path",
+            "svg_plain_url",
+            "svg_exposed",
+            "svg_exposed_path",
+            "svg_exposed_url",
+            "smiles",
+            "mol",
+            "mol_block",
+        )
+        if raw.get(key) not in (None, "")
+    }
+    return [fallback_option] if fallback_option else []
+
+
 def _hunter_option_id(job_id: str, option: dict[str, object], index: int) -> str:
     parts = [
         str(option.get("pdb") or option.get("pdb_id") or "").lower(),
@@ -1047,10 +1090,13 @@ def _hunter_option_id(job_id: str, option: dict[str, object], index: int) -> str
 
 
 def _hunter_option_label(option: dict[str, object], index: int) -> str:
+    custom = str(option.get("label") or "").strip()
+    if custom:
+        return custom
     pdb = str(option.get("pdb") or option.get("pdb_id") or "").upper()
     chain = str(option.get("chain") or "").upper()
     ligand = str(option.get("ligand") or "").upper()
-    resid = str(option.get("resid") or "")
+    resid = str(option.get("resid") or option.get("residue") or "")
     parts = []
     if pdb:
         parts.append(pdb)
@@ -1072,42 +1118,7 @@ def normalize_hunter_payload_for_frontend(
     raw = dict(payload or {})
     public_base = _warheadhunter_public_base(job_id)
 
-    raw_options = raw.get("options")
-    if isinstance(raw_options, dict):
-        options_source = [raw_options]
-    elif isinstance(raw_options, list):
-        options_source = [item for item in raw_options if isinstance(item, dict)]
-    else:
-        options_source = []
-
-    if not options_source:
-        fallback_option = {
-            key: raw.get(key)
-            for key in (
-                "pdb",
-                "pdb_id",
-                "chain",
-                "ligand",
-                "resid",
-                "pdb_file",
-                "pdb_path",
-                "pdb_url",
-                "target_pdb",
-                "sdf",
-                "sdf_path",
-                "sdf_url",
-                "warhead_sdf",
-                "svg_plain",
-                "svg_plain_path",
-                "svg_plain_url",
-                "svg_exposed",
-                "svg_exposed_path",
-                "svg_exposed_url",
-            )
-            if raw.get(key) not in (None, "")
-        }
-        if fallback_option:
-            options_source = [fallback_option]
+    options_source = _extract_remote_options(raw)
 
     options: list[dict[str, object]] = []
     for index, option in enumerate(options_source):
@@ -1142,6 +1153,8 @@ def normalize_hunter_payload_for_frontend(
     valid_options = [option for option in options if option.get("is_valid")]
     normalized["valid_option_count"] = len(valid_options)
     normalized["requires_selection"] = len(valid_options) > 1
+    normalized["source_policy"] = "remote_only"
+    normalized["local_lookup"] = "disabled"
 
     detected_source = raw.get("detected") if isinstance(raw.get("detected"), dict) else {}
     first_complete = next((option for option in valid_options if option.get("target_pdb_url") and option.get("warhead_sdf_url")), None)
@@ -1188,72 +1201,119 @@ def normalize_hunter_payload_for_frontend(
     return normalized
 
 
+def _contains_smiles_only_payload(payload: dict[str, object]) -> bool:
+    options = _extract_remote_options(payload)
+    if not options:
+        return False
+    saw_smiles_like = False
+    for option in options:
+        if not isinstance(option, dict):
+            continue
+        if option.get("smiles") or option.get("mol") or option.get("mol_block"):
+            saw_smiles_like = True
+        if extract_safe_warhead_file_ref(option.get("pdb_file") or option.get("pdb_path") or option.get("target_pdb")):
+            return False
+        if extract_safe_warhead_file_ref(option.get("sdf") or option.get("sdf_path") or option.get("warhead_sdf")):
+            return False
+    return saw_smiles_like
+
+
+def _remote_debug_payload(job_id: str, remote_result: dict[str, object]) -> dict[str, object]:
+    payload = remote_result.get("payload")
+    normalized = normalize_hunter_payload_for_frontend(job_id, payload or {}, source="WARHEAD_HUNTER_JOB_API_BASE") if payload else {}
+    raw_keys = sorted(payload.keys()) if isinstance(payload, dict) else []
+    contains_smiles_only = _contains_smiles_only_payload(payload) if isinstance(payload, dict) else False
+    return {
+        "ok": bool(normalized.get("valid_option_count")) if payload else False,
+        "job_id": job_id,
+        "source_policy": "remote_only",
+        "local_lookup": "disabled",
+        "remote": {
+            "configured": bool(remote_result.get("configured")),
+            "attempted": bool(remote_result.get("attempted")),
+            "status_code": remote_result.get("status_code"),
+            "payload_keys": raw_keys,
+            "option_count": normalized.get("option_count", 0) if payload else 0,
+            "valid_option_count": normalized.get("valid_option_count", 0) if payload else 0,
+            "contains_smiles_only": contains_smiles_only,
+            "error": remote_result.get("error"),
+            "debug_hint": remote_result.get("debug_hint"),
+        },
+        "final_decision": (
+            "remote_ok"
+            if payload and normalized.get("valid_option_count")
+            else "remote_payload_missing_structure_files"
+            if contains_smiles_only
+            else remote_result.get("error") or "remote_no_valid_options"
+        ),
+    }
+
+
 @bp.route("/api/warheadhunter/job/<job_id>", methods=["GET"])
 def warheadhunter_job_index(job_id: str):
     try:
         job_id = normalize_job_id(job_id)
+        debug_mode = request.args.get("debug", "").strip() in {"1", "true", "yes"}
+        remote_result = fetch_remote_job_diagnostics(job_id)
+        if debug_mode:
+            return jsonify(_remote_debug_payload(job_id, remote_result))
 
-        resolved = resolve_job_dir(job_id)
-        if not resolved:
-            remote_result = fetch_remote_job_diagnostics(job_id)
-            remote_payload = remote_result.get("payload")
-            if remote_payload:
-                normalized = normalize_hunter_payload_for_frontend(
-                    job_id,
-                    remote_payload,
-                    source="WARHEAD_HUNTER_JOB_API_BASE",
-                )
-                normalized["remote_configured"] = bool(remote_result.get("configured"))
-                normalized["remote_attempted"] = bool(remote_result.get("attempted"))
-                normalized["remote_status_code"] = remote_result.get("status_code")
-                if normalized.get("valid_option_count"):
-                    return jsonify(normalized), 200
-                normalized["ok"] = False
-                normalized["status"] = "no_valid_options"
-                normalized["error"] = "No valid warhead options found"
-                normalized["debug_hint"] = "Remote API returned a payload, but none of the options contained both a target PDB and warhead SDF."
-                return jsonify(normalized), 502
-
-            payload = missing_job_payload(job_id, debug=False)
-            payload["hint"] = ", ".join(payload.get("available", []))
-            payload["remote_configured"] = bool(remote_result.get("configured"))
-            payload["remote_attempted"] = bool(remote_result.get("attempted"))
-            payload["remote_status_code"] = remote_result.get("status_code")
-            payload["debug_hint"] = str(remote_result.get("debug_hint") or payload.get("debug_hint") or "")
-            payload["remote_error"] = remote_result.get("error")
-            payload["option_count"] = 0
-            payload["first_option"] = {}
-            payload["has_detected_target_pdb"] = False
-            payload["has_detected_warhead_sdf"] = False
-            if remote_result.get("error") == "remote_not_found":
-                payload["error"] = "No valid warhead options found"
-                payload["debug_hint"] = "Remote API returned 404 or no valid options."
-            return jsonify(payload), 404
-
-        base_dir = Path(resolved["job_dir"])
-        options = _scan_hunter_job_dir(base_dir)
-        if not options:
+        remote_payload = remote_result.get("payload")
+        if remote_payload:
             normalized = normalize_hunter_payload_for_frontend(
                 job_id,
-                {"ok": False, "error": "No valid warhead options found", "options": []},
-                source=str(resolved["source"]),
+                remote_payload,
+                source="WARHEAD_HUNTER_JOB_API_BASE",
             )
-            normalized["status"] = "no_valid_options"
-            normalized["debug_hint"] = "A local job directory was found, but no option contained importable warhead files."
-            return jsonify(normalized), 404
+            normalized["remote_configured"] = bool(remote_result.get("configured"))
+            normalized["remote_attempted"] = bool(remote_result.get("attempted"))
+            normalized["remote_status_code"] = remote_result.get("status_code")
+            if normalized.get("valid_option_count"):
+                return jsonify(normalized), 200
 
-        normalized = normalize_hunter_payload_for_frontend(
-            job_id,
-            {
-                "ok": True,
-                "options": options,
-            },
-            source=str(resolved["source"]),
-        )
-        normalized["remote_configured"] = False
-        normalized["remote_attempted"] = False
-        normalized["remote_status_code"] = None
-        return jsonify(normalized)
+            contains_smiles_only = _contains_smiles_only_payload(remote_payload if isinstance(remote_payload, dict) else {})
+            normalized["ok"] = False
+            normalized["remote_configured"] = bool(remote_result.get("configured"))
+            normalized["remote_attempted"] = bool(remote_result.get("attempted"))
+            normalized["remote_status_code"] = remote_result.get("status_code")
+            normalized["remote_error"] = remote_result.get("error")
+            if contains_smiles_only:
+                normalized["status"] = "remote_payload_missing_structure_files"
+                normalized["error"] = "RANDY returned a job payload, but it did not include importable PDB/SDF files."
+                normalized["debug_hint"] = "This import path requires a target PDB and warhead SDF. A SMILES-only payload is not enough for Target Builder import."
+            else:
+                normalized["status"] = "no_valid_options"
+                normalized["error"] = "RANDY returned the job, but it did not include importable PDB/SDF files."
+                normalized["debug_hint"] = "Remote API returned a payload, but none of the options contained both a target PDB and warhead SDF."
+            return jsonify(normalized), 502
+
+        payload = missing_job_payload(job_id, debug=False)
+        payload["remote_configured"] = bool(remote_result.get("configured"))
+        payload["remote_attempted"] = bool(remote_result.get("attempted"))
+        payload["remote_status_code"] = remote_result.get("status_code")
+        payload["remote_error"] = remote_result.get("error")
+        payload["option_count"] = 0
+        payload["valid_option_count"] = 0
+        payload["first_option"] = {}
+        payload["has_detected_target_pdb"] = False
+        payload["has_detected_warhead_sdf"] = False
+        payload["source_policy"] = "remote_only"
+        payload["local_lookup"] = "disabled"
+        if not remote_result.get("configured"):
+            payload["error"] = "Remote Warhead Hunter handoff is not configured on this server."
+            payload["status"] = "remote_not_configured"
+            payload["debug_hint"] = "WARHEAD_HUNTER_JOB_API_BASE is not configured."
+            return jsonify(payload), 503
+        if remote_result.get("status_code") == 404 or remote_result.get("error") == "remote_not_found":
+            payload["error"] = "RANDY did not find this job ID."
+            payload["status"] = "remote_not_found"
+            payload["debug_hint"] = "Remote API returned 404 for this job ID."
+            return jsonify(payload), 404
+        payload["error"] = "RANDY lookup failed."
+        payload["status"] = "remote_lookup_failed"
+        payload["debug_hint"] = str(remote_result.get("debug_hint") or "Remote lookup failed.")
+        return jsonify(payload), 502
+
     except WarheadJobIdError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
     except Exception as exc:
@@ -1265,32 +1325,29 @@ def warheadhunter_job_file(job_id: str, filename: str):
     try:
         job_id = normalize_job_id(job_id)
         safe_ref = normalize_safe_warhead_file_ref(filename)
-
-        resolved = resolve_job_dir(job_id)
-
-        if resolved:
-            base_dir = Path(resolved["job_dir"])
-            base_dir_resolved = base_dir.resolve()
-            direct_path = (base_dir / safe_ref).resolve()
+        cache_dir = (WARHEAD_HUNTER_IMPORTS_DIR / job_id).resolve()
+        if cache_dir.exists():
+            direct_path = (cache_dir / safe_ref).resolve()
             try:
-                direct_path.relative_to(base_dir_resolved)
+                direct_path.relative_to(cache_dir)
             except ValueError:
                 return jsonify({"ok": False, "error": "Invalid resolved file path"}), 400
-
             if direct_path.is_file():
                 return send_file(direct_path, as_attachment=False)
 
-            basename = Path(safe_ref).name
-            for match in sorted(base_dir.rglob(basename)):
-                path = match.resolve()
-                try:
-                    path.relative_to(base_dir_resolved)
-                except ValueError:
-                    continue
-                return send_file(path, as_attachment=False)
-
         # Local cache miss: proxy from RANDY using server-side token.
         content, content_type = fetch_remote_job_file(job_id, safe_ref)
+        cached_file = (cache_dir / safe_ref).resolve()
+        try:
+            cached_file.relative_to(cache_dir)
+        except ValueError:
+            cached_file = None
+        if cached_file is not None:
+            cached_file.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                cached_file.write_bytes(content)
+            except Exception:
+                pass
 
         return Response(
             content,
@@ -1303,6 +1360,8 @@ def warheadhunter_job_file(job_id: str, filename: str):
 
     except WarheadJobIdError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
+    except FileNotFoundError as exc:
+        return jsonify({"ok": False, "error": str(exc), "source_policy": "remote_only", "local_lookup": "disabled"}), 503
     except requests.HTTPError as exc:
         status = exc.response.status_code if exc.response is not None else 502
         return jsonify({"ok": False, "error": f"Remote file fetch failed: HTTP {status}"}), status

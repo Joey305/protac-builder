@@ -323,8 +323,6 @@ Important variables:
 | `PROTAC_RUNTIME_DATA_DIR` | Persistent directory for mutable runtime CSV logs. Defaults to `uploads/runtime_data`. |
 | `DEEPPK_MAX_WAIT_SECONDS` | Maximum synchronous wait for DeepPK external polling. Default is request-safe for hosted dynos. |
 | `DEEPPK_CHECK_INTERVAL_SECONDS` | Polling interval for DeepPK job completion checks. |
-| `TARGET_BUILDER_JOBS_DIR` | Shared/persistent Target Builder job output directory. |
-| `WARHEAD_HUNTER_JOBS_DIR` | Shared/persistent Warhead Hunter job output directory. |
 | `WARHEAD_HUNTER_JOB_API_BASE` | Optional deployed RANDY / Warhead Hunter job API base used for JSON job lookup and safe server-side file proxying. |
 | `WARHEAD_HUNTER_JOB_API_TOKEN` | Optional bearer token for the remote Warhead Hunter backup API. |
 | `PROTAC_BACKUP_TOKEN` | Fallback bearer token name accepted for the same remote backup API integration. |
@@ -341,8 +339,6 @@ PROTAC_ALLOWED_ORIGINS=http://127.0.0.1:5069,https://protacbuilder.com
 PROTAC_RUNTIME_DATA_DIR=/absolute/path/to/persistent/protac_runtime_data
 DEEPPK_MAX_WAIT_SECONDS=15
 DEEPPK_CHECK_INTERVAL_SECONDS=5
-TARGET_BUILDER_JOBS_DIR=/absolute/path/to/shared/target_builder_jobs
-WARHEAD_HUNTER_JOBS_DIR=/absolute/path/to/shared/warhead_hunter_jobs
 # WARHEAD_HUNTER_JOB_API_BASE=https://warheadhunter.example/api/job
 # WARHEAD_HUNTER_JOB_API_TOKEN=replace-with-matching-server-side-token
 # PROTAC_BACKUP_TOKEN=optional-fallback-token-name
@@ -350,6 +346,8 @@ PROTAC_CONVERTED_SESSION_BASE=static/converted_sessions
 ```
 
 `WARHEAD_HUNTER_JOB_API_BASE` should point to the deployed RANDY hunter-job backup API base. `WARHEAD_HUNTER_JOB_API_TOKEN` or `PROTAC_BACKUP_TOKEN` must be set to the matching server-side bearer token when the remote backup API requires authentication.
+
+Target Builder / Warhead Hunter import now uses RANDY as a remote-only source of truth. PROTAC Builder no longer discovers import jobs from local job directories such as `TARGET_BUILDER_JOBS_DIR`, `WARHEAD_HUNTER_JOBS_DIR`, `static/hunter_jobs`, or `uploads/warhead_hunter_imports` when answering `/api/warheadhunter/job/<job_id>`. Local cache files may still be written under `uploads/warhead_hunter_imports` after a successful remote lookup or file proxy, but they do not determine whether a job exists.
 
 ---
 
@@ -510,7 +508,7 @@ git rm --cached static/data/protac_api_downloads.csv
 git rm --cached static/data/protac_builder_usage.csv
 ```
 
-`static/hunter_jobs` is only a local development fallback. Online Target Builder / Warhead Hunter import requires shared deployed storage via `TARGET_BUILDER_JOBS_DIR` or `WARHEAD_HUNTER_JOBS_DIR`, or a configured `WARHEAD_HUNTER_JOB_API_BASE`.
+Target Builder / Warhead Hunter import is remote-only and requires a configured `WARHEAD_HUNTER_JOB_API_BASE` plus matching `WARHEAD_HUNTER_JOB_API_TOKEN` or `PROTAC_BACKUP_TOKEN`. Local job directories are no longer used for import discovery.
 
 DeepPK runs RDKit descriptors first so the molecular parameter table remains available even if the slower external report workflow fails or times out. Hosted platforms with short request limits should keep `DEEPPK_MAX_WAIT_SECONDS` low, or move DeepPK report generation to a background queue in a future pass.
 

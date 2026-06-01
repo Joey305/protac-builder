@@ -3,14 +3,13 @@ from __future__ import annotations
 import json
 import os
 import re
-import shutil
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, unquote, urljoin, urlparse
 
 import requests
 
-from .paths import HUNTER_JOBS_DIR, WARHEAD_HUNTER_IMPORTS_DIR
+from .paths import WARHEAD_HUNTER_IMPORTS_DIR
 
 
 SAFE_JOB_ID_RE = re.compile(r"^[A-Za-z0-9_-]{4,64}$")
@@ -78,19 +77,6 @@ def extract_safe_warhead_file_ref(value: Any) -> str | None:
         return None
 
 
-def _configured_dirs() -> list[tuple[str, Path]]:
-    sources: list[tuple[str, Path]] = []
-
-    for env_name in ("TARGET_BUILDER_JOBS_DIR", "WARHEAD_HUNTER_JOBS_DIR"):
-        value = os.environ.get(env_name, "").strip()
-        if value:
-            sources.append((env_name, Path(value).expanduser()))
-
-    sources.append(("runtime_cache", WARHEAD_HUNTER_IMPORTS_DIR))
-    sources.append(("static_hunter_jobs_dev_fallback", HUNTER_JOBS_DIR))
-    return sources
-
-
 def _remote_base() -> str:
     return os.environ.get("WARHEAD_HUNTER_JOB_API_BASE", "").strip().rstrip("/")
 
@@ -114,69 +100,6 @@ def _remote_headers() -> dict[str, str]:
 
 def remote_job_api_configured() -> bool:
     return bool(_remote_base())
-
-
-def checked_source_names(include_remote: bool = True) -> list[str]:
-    names = [name for name, _path in _configured_dirs()]
-    if include_remote and _remote_base():
-        names.append("WARHEAD_HUNTER_JOB_API_BASE")
-    return names
-
-
-def available_local_job_ids(limit: int = 10) -> list[str]:
-    ids: set[str] = set()
-
-    for _name, base in _configured_dirs():
-        if not base.is_dir():
-            continue
-
-        ids.update(
-            item.name
-            for item in base.iterdir()
-            if item.is_dir() and SAFE_JOB_ID_RE.fullmatch(item.name)
-        )
-
-    return sorted(ids)[:limit]
-
-
-def _copy_job_files(source_dir: Path, cache_dir: Path) -> None:
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    seen: set[str] = set()
-
-    for root, _dirs, files in os.walk(source_dir):
-        for filename in files:
-            if filename in seen or not filename.lower().endswith(WARHEAD_FILE_SUFFIXES):
-                continue
-
-            source = Path(root) / filename
-            destination = cache_dir / filename
-
-            try:
-                shutil.copy2(source, destination)
-                seen.add(filename)
-            except Exception:
-                continue
-
-
-def resolve_job_dir(job_id: str, *, cache_external: bool = True) -> dict[str, Any] | None:
-    clean = normalize_job_id(job_id)
-    cache_dir = WARHEAD_HUNTER_IMPORTS_DIR / clean
-
-    for source_name, base in _configured_dirs():
-        job_dir = base / clean
-
-        if not job_dir.is_dir():
-            continue
-
-        if cache_external and source_name in {"TARGET_BUILDER_JOBS_DIR", "WARHEAD_HUNTER_JOBS_DIR"}:
-            _copy_job_files(job_dir, cache_dir)
-            if cache_dir.is_dir():
-                return {"job_dir": cache_dir, "source": f"{source_name}:cached"}
-
-        return {"job_dir": job_dir, "source": source_name}
-
-    return None
-
 
 def fetch_remote_job(job_id: str, timeout: float = 12.0) -> dict[str, Any] | None:
     clean = normalize_job_id(job_id)
@@ -303,22 +226,20 @@ def missing_job_payload(job_id: str, *, debug: bool = False) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "ok": False,
         "job_id": job_id,
-        "error": "Job not found in configured Warhead Hunter / Target Builder handoff sources.",
+        "error": "Remote Warhead Hunter handoff is not configured on this server.",
         "status": "not_found",
-        "sources_checked": checked_source_names(),
+        "source_policy": "remote_only",
+        "local_lookup": "disabled",
+        "sources_checked": ["WARHEAD_HUNTER_JOB_API_BASE"] if remote_job_api_configured() else [],
         "remote_configured": remote_job_api_configured(),
         "remote_attempted": False,
         "remote_status_code": None,
-        "debug_hint": "No local job matched this ID.",
+        "debug_hint": "WARHEAD_HUNTER_JOB_API_BASE is not configured.",
         "guidance": (
-            "For online deployment, configure TARGET_BUILDER_JOBS_DIR, WARHEAD_HUNTER_JOBS_DIR, "
-            "WARHEAD_HUNTER_JOB_API_BASE, or equivalent shared persistent storage. Local static/hunter_jobs "
-            "is only a development fallback and does not prove whether an online job exists."
+            "Configure WARHEAD_HUNTER_JOB_API_BASE and a matching WARHEAD_HUNTER_JOB_API_TOKEN "
+            "or PROTAC_BACKUP_TOKEN for remote-only Target Builder / Warhead Hunter import."
         ),
-        "available": available_local_job_ids(),
+        "available": [],
     }
-
-    if debug:
-        payload["source_paths_checked"] = [str(path) for _name, path in _configured_dirs()]
 
     return payload
