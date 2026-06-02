@@ -56,6 +56,8 @@ def create_app() -> Flask:
     def api_json_error(exc):
         api_prefixes = ("/api/deeppk", "/api/admet", "/run-drug-analysis")
         if not request.path.startswith(api_prefixes):
+            if isinstance(exc, HTTPException):
+                return exc
             raise exc
         status_code = exc.code if isinstance(exc, HTTPException) else 500
         if request.path.startswith(("/api/deeppk", "/run-drug-analysis")):
