@@ -46,6 +46,7 @@ from .chemistry import (
     render_smiles_data_url,
     smiles_to_svg,
 )
+from .e3_handoff import fetch_remote_ligase_pdb
 from .io_utils import (
     api_linkers_exists,
     apply_cors_headers,
@@ -1457,5 +1458,28 @@ def warheadhunter_job_file(job_id: str, filename: str):
     except requests.HTTPError as exc:
         status = exc.response.status_code if exc.response is not None else 502
         return jsonify({"ok": False, "error": f"Remote file fetch failed: HTTP {status}"}), status
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@bp.route("/api/e3ligase/pdb/<ligase>/<path:filename>", methods=["GET"])
+def e3ligase_pdb_file(ligase: str, filename: str):
+    try:
+        content, content_type = fetch_remote_ligase_pdb(ligase, filename)
+        return Response(
+            content,
+            mimetype=content_type or "chemical/x-pdb",
+            headers={
+                "Cache-Control": "no-store",
+                "X-E3-Ligase-Source": "RANDY",
+            },
+        )
+    except FileNotFoundError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 503
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        return jsonify({"ok": False, "error": f"Remote ligase PDB fetch failed: HTTP {status}"}), status
+    except requests.RequestException as exc:
+        return jsonify({"ok": False, "error": str(exc) or "Remote ligase PDB request failed."}), 502
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500

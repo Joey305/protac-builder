@@ -28,7 +28,8 @@ console.log("🛑 ChemDoodle cloud disabled fully.");
 // ✅ Get linker SMILES from the template
 const linkerSmiles = "{{ linker_smiles }}".trim();
 // ✅ Get BASE of Liganadlyzer Files
-const LIGANDALYZER_BASE = "/static/ligases/";
+const LIGANDALYZER_BASE = "/api/e3ligase/pdb/";
+window.LIGANDALYZER_BASE = LIGANDALYZER_BASE;
 
 
 
@@ -2810,7 +2811,7 @@ window.onLigasePdbChosen = function onLigasePdbChosen() {
   // fullPath like `${LIGANDALYZER_BASE}${ligase}/PDB/${pdbFile}`;
   // Guard for missing constant
   if (typeof window.LIGANDALYZER_BASE !== "undefined") {
-    const fullPath = `${window.LIGANDALYZER_BASE}${ligase}/PDB/${pdbFile}`;
+    const fullPath = buildLigaseProxyPath(ligase, pdbFile);
     sessionStorage.setItem("ligaseLocalPath", fullPath);
   } else {
     console.warn("[onLigasePdbChosen] LIGANDALYZER_BASE undefined. Will use RCSB for ligase PDB fetch.");
@@ -2864,6 +2865,41 @@ function confirmAssistedLigase() {
 }
 
 // Manual mode remains exactly as your old workflow.
+
+function buildLigaseProxyPath(ligase, pdbFile) {
+  const cleanLigase = String(ligase || "").trim();
+  const cleanFile = String(pdbFile || "").trim();
+  if (!cleanLigase || !cleanFile) return "";
+  return `${LIGANDALYZER_BASE}${encodeURIComponent(cleanLigase)}/${encodeURIComponent(cleanFile)}`;
+}
+
+function fetchRcsbPdbBlob(pdbCode, label) {
+  return fetch(`https://files.rcsb.org/download/${pdbCode}.pdb`).then(r => {
+    if (!r.ok) throw new Error(`${label} RCSB fetch failed (${r.status})`);
+    return r.blob();
+  });
+}
+
+function fetchLigasePdbBlob({ ligaseLocalPath, ligasePdb }) {
+  if (!ligaseLocalPath) {
+    return fetchRcsbPdbBlob(ligasePdb, "Ligase");
+  }
+
+  return fetch(ligaseLocalPath).then(r => {
+    if (!r.ok) {
+      console.warn("[fetchLigasePdbBlob] proxy fetch failed, falling back to RCSB", {
+        ligaseLocalPath,
+        status: r.status,
+        ligasePdb
+      });
+      return fetchRcsbPdbBlob(ligasePdb, "Ligase");
+    }
+    return r.blob();
+  }).catch(err => {
+    console.warn("[fetchLigasePdbBlob] proxy request threw, falling back to RCSB", err);
+    return fetchRcsbPdbBlob(ligasePdb, "Ligase");
+  });
+}
 
 
 
@@ -2926,15 +2962,7 @@ window.finalizeProtac = function finalizeProtac() {
   const ligaseLocalPath = sessionStorage.getItem("ligaseLocalPath");
 
   // Fetch ligase PDB (Ligandalyzer local preferred, else RCSB)
-  const ligasePromise = ligaseLocalPath
-    ? fetch(ligaseLocalPath).then(r => {
-        if (!r.ok) throw new Error(`Ligase local fetch failed (${r.status})`);
-        return r.blob();
-      })
-    : fetch(`https://files.rcsb.org/download/${ligasePdb}.pdb`).then(r => {
-        if (!r.ok) throw new Error(`Ligase RCSB fetch failed (${r.status})`);
-        return r.blob();
-      });
+  const ligasePromise = fetchLigasePdbBlob({ ligaseLocalPath, ligasePdb });
 
   // Fetch warhead PDB (hunter uses blob already stored, else RCSB)
   const warheadPromise =
@@ -2943,10 +2971,7 @@ window.finalizeProtac = function finalizeProtac() {
           if (!r.ok) throw new Error(`Warhead blob fetch failed (${r.status})`);
           return r.blob();
         })
-      : fetch(`https://files.rcsb.org/download/${warheadPdb}.pdb`).then(r => {
-          if (!r.ok) throw new Error(`Warhead RCSB fetch failed (${r.status})`);
-          return r.blob();
-        });
+      : fetchRcsbPdbBlob(warheadPdb, "Warhead");
 
   Promise.all([ligasePromise, warheadPromise])
     .then(([ligaseBlob, warheadBlob]) => {
@@ -3023,12 +3048,13 @@ async function finalizeManualProtac() {
   const warheadSource  = sessionStorage.getItem("warheadSource") || "rcsb";
   const warheadPdbFile = sessionStorage.getItem("warheadPdbFile");
 
-  const ligaseBlob = await (await fetch(`https://files.rcsb.org/download/${ligasePdb}.pdb`)).blob();
+  const ligaseLocalPath = sessionStorage.getItem("ligaseLocalPath");
+  const ligaseBlob = await fetchLigasePdbBlob({ ligaseLocalPath, ligasePdb });
 
   const warheadBlob =
     (warheadSource === "hunter" && warheadPdbFile)
       ? await (await fetch(warheadPdbFile)).blob()
-      : await (await fetch(`https://files.rcsb.org/download/${warheadPdb}.pdb`)).blob();
+      : await fetchRcsbPdbBlob(warheadPdb, "Warhead");
 
   // Store blob URLs (cleanup old)
   const prevLig = sessionStorage.getItem("ligasePdbFile");
@@ -3134,7 +3160,7 @@ function onRecruiterSelected() {
     //  Build full local path
     // ------------------------------
     const ligase = sessionStorage.getItem("selectedLigase");
-    const fullPath = `${LIGANDALYZER_BASE}${ligase}/PDB/${info.pdb_file}`;
+    const fullPath = buildLigaseProxyPath(ligase, info.pdb_file);
     sessionStorage.setItem("ligaseLocalPath", fullPath);
 
     // ------------------------------

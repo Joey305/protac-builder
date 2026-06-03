@@ -184,6 +184,11 @@ def warhead_hunter_job_file(job_id: str, filename: str):
     return impl.warheadhunter_job_file(job_id, filename)
 
 
+@api_bp.get("/api/e3ligase/pdb/<ligase>/<path:filename>")
+def e3ligase_pdb_file(ligase: str, filename: str):
+    return impl.e3ligase_pdb_file(ligase, filename)
+
+
 @api_bp.post("/api/deeppk/run")
 def run_deeppk():
     payload = request.get_json(silent=True) or {}
