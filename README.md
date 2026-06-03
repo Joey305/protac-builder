@@ -325,6 +325,9 @@ Important variables:
 | `DEEPPK_CHECK_INTERVAL_SECONDS` | Polling interval for DeepPK job completion checks. |
 | `WARHEAD_HUNTER_JOB_API_BASE` | Optional deployed RANDY / Warhead Hunter job API base used for JSON job lookup and safe server-side file proxying. |
 | `WARHEAD_HUNTER_JOB_API_TOKEN` | Optional bearer token for the remote Warhead Hunter backup API. |
+| `E3_RANDY_API_BASE` | Preferred RANDY E3 API base for ligase PDB handoff. May be the host root or a `/backup/e3` URL; PROTAC Builder normalizes it to the live `/backup/e3` contract. |
+| `E3_DATA_API_BASE` | Legacy E3 API base also accepted for ligase PDB handoff. May be the host root or a `/backup/e3` URL. |
+| `E3_LIGANDALYZER_API_BASE` | Legacy fallback E3 API base also accepted for ligase PDB handoff. |
 | `PROTAC_BACKUP_TOKEN` | Fallback bearer token name accepted for the same remote backup API integration. |
 | `PROTAC_CONVERTED_SESSION_BASE` | Runtime location for converted session assets. |
 
@@ -341,11 +344,14 @@ DEEPPK_MAX_WAIT_SECONDS=15
 DEEPPK_CHECK_INTERVAL_SECONDS=5
 # WARHEAD_HUNTER_JOB_API_BASE=https://warheadhunter.example/api/job
 # WARHEAD_HUNTER_JOB_API_TOKEN=replace-with-matching-server-side-token
+# E3_RANDY_API_BASE=https://randy.rove-vernier.ts.net/backup/e3
 # PROTAC_BACKUP_TOKEN=optional-fallback-token-name
 PROTAC_CONVERTED_SESSION_BASE=static/converted_sessions
 ```
 
 `WARHEAD_HUNTER_JOB_API_BASE` should point to the deployed RANDY hunter-job backup API base. `WARHEAD_HUNTER_JOB_API_TOKEN` or `PROTAC_BACKUP_TOKEN` must be set to the matching server-side bearer token when the remote backup API requires authentication.
+
+For E3 ligase PDB handoff, prefer `E3_RANDY_API_BASE`. It can be configured as either `https://host` or `https://host/backup/e3`; the builder strips trailing slashes, adds `/backup/e3` when missing, and avoids duplicate `/backup/e3/backup/e3`. The ligase PDB proxy calls RANDY’s `GET /backup/e3/ligase-pdbs/<ligase>` listing endpoint first and then fetches the matched file from `GET /backup/e3/file/pdb/<ligase>/<filename>`.
 
 Target Builder / Warhead Hunter import now uses RANDY as a remote-only source of truth. PROTAC Builder no longer discovers import jobs from local job directories such as `TARGET_BUILDER_JOBS_DIR`, `WARHEAD_HUNTER_JOBS_DIR`, `static/hunter_jobs`, or `uploads/warhead_hunter_imports` when answering `/api/warheadhunter/job/<job_id>`. Local cache files may still be written under `uploads/warhead_hunter_imports` after a successful remote lookup or file proxy, but they do not determine whether a job exists.
 

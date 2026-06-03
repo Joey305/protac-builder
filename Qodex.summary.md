@@ -1,95 +1,84 @@
 # Qodex.summary
 
 ## Task
-Make Warhead Hunter / Target Builder import remote-only through RANDY.
+Fix PROTAC Builder E3 PDB handoff variant resolution.
 
 ## Original Goal
-Stop PROTAC Builder from checking local job directories for Target Builder import and make RANDY the exclusive source of truth for job lookup and file handoff.
+Fix the PROTAC Builder/RANDY communication issue where `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` returns 404 because the handoff route cannot resolve the requested PDB filename upstream.
 
 ## Assumptions
-- RANDY is the canonical backend for Target Builder / Warhead Hunter job discovery and asset handoff.
-- Local directories such as `static/hunter_jobs` and `uploads/warhead_hunter_imports` may still exist on disk, but they must not decide whether `/api/warheadhunter/job/<job_id>` succeeds.
-- In this workspace, `WARHEAD_HUNTER_JOB_API_BASE` is not configured, so local runtime tests can validate remote-only diagnostics but not live remote success.
+- RANDY’s current E3 contract is the source of truth: `/backup/e3/ligase-pdbs/<ligase>` and `/backup/e3/file/pdb/<ligase>/<filename>`.
+- `static/data/ligases.json` may contain stale-but-safe recruiter filenames such as `4B9K_TG0_1.pdb`, so the proxy should resolve variants instead of requiring a metadata rewrite.
+- Local validation in this workspace can mock the route behavior, but live RANDY verification depends on production-accessible config and token wiring that are not available here.
 
 ## Files Inspected
-- `protac_builder/route_impl.py` — traced `warheadhunter_job_index()` and found the old `resolve_job_dir()` gate plus the local-directory error message.
-- `protac_builder/warhead_handoff.py` — inspected remote fetch helpers, cache behavior, and old local-source helpers.
-- `protac_builder/api_routes.py` — confirmed `/api/warheadhunter/job/<job_id>` and the file proxy routes remain registered.
-- `protac_builder/legacy_routes.py` — confirmed legacy `/copy/api/...` aliases remain registered.
-- `static/js/COPYscripts.js` — checked how frontend messaging and selected-option flow respond to backend diagnostics.
-- `templates/builder.html` — confirmed multi-option selector UI remained available for both Target Builder and Warhead Hunter flows.
-- `README.md` — updated deployment guidance to describe remote-only import discovery.
-- `Qodex.summary.md` — replaced the previous mixed local/remote summary with this remote-only one.
+- `protac_builder/api_routes.py` — confirmed `/api/e3ligase/pdb/<ligase>/<path:filename>` is registered here and delegates into route implementation.
+- `protac_builder/route_impl.py` — inspected the Flask route wrapper and its current error handling.
+- `protac_builder/e3_handoff.py` — found the failing proxy logic and the `all upstream bases returned 404` log message.
+- `RANDY/e3_data_routes.py` — verified the live RANDY E3 contract and its own variant-aware file lookup behavior.
+- `static/data/ligases.json` — confirmed the builder metadata still references `4B9K_TG0_1.pdb` for VHL.
+- `static/js/COPYscripts.js` — checked how the frontend builds the PDB URL and how it behaves when the proxy returns a non-OK response.
+- `README.md` — updated E3 proxy env var guidance and base normalization expectations.
+- `.env.example` — added the preferred E3 API base env var placeholder.
 
 ## Files Changed
-- `protac_builder/route_impl.py` — removed local lookup from `warheadhunter_job_index()`, added remote-only `?debug=1` diagnostics, added remote-only missing-payload behavior, preserved multi-option normalization, and switched file serving to remote proxy plus optional remote cache only.
-- `protac_builder/warhead_handoff.py` — removed local-discovery diagnostics from the import response path and updated the default missing-job payload to remote-only wording.
-- `static/js/COPYscripts.js` — changed user-facing error messages to remote-only explanations and kept console logging of safe diagnostics.
-- `README.md` — documented that Target Builder / Warhead Hunter import now uses `WARHEAD_HUNTER_JOB_API_BASE` as the exclusive job-discovery authority.
-- `Qodex.summary.md` — documented the remote-only design, validation, and limitations.
+- `protac_builder/e3_handoff.py` — added E3 base normalization, safe filename validation, RANDY listing lookup, short TTL cache, variant candidate fallback, and safer structured logging.
+- `protac_builder/route_impl.py` — added explicit `400` handling for invalid ligase/PDB requests and clean `404` JSON for missing upstream PDBs.
+- `README.md` — documented `E3_RANDY_API_BASE`, accepted legacy E3 base vars, and the normalized `/backup/e3` contract.
+- `.env.example` — added `E3_RANDY_API_BASE=`.
+- `Qodex.summary.md` — replaced the prior summary with this task summary.
 
 ## Files Created
-- `Qodex.summary.md` — task summary for the remote-only RANDY import change.
+- `Qodex.summary.md` — task summary for the E3 PDB handoff fix.
 
 ## Implementation Summary
-`/api/warheadhunter/job/<job_id>` is still implemented in `protac_builder.route_impl.warheadhunter_job_index()`, but it no longer calls `resolve_job_dir()` or scans local job folders before contacting RANDY. The route now always uses `fetch_remote_job_diagnostics(job_id)` as the source of truth. If RANDY is not configured, the route returns a structured `503` JSON response explaining that remote handoff is not configured. If RANDY returns `404`, the route returns a structured `404` JSON response explaining that RANDY did not find the job ID. If RANDY returns a payload, the route normalizes all candidate options, preserves multi-ligand choices, and only succeeds when at least one option includes importable PDB and SDF references.
+The root cause was in `protac_builder/e3_handoff.py`. The builder proxy always took whatever base URL it had, blindly appended `backup/e3/file/pdb/<ligase>/<filename>`, and requested the exact filename from `static/data/ligases.json`. That meant a request such as `4B9K_TG0_1.pdb` failed whenever RANDY only exposed `4B9K_TG0.pdb` or another compatible variant, even though the ligase data itself was present upstream.
 
-The file route still uses `/api/warheadhunter/job/<job_id>/file/<path:filename>`, but it no longer discovers jobs from local folders. It optionally serves a previously cached remote file from `uploads/warhead_hunter_imports/<job_id>` if present and safe; otherwise it proxies the request to RANDY and writes the fetched file into that cache directory. Cache files are now an optimization only, not an authority for job existence.
-
-After inspecting the live `47772fd7` payload, normalization was tightened further so that when RANDY provides explicit job-root artifact files, only those top-level handoff files are turned into import options. That prevents PROTAC Builder from rendering the entire internal `job_files/MCS_Output/...` universe and limits the UI to the curated root deliverables that were actually meant to be handed off.
+The fix keeps the same builder route and multi-base fallback pattern, but makes the proxy smarter. It now normalizes each configured base to exactly one `/backup/e3` suffix, ignores non-URL values such as `static/converted_sessions`, calls RANDY’s `GET /backup/e3/ligase-pdbs/<ligase>` endpoint first, and resolves the requested filename case-insensitively against the real remote inventory. If there is no exact match, it strips a trailing numeric variant suffix and tries safe ordered candidates such as `4B9K_TG0_1.pdb`, `4B9K_TG0.pdb`, `4B9K_TG0_2.pdb`, and so on before returning a clean downstream `404`.
 
 ## Key Decisions
-- Removed the `resolve_job_dir()` branch from `warheadhunter_job_index()` so stale local directories can never shadow valid remote jobs.
-- Kept `_scan_hunter_job_dir()` and other local helpers on disk for safety, but they are no longer used by the import lookup route.
-- Added `source_policy: remote_only` and `local_lookup: disabled` to both success and debug/failure payloads so the frontend and operators can see the policy clearly.
-- Treated SMILES-only RANDY payloads as a distinct structured failure: the route now reports that PDB/SDF files are required instead of trying to fabricate structure files.
-- Preserved explicit multi-ligand selection by returning all valid options and `requires_selection: true` with `selected_option_id: null` when more than one valid option exists.
-- Preferred RANDY `files` entries with `root == "job"` and direct job-root artifact filenames over the much larger remote `options` array whenever that curated top-level handoff set exists.
+- Preserved the existing route shape `/api/e3ligase/pdb/<ligase>/<filename>` so the frontend does not need to change.
+- Preserved multi-upstream fallback behavior, but normalized every base to the RANDY `/backup/e3` contract instead of concatenating path fragments ad hoc.
+- Preferred real RANDY inventory via `/ligase-pdbs/<ligase>` over speculative file fetches, because that lets stale builder metadata resolve safely to exact upstream filenames.
+- Kept cache correctness optional by using a short in-memory listing TTL only as an optimization.
+- Left `static/data/ligases.json` unchanged for now because the proxy can safely resolve stale `_1` filenames without broad metadata churn.
 
 ## Commands Run
-- `rg -n "warheadhunter_job_index|resolve_job_dir|_scan_hunter_job_dir|fetch_remote_job|fetch_remote_job_diagnostics|fetch_remote_job_file|missing_job_payload|A local job directory was found|No valid warhead options found|TARGET_BUILDER_JOBS_DIR|WARHEAD_HUNTER_JOBS_DIR|HUNTER_JOBS_DIR|WARHEAD_HUNTER_IMPORTS_DIR|pdb_path|sdf_path|target_pdb|warhead_sdf|requires_selection|selectedOption" ...` — mapped local-vs-remote flow and confirmed where old local behavior lived.
-- `python -m py_compile app.py protac_builder/route_impl.py protac_builder/warhead_handoff.py protac_builder/api_routes.py protac_builder/legacy_routes.py` — passed.
-- `flask --app app routes | grep -i warhead` — passed and confirmed the public and legacy Warhead Hunter routes still exist.
-- `node --check static/js/COPYscripts.js` — passed.
-- `python - <<'PY' ... client.get('/api/warheadhunter/job/47772fd7?debug=1') ... PY` — passed and confirmed remote-only debug JSON with `source_policy: remote_only` and `local_lookup: disabled`.
-- `python - <<'PY' ... patched fetch_remote_job_diagnostics(remote success) ... PY` — passed and confirmed normalized remote success with `valid_option_count = 1` and `detected.*`.
-- `python - <<'PY' ... patched fetch_remote_job_diagnostics(remote multi-option) ... PY` — passed and confirmed `valid_option_count = 2`, `requires_selection = true`, and `selected_option_id = null`.
-- `python - <<'PY' ... patched fetch_remote_job_diagnostics(smiles-only payload) ... PY` — passed and confirmed `status = remote_payload_missing_structure_files`.
-- `python - <<'PY' ... normalize_safe_warhead_file_ref(...) ... PY` — passed allowed and blocked path tests.
-- `python - <<'PY' ... client.get('/api/warhunter/job/7511ee2d/file/job_files/../../secret.json') ... PY` — adapted to the real route and confirmed traversal blocking with structured `400` JSON.
-- `python - <<'PY' ... client.get('/api/warheadhunter/job/47772fd7') ... PY` — passed and confirmed the non-debug response now reports remote-not-configured `503` instead of local-directory findings.
-- `rg -n "resolve_job_dir|_scan_hunter_job_dir" protac_builder/route_impl.py` — confirmed `_scan_hunter_job_dir()` remains only as a helper definition and `resolve_job_dir` is no longer referenced from the route file.
-- `curl -s 'https://protacbuilder.com/api/warheadhunter/job/47772fd7?debug=1' | python -m json.tool` — showed live remote payload metadata with `option_count: 462` and `valid_option_count: 154` before curated filtering.
-- `curl -s 'https://protacbuilder.com/api/warheadhunter/job/47772fd7' > /tmp/job47772fd7.json` plus targeted Python inspection — confirmed the remote payload includes both internal `job_files/...` artifacts and top-level `root: "job"` handoff files.
-- `python - <<'PY' ... normalize_hunter_payload_for_frontend('47772fd7', live_payload) ... PY` — passed and confirmed curated filtering reduces the job to exactly two valid top-level options.
-- `python - <<'PY' ... patched fetch_remote_job_diagnostics(live 47772fd7 payload) ... PY` — passed and confirmed route-level output now returns exactly the intended two options for this job.
+- `rg -n "e3_handoff|e3ligase|ligase-pdbs|file/pdb|backup/e3|4B9K|TG0|VHL|upstream bases|RANDY|E3_RANDY|E3.*BASE|ligases.json|builder\\?session|session=" .` — located the route, handoff helper, RANDY contract, and VHL metadata references.
+- `rg -n "api/e3ligase|def .*e3|e3_handoff|pdb/<|file/pdb|ligase-pdbs" .` — confirmed the exact builder and RANDY route definitions.
+- `rg -n "4B9K|TG0|VHL" static templates .` — confirmed `static/data/ligases.json` references `4B9K_TG0_1.pdb`.
+- `sed -n '1,260p' protac_builder/e3_handoff.py` — inspected the failing proxy helper.
+- `sed -n '1440,1505p' protac_builder/route_impl.py` — inspected the builder’s `/api/e3ligase/pdb/...` wrapper.
+- `sed -n '430,520p' RANDY/e3_data_routes.py` — verified RANDY’s listing and file routes.
+- `python -m py_compile app.py protac_builder/e3_handoff.py protac_builder/route_impl.py protac_builder/api_routes.py` — passed.
+- `python - <<'PY' ... mocked Flask test client and patched protac_builder.e3_handoff.requests.get ... PY` — passed exact-match, `_1` variant fallback, missing-file, and traversal validation.
+- `python - <<'PY' from protac_builder.e3_handoff import normalize_e3_base_url ... PY` — confirmed host-root, `/backup/e3`, and duplicated `/backup/e3/backup/e3` inputs normalize correctly.
 
 ## Validation Results
-- `GET /api/warheadhunter/job/<job_id>` remains implemented in `protac_builder.route_impl.warheadhunter_job_index()`.
-- Local directory lookup currently no longer occurs in `warheadhunter_job_index()`; `resolve_job_dir` is not referenced there anymore.
-- Remote RANDY lookup now occurs unconditionally through `fetch_remote_job_diagnostics(job_id)` in the canonical job route.
-- The old local-directory-specific error path (`A local job directory was found, but no option contained importable warhead files.`) was removed from the import route and is no longer surfaced to the frontend.
-- The frontend does not assume local-vs-remote behavior; it now consumes remote-only diagnostics and still drives selection/import from normalized option objects.
-- Remote-not-configured debug response passed: `source_policy = remote_only`, `local_lookup = disabled`, and `remote.configured = false`.
-- Mock remote success passed: `status = 200`, `valid_option_count = 1`, and `detected.target_pdb` / `detected.warhead_sdf` exist.
-- Mock remote multi-option passed: `valid_option_count = 2`, `requires_selection = true`, and `selected_option_id = null`.
-- Mock SMILES-only payload passed: structured `502` with `status = remote_payload_missing_structure_files`.
-- Secure file-path validation passed for both allowed and blocked paths.
-- Live `47772fd7` payload inspection showed RANDY was returning a huge internal candidate universe, but the updated normalization now filters that payload to the top-level handoff artifacts only.
-- Live-payload normalization for `47772fd7` now returns exactly two valid options: `4HHZ chain C ligand 15S resid 401` and `9DMC chain A ligand APR resid 1102`.
+- Route ownership confirmed: `/api/e3ligase/pdb/<ligase>/<path:filename>` is defined in `protac_builder/api_routes.py` and implemented in `protac_builder.route_impl.e3ligase_pdb_file()`.
+- Failing log origin confirmed: `all upstream bases returned 404` came from `protac_builder/e3_handoff.py`.
+- Upstream URL shape confirmed: the builder now targets normalized bases plus `GET /backup/e3/ligase-pdbs/<ligase>` and `GET /backup/e3/file/pdb/<ligase>/<filename>`.
+- Base normalization validation passed:
+  - `https://randy.rove-vernier.ts.net` -> `https://randy.rove-vernier.ts.net/backup/e3`
+  - `https://randy.rove-vernier.ts.net/backup/e3` -> unchanged
+  - `https://randy.rove-vernier.ts.net/backup/e3/backup/e3` -> deduplicated to one `/backup/e3`
+  - `static/converted_sessions` -> ignored for E3 remote proxying
+- Mock exact match passed: `GET /api/e3ligase/pdb/VHL/4B9K_TG0.pdb` returned `200` with `chemical/x-pdb`.
+- Mock variant fallback passed: `GET /api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` resolved through RANDY listing data to an available upstream file and returned `200`.
+- Path traversal rejection passed: `GET /api/e3ligase/pdb/VHL/../secret.pdb` returned `400` with `{"ok": false, "error": "Invalid filename." ...}`.
+- Missing file passed: `GET /api/e3ligase/pdb/VHL/DOES_NOT_EXIST.pdb` returned a clean `404` JSON response instead of a generic `500`.
+- Existing molecule and session endpoints were not modified in this patch.
 
 ## Known Issues
-- Live deployed verification against a real RANDY job ID could not be run from this workspace because `WARHEAD_HUNTER_JOB_API_BASE` is not configured locally and production credentials are not available here.
-- Manual browser verification of the updated remote-only messages and option selector was not run in a live browser session during this pass.
-- `_scan_hunter_job_dir()` still exists as a helper in `route_impl.py`; it is no longer used by the import route, but it was not deleted in this change.
+- Live RANDY inventory for VHL was not queried from this workspace, so I could not prove whether production currently serves `4B9K_TG0.pdb`, `4B9K_TG0_1.pdb`, or another exact variant.
+- The builder still carries stale-looking VHL filenames in `static/data/ligases.json`, but the proxy now resolves those safely without requiring a metadata migration.
+- The route still falls back to historical hard-coded upstream hosts if no preferred env var is set; that behavior was intentionally preserved.
 
 ## Manual Verification
-1. Call `GET /api/warheadhunter/job/<job_id>?debug=1` on a deployed environment.
-2. Confirm the JSON includes `source_policy: remote_only`, `local_lookup: disabled`, and only remote diagnostics.
-3. Test a known valid RANDY job ID and confirm the response includes normalized options and no local-directory language.
-4. Test a RANDY 404 job ID and confirm the response says `RANDY did not find this job ID.`
-5. In the browser, load a multi-option job and confirm the user must explicitly click a ligand option before import.
-6. For job `47772fd7`, confirm the selector shows only the two top-level options from the job root rather than dozens of internal MCS candidates.
+1. Open a builder session that uses a VHL recruiter.
+2. Confirm `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` no longer fails due to missing variant resolution.
+3. Confirm the 3D viewer loads the E3 ligase PDB or shows a clean not-found message.
+4. Confirm existing molecule modification and PROTAC logging still work.
 
 ## Suggested Next Prompt
-Run deployed `?debug=1` checks against one valid RANDY job and one missing RANDY job so we can confirm the production environment variables and remote token wiring are correct.
+Run one live production check against the deployed builder and RANDY for `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` so we can confirm which exact VHL filename RANDY currently serves in production.

@@ -46,7 +46,7 @@ from .chemistry import (
     render_smiles_data_url,
     smiles_to_svg,
 )
-from .e3_handoff import fetch_remote_ligase_pdb
+from .e3_handoff import E3HandoffRequestError, fetch_remote_ligase_pdb
 from .io_utils import (
     api_linkers_exists,
     apply_cors_headers,
@@ -1474,10 +1474,21 @@ def e3ligase_pdb_file(ligase: str, filename: str):
                 "X-E3-Ligase-Source": "RANDY",
             },
         )
+    except E3HandoffRequestError as exc:
+        return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), exc.status_code
     except FileNotFoundError as exc:
-        return jsonify({"ok": False, "error": str(exc)}), 503
+        return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), 503
     except requests.HTTPError as exc:
         status = exc.response.status_code if exc.response is not None else 502
+        if status == 404:
+            return jsonify(
+                {
+                    "ok": False,
+                    "error": "Remote ligase PDB not found.",
+                    "ligase": ligase,
+                    "requested_filename": filename,
+                }
+            ), 404
         return jsonify({"ok": False, "error": f"Remote ligase PDB fetch failed: HTTP {status}"}), status
     except requests.RequestException as exc:
         return jsonify({"ok": False, "error": str(exc) or "Remote ligase PDB request failed."}), 502
