@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 
 from . import route_impl as impl
 from .io_utils import apply_cors_headers
@@ -32,6 +32,11 @@ def builder():
         )
     except FileNotFoundError as exc:
         return _missing_path_error(Path(str(exc)))
+
+
+@ui_bp.get("/build")
+def legacy_build_alias():
+    return redirect(url_for("ui.builder", **request.args), code=302)
 
 
 @ui_bp.get("/api-builder")

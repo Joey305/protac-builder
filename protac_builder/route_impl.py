@@ -524,9 +524,29 @@ def load_converted(session_id: str):
     if not clean_session or clean_session.lower() in {"none", "null", "undefined"}:
         return jsonify({"error": "Missing converted recruiter session ID"}), 400
 
-    base_url = os.environ.get("PROTAC_CONVERTED_SESSION_BASE", "https://stan.rove-vernier.ts.net").rstrip("/")
-    response = requests.get(f"{base_url}/api/serve_session/{clean_session}", timeout=10)
-    if response.status_code != 200:
+    configured_base = str(os.environ.get("PROTAC_CONVERTED_SESSION_BASE", "") or "").strip().rstrip("/")
+    candidate_bases = []
+
+    if configured_base:
+        candidate_bases.append(configured_base)
+
+    for fallback_base in (
+        "https://e3ligandalyzer-adb8adfde220.herokuapp.com",
+        "https://stan.rove-vernier.ts.net",
+    ):
+        if fallback_base not in candidate_bases:
+            candidate_bases.append(fallback_base)
+
+    response = None
+    for base_url in candidate_bases:
+        try:
+            response = requests.get(f"{base_url}/api/serve_session/{clean_session}", timeout=10)
+        except requests.RequestException:
+            continue
+        if response.status_code == 200:
+            break
+
+    if response is None or response.status_code != 200:
         return jsonify({"error": "Session SDF not found"}), 404
 
     mol = Chem.MolFromMolBlock(response.text, sanitize=False)

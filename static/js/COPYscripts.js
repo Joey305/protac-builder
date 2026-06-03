@@ -3985,6 +3985,8 @@ $(document).ready(function () {
     window.__PROTAC_BUILDER_MESSAGE_RECEIVER_INSTALLED = true;
 
     const ALLOWED_ORIGINS = new Set([
+        "https://e3ligandalyzer-adb8adfde220.herokuapp.com",
+        "https://e3ligandalyzer.com",
         "https://kyle.rove-vernier.ts.net",
         "https://stan.rove-vernier.ts.net",
         "https://protacbuilder.com",
