@@ -189,6 +189,11 @@ def e3ligase_pdb_file(ligase: str, filename: str):
     return impl.e3ligase_pdb_file(ligase, filename)
 
 
+@api_bp.get("/api/e3ligase/sdf/<ligase>/<path:filename>")
+def e3ligase_sdf_file(ligase: str, filename: str):
+    return impl.e3ligase_sdf_file(ligase, filename)
+
+
 @api_bp.get("/api/e3ligase/debug/pdb/<ligase>/<path:filename>")
 def e3ligase_pdb_debug(ligase: str, filename: str):
     return impl.e3ligase_pdb_debug(ligase, filename)

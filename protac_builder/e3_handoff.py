@@ -33,6 +33,20 @@ class E3HandoffRequestError(ValueError):
         self.status_code = status_code
 
 
+def _validate_remote_filename(filename: str, expected_suffix: str) -> str:
+    clean = str(filename or "").strip()
+    if not clean:
+        raise E3HandoffRequestError("Missing filename.")
+    rel = Path(clean)
+    if rel.is_absolute() or ".." in rel.parts or "\\" in clean:
+        raise E3HandoffRequestError("Invalid filename.")
+    if any(part in {"", "."} for part in rel.parts):
+        raise E3HandoffRequestError("Invalid filename.")
+    if rel.suffix.lower() != expected_suffix.lower():
+        raise E3HandoffRequestError(f"Unsupported file type: only {expected_suffix} is allowed.")
+    return rel.name
+
+
 def _remote_token() -> str:
     return (
         os.environ.get("E3_RANDY_TOKEN", "").strip()
@@ -86,17 +100,11 @@ def _validate_ligase_name(ligase: str) -> str:
 
 
 def _validate_pdb_filename(filename: str) -> str:
-    clean = str(filename or "").strip()
-    if not clean:
-        raise E3HandoffRequestError("Missing filename.")
-    rel = Path(clean)
-    if rel.is_absolute() or ".." in rel.parts or "\\" in clean:
-        raise E3HandoffRequestError("Invalid filename.")
-    if any(part in {"", "."} for part in rel.parts):
-        raise E3HandoffRequestError("Invalid filename.")
-    if rel.suffix.lower() != ".pdb":
-        raise E3HandoffRequestError("Unsupported file type: only .pdb is allowed.")
-    return rel.name
+    return _validate_remote_filename(filename, ".pdb")
+
+
+def _validate_sdf_filename(filename: str) -> str:
+    return _validate_remote_filename(filename, ".sdf")
 
 
 def _stem_without_variant(filename: str) -> str:
@@ -456,6 +464,13 @@ def inspect_remote_ligase_pdb(
                 response.raise_for_status()
                 diagnostic["ok"] = True
                 diagnostic["matched_filename"] = candidate_name
+                diagnostic["matched_base"] = {
+                    "host": base_diag["host"],
+                    "base_path": base_diag["base_path"],
+                    "source": base_diag["source"],
+                    "configured": base_diag["configured"],
+                    "_base": base,
+                }
                 diagnostic["source"] = "randy-listing" if matched_filename else "direct-fetch"
                 diagnostic["listing_status"] = base_diag["listing_status"]
                 diagnostic["listing_count"] = base_diag["listing_count"]
@@ -554,4 +569,89 @@ def fetch_remote_ligase_pdb(ligase: str, filename: str, timeout: float = 20.0) -
         raise requests.HTTPError(f"Remote ligase PDB upstream failed: HTTP {status_code}", response=response)
     if diagnostic.get("exception_type"):
         raise requests.RequestException(str(diagnostic["exception_type"]))
+    raise FileNotFoundError("No remote E3 ligase data source is configured.")
+
+
+def fetch_remote_ligase_sdf(ligase: str, pdb_filename: str, timeout: float = 20.0) -> tuple[bytes, str, str]:
+    clean_ligase = _validate_ligase_name(ligase)
+    requested_pdb = _validate_pdb_filename(pdb_filename)
+    diagnostic = inspect_remote_ligase_pdb(clean_ligase, requested_pdb, timeout=timeout, include_content=False)
+
+    normalized_bases = diagnostic.get("normalized_bases") or []
+    if not normalized_bases:
+        raise FileNotFoundError("No remote E3 ligase data source is configured.")
+
+    matched_base = diagnostic.get("matched_base") if isinstance(diagnostic.get("matched_base"), dict) else None
+    candidate_bases: list[str] = []
+    if matched_base and matched_base.get("_base"):
+        candidate_bases.append(str(matched_base["_base"]))
+    for base in _candidate_remote_bases():
+        if base not in candidate_bases:
+            candidate_bases.append(base)
+
+    matched_pdb = str(diagnostic.get("matched_filename") or requested_pdb)
+    sdf_candidates = [
+        _validate_sdf_filename(f"{Path(matched_pdb).stem}.sdf"),
+        _validate_sdf_filename(f"{Path(requested_pdb).stem}.sdf"),
+    ]
+    seen_candidates: set[str] = set()
+    unique_candidates: list[str] = []
+    for candidate in sdf_candidates:
+        key = candidate.lower()
+        if key in seen_candidates:
+            continue
+        seen_candidates.add(key)
+        unique_candidates.append(candidate)
+
+    current_app.logger.info(
+        "[e3_handoff] sdf request ligase=%s pdb=%s resolved_pdb=%s candidates=%s bases=%s",
+        clean_ligase,
+        requested_pdb,
+        matched_pdb,
+        unique_candidates,
+        [_base_label(base) for base in candidate_bases],
+    )
+
+    first_non404_status: int | None = None
+    any_404 = False
+    for base in candidate_bases:
+        for candidate in unique_candidates:
+            url = f"{base}/file/sdf/{quote(clean_ligase, safe='')}/{quote(candidate, safe='')}"
+            try:
+                response = requests.get(url, headers=_remote_headers(), timeout=timeout)
+                current_app.logger.info(
+                    "[e3_handoff] sdf fetch base=%s ligase=%s candidate=%s status=%s",
+                    _base_label(base),
+                    clean_ligase,
+                    candidate,
+                    response.status_code,
+                )
+                if response.status_code == 404:
+                    any_404 = True
+                    continue
+                response.raise_for_status()
+                return (
+                    response.content,
+                    response.headers.get("content-type", "chemical/x-mdl-sdfile"),
+                    candidate,
+                )
+            except requests.HTTPError as exc:
+                status = exc.response.status_code if exc.response is not None else None
+                if status == 404:
+                    any_404 = True
+                    continue
+                if first_non404_status is None and status is not None:
+                    first_non404_status = status
+                raise
+            except requests.RequestException:
+                raise
+
+    if first_non404_status is not None:
+        response = requests.Response()
+        response.status_code = first_non404_status
+        raise requests.HTTPError(f"Remote ligase SDF upstream failed: HTTP {first_non404_status}", response=response)
+    if any_404:
+        response = requests.Response()
+        response.status_code = 404
+        raise requests.HTTPError("Remote ligase SDF not found.", response=response)
     raise FileNotFoundError("No remote E3 ligase data source is configured.")

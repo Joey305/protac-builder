@@ -29,6 +29,9 @@ console.log("🛑 ChemDoodle cloud disabled fully.");
 const linkerSmiles = "{{ linker_smiles }}".trim();
 // ✅ Get BASE of Liganadlyzer Files
 const LIGANDALYZER_BASE = "/api/e3ligase/pdb/";
+const LIGASE_SDF_PROXY_BASE = "/api/e3ligase/sdf/";
+const EXPORT_LIGASE_SDF_KEY = "exportLigaseSdf";
+const EXPORT_LIGASE_PDB_FILE_KEY = "exportLigasePdbFilename";
 window.LIGANDALYZER_BASE = LIGANDALYZER_BASE;
 
 
@@ -839,8 +842,8 @@ function saveLigase() {
         });
 
         const molBlock = ChemDoodle.writeMOL(molecule);
-        sessionStorage.setItem("savedLigase", molBlockToSdfText(molBlock));
-        console.log("✅ Ligase SDF saved.");
+        sessionStorage.setItem("savedLigase", molBlock);
+        console.log("✅ Ligase MOL Block saved.");
 
         saveClicks.ligase = true; // Mark ligase as saved
         saveButtonFeedback("ligaseSaveButton");
@@ -1808,6 +1811,8 @@ async function getParameters() {
     sessionStorage.removeItem("ligasePdb");
     sessionStorage.removeItem("ligandHead1");
     sessionStorage.removeItem("ligaseAtom");
+    sessionStorage.removeItem(EXPORT_LIGASE_SDF_KEY);
+    sessionStorage.removeItem(EXPORT_LIGASE_PDB_FILE_KEY);
 
     // Clear warhead selections
     sessionStorage.removeItem("warheadPdb");
@@ -2435,34 +2440,71 @@ function molBlockToSdfText(molBlock) {
 function storeLigaseSdfText(sdfText) {
   const normalized = molBlockToSdfText(sdfText);
   if (!normalized) return false;
-  sessionStorage.setItem("savedLigase", normalized);
+  sessionStorage.setItem(EXPORT_LIGASE_SDF_KEY, normalized);
   return true;
+}
+
+function buildLigaseSdfProxyPath(ligase, pdbFile) {
+  const cleanLigase = String(ligase || "").trim();
+  const cleanFile = String(pdbFile || "").trim();
+  if (!cleanLigase || !cleanFile) return "";
+  return `${LIGASE_SDF_PROXY_BASE}${encodeURIComponent(cleanLigase)}/${encodeURIComponent(cleanFile)}`;
+}
+
+async function cacheLigaseExportSdf({ ligase, pdbFile }) {
+  const cleanLigase = String(ligase || "").trim();
+  const cleanFile = String(pdbFile || "").trim();
+  if (!cleanLigase || !cleanFile) return "";
+
+  const url = buildLigaseSdfProxyPath(cleanLigase, cleanFile);
+  sessionStorage.removeItem(EXPORT_LIGASE_SDF_KEY);
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      sessionStorage.removeItem(EXPORT_LIGASE_PDB_FILE_KEY);
+      console.warn("[cacheLigaseExportSdf] ligase SDF fetch failed", {
+        ligase: cleanLigase,
+        pdbFile: cleanFile,
+        status: resp.status
+      });
+      return "";
+    }
+    const sdfText = await resp.text();
+    if (!storeLigaseSdfText(sdfText)) return "";
+    sessionStorage.setItem(EXPORT_LIGASE_PDB_FILE_KEY, cleanFile);
+    console.log("✅ Ligase export SDF cached from source file.", { ligase: cleanLigase, pdbFile: cleanFile });
+    return sdfText;
+  } catch (err) {
+    console.warn("[cacheLigaseExportSdf] request failed", {
+      ligase: cleanLigase,
+      pdbFile: cleanFile,
+      error: err?.message || String(err)
+    });
+    sessionStorage.removeItem(EXPORT_LIGASE_PDB_FILE_KEY);
+    return "";
+  }
 }
 
 
 async function createZipFile(ligaseAtom, warheadAtom, protacParams) {
-  let ligaseSDF  = sessionStorage.getItem("savedLigase");
+  const ligaseSDF  = sessionStorage.getItem(EXPORT_LIGASE_SDF_KEY);
   let warheadSDF = sessionStorage.getItem("savedMolecule");
   const smiles     = sessionStorage.getItem("generatedSMILES");
-
-  if (!ligaseSDF && window.ligaseSketcher && typeof window.ligaseSketcher.getMolecule === "function") {
-    try {
-      const molecule = window.ligaseSketcher.getMolecule();
-      const molBlock = molecule ? ChemDoodle.writeMOL(molecule) : "";
-      ligaseSDF = molBlockToSdfText(molBlock);
-      if (ligaseSDF) {
-        sessionStorage.setItem("savedLigase", ligaseSDF);
-      }
-    } catch (err) {
-      console.warn("[createZipFile] failed to derive ligase SDF from sketcher", err);
-    }
-  }
 
   if (warheadSDF) {
     warheadSDF = molBlockToSdfText(warheadSDF);
   }
 
   if (!ligaseSDF || !warheadSDF || !smiles) {
+    console.warn("[createZipFile] missing export inputs", {
+      hasLigaseSdf: !!ligaseSDF,
+      hasWarheadSdf: !!warheadSDF,
+      hasSmiles: !!smiles,
+      exportLigasePdbFile: sessionStorage.getItem(EXPORT_LIGASE_PDB_FILE_KEY) || "",
+      ligasePdb: sessionStorage.getItem("ligasePdb") || "",
+      warheadPdb: sessionStorage.getItem("warheadPdb") || "",
+      warheadSource: sessionStorage.getItem("warheadSource") || ""
+    });
     throw new Error("Missing Ligase.sdf / Warhead.sdf / SMILES. Make sure you saved ligase + warhead and generated SMILES.");
   }
 
@@ -2856,6 +2898,9 @@ window.onLigasePdbChosen = function onLigasePdbChosen() {
     sessionStorage.removeItem("ligaseLocalPath");
   }
 
+  sessionStorage.setItem(EXPORT_LIGASE_PDB_FILE_KEY, pdbFile);
+  cacheLigaseExportSdf({ ligase, pdbFile });
+
   // Parse: "4CI3_Y70.pdb" -> ligasePdb="4CI3", ligaseLigand="Y70"
   const parts = pdbFile.split("_");
   const ligasePdb    = (parts[0] || "").toUpperCase();
@@ -3037,9 +3082,17 @@ window.finalizeProtac = function finalizeProtac() {
   }
 
   const ligaseLocalPath = sessionStorage.getItem("ligaseLocalPath");
+  const ligasePdbFileName =
+    sessionStorage.getItem(EXPORT_LIGASE_PDB_FILE_KEY) ||
+    document.getElementById("ligase-pdb-select")?.value ||
+    "";
 
   // Fetch ligase PDB (Ligandalyzer local preferred, else RCSB)
   const ligasePromise = fetchLigasePdbBlob({ ligaseLocalPath, ligasePdb });
+  const ligaseSdfPromise = cacheLigaseExportSdf({
+    ligase: sessionStorage.getItem("selectedLigase") || "",
+    pdbFile: ligasePdbFileName
+  });
 
   // Fetch warhead PDB (hunter uses blob already stored, else RCSB)
   const warheadPromise =
@@ -3050,7 +3103,7 @@ window.finalizeProtac = function finalizeProtac() {
         })
       : fetchRcsbPdbBlob(warheadPdb, "Warhead");
 
-  Promise.all([ligasePromise, warheadPromise])
+  Promise.all([ligasePromise, warheadPromise, ligaseSdfPromise])
     .then(([ligaseBlob, warheadBlob]) => {
       // Revoke old blobs first
       const prevLig = sessionStorage.getItem("ligasePdbFile");
@@ -3126,7 +3179,15 @@ async function finalizeManualProtac() {
   const warheadPdbFile = sessionStorage.getItem("warheadPdbFile");
 
   const ligaseLocalPath = sessionStorage.getItem("ligaseLocalPath");
+  const ligasePdbFileName =
+    sessionStorage.getItem(EXPORT_LIGASE_PDB_FILE_KEY) ||
+    document.getElementById("ligase-pdb-select")?.value ||
+    "";
   const ligaseBlob = await fetchLigasePdbBlob({ ligaseLocalPath, ligasePdb });
+  await cacheLigaseExportSdf({
+    ligase: sessionStorage.getItem("selectedLigase") || "",
+    pdbFile: ligasePdbFileName
+  });
 
   const warheadBlob =
     (warheadSource === "hunter" && warheadPdbFile)
@@ -3239,6 +3300,8 @@ function onRecruiterSelected() {
     const ligase = sessionStorage.getItem("selectedLigase");
     const fullPath = buildLigaseProxyPath(ligase, info.pdb_file);
     sessionStorage.setItem("ligaseLocalPath", fullPath);
+    sessionStorage.setItem(EXPORT_LIGASE_PDB_FILE_KEY, info.pdb_file);
+    cacheLigaseExportSdf({ ligase, pdbFile: info.pdb_file });
 
     // ------------------------------
     //  SHOW NEXT SECTION
@@ -3462,6 +3525,8 @@ function clearLigaseOnly() {
   sessionStorage.removeItem("ligasePdb");
   sessionStorage.removeItem("ligandHead1");
   sessionStorage.removeItem("ligasePdbFile");
+  sessionStorage.removeItem(EXPORT_LIGASE_SDF_KEY);
+  sessionStorage.removeItem(EXPORT_LIGASE_PDB_FILE_KEY);
 }
 
  

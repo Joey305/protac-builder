@@ -46,7 +46,13 @@ from .chemistry import (
     render_smiles_data_url,
     smiles_to_svg,
 )
-from .e3_handoff import E3HandoffRequestError, fetch_remote_ligase_pdb, inspect_remote_ligase_pdb
+from .e3_handoff import (
+    E3HandoffRequestError,
+    fetch_remote_ligase_pdb,
+    fetch_remote_ligase_sdf,
+    inspect_remote_ligase_pdb,
+    pdb_candidate_filenames,
+)
 from .io_utils import (
     api_linkers_exists,
     apply_cors_headers,
@@ -1500,6 +1506,81 @@ def e3ligase_pdb_file(ligase: str, filename: str):
         return jsonify({"ok": False, "error": f"Remote ligase PDB fetch failed: HTTP {status}"}), status
     except requests.RequestException as exc:
         return jsonify({"ok": False, "error": str(exc) or "Remote ligase PDB request failed."}), 502
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+def _local_ligase_sdf_candidates(ligase: str, pdb_filename: str) -> list[Path]:
+    clean_ligase = str(ligase or "").strip()
+    candidates: list[Path] = []
+    seen: set[str] = set()
+    for candidate_pdb in pdb_candidate_filenames(pdb_filename):
+        stem = Path(candidate_pdb).stem
+        parts = stem.split("_")
+        ligand_code = parts[1] if len(parts) > 1 else ""
+        possible = [
+            RECRUITER_LIGASES_DIR / clean_ligase / "SDF_4Download" / f"{stem}.sdf",
+        ]
+        if ligand_code:
+            possible.append(RECRUITER_LIGASES_DIR / clean_ligase / "SDF" / f"{clean_ligase}_{ligand_code}.sdf")
+        for path in possible:
+            key = str(path)
+            if key in seen:
+                continue
+            seen.add(key)
+            candidates.append(path)
+    return candidates
+
+
+@bp.route("/api/e3ligase/sdf/<ligase>/<path:filename>", methods=["GET"])
+def e3ligase_sdf_file(ligase: str, filename: str):
+    try:
+        local_candidates = _local_ligase_sdf_candidates(ligase, filename)
+    except E3HandoffRequestError as exc:
+        return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), exc.status_code
+
+    for candidate in local_candidates:
+        if candidate.exists():
+            return Response(
+                candidate.read_bytes(),
+                mimetype="chemical/x-mdl-sdfile",
+                headers={
+                    "Cache-Control": "no-store",
+                    "X-E3-Ligase-Source": "LOCAL",
+                    "X-E3-Ligase-SDF": candidate.name,
+                },
+            )
+
+    try:
+        content, content_type, resolved_filename = fetch_remote_ligase_sdf(ligase, filename)
+        return Response(
+            content,
+            mimetype=content_type or "chemical/x-mdl-sdfile",
+            headers={
+                "Cache-Control": "no-store",
+                "X-E3-Ligase-Source": "RANDY",
+                "X-E3-Ligase-SDF": resolved_filename,
+            },
+        )
+    except E3HandoffRequestError as exc:
+        return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), exc.status_code
+    except FileNotFoundError as exc:
+        return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), 503
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        if status == 404:
+            return jsonify(
+                {
+                    "ok": False,
+                    "error": "Remote ligase SDF not found.",
+                    "ligase": ligase,
+                    "requested_filename": filename,
+                    "local_candidates": [path.name for path in local_candidates],
+                }
+            ), 404
+        return jsonify({"ok": False, "error": f"Remote ligase SDF fetch failed: HTTP {status}"}), status
+    except requests.RequestException as exc:
+        return jsonify({"ok": False, "error": str(exc) or "Remote ligase SDF request failed."}), 502
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500
 
