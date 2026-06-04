@@ -90,6 +90,73 @@
   font-weight: 900;
 }
 
+.api-builder-page{
+  --api-modal-nav-height: var(--protac-nav-height, 70px);
+  --api-modal-bottom-gap: 1.25rem;
+  --api-modal-top-gap: clamp(
+    calc(var(--api-modal-nav-height) + 0.9rem),
+    calc(var(--api-modal-nav-height) + 3vh),
+    calc(var(--api-modal-nav-height) + 2rem)
+  );
+}
+
+.api-builder-page #apiWelcomeModal{
+  padding-top: var(--api-modal-top-gap);
+  padding-bottom: var(--api-modal-bottom-gap);
+}
+
+.api-builder-page #apiWelcomeModal .modal-dialog{
+  width: auto;
+  max-width: min(900px, calc(100vw - 32px));
+  margin: 0 auto;
+  left: auto;
+  transform: none;
+  display: flex;
+  align-items: flex-start;
+  min-height: calc(100dvh - var(--api-modal-top-gap) - var(--api-modal-bottom-gap));
+}
+
+.api-builder-page #apiWelcomeModal .modal-content{
+  width: 100%;
+  max-height: calc(100dvh - var(--api-modal-top-gap) - var(--api-modal-bottom-gap));
+  overflow: hidden;
+}
+
+.api-builder-page #apiWelcomeModal .modal-header{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+  padding-right: 1rem;
+}
+
+.api-builder-page #apiWelcomeModal .modal-header > :first-child{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.api-builder-page #apiWelcomeModal .close{
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 2.5rem;
+  margin: 0 0 0 1rem;
+  padding: 0.25rem 0.5rem;
+  float: none;
+  line-height: 1;
+  text-shadow: none;
+}
+
+.api-builder-page #apiWelcomeModal .modal-body{
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .guide-card{
   border: 1px solid rgba(51,65,85,0.9);
   background: rgba(2,6,23,0.45);
@@ -1321,25 +1388,41 @@
   letter-spacing: 0.03em;
 }
 
-/* FORCE PERFECT HORIZONTAL CENTERING */
-.api-welcome-modal .modal-dialog {
-  margin-left: auto !important;
-  margin-right: auto !important;
-  transform: none !important;
+@media (max-width: 991.98px) {
+  .api-builder-page{
+    --api-modal-top-gap: clamp(
+      calc(var(--protac-nav-height-mobile, 64px) + 0.85rem),
+      calc(var(--protac-nav-height-mobile, 64px) + 3.5vh),
+      calc(var(--protac-nav-height-mobile, 64px) + 1.5rem)
+    );
+  }
 }
 
-.api-welcome-modal .modal-dialog {
-  position: relative;
-  left: 12px; /* ← visual correction */
-}
+@media (max-width: 767.98px) {
+  .api-builder-page #apiWelcomeModal{
+    padding-inline: 0.625rem;
+  }
 
+  .api-builder-page #apiWelcomeModal .modal-dialog{
+    max-width: min(100%, calc(100vw - 20px));
+    min-height: calc(100dvh - var(--api-modal-top-gap) - 1rem);
+  }
 
-/* === FORCE TRUE CENTERING FOR API MODAL === */
-#apiWelcomeModal .modal-dialog {
-  width: auto !important;
-  max-width: min(900px, calc(100vw - 32px)) !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  .api-builder-page #apiWelcomeModal .modal-content{
+    max-height: calc(100dvh - var(--api-modal-top-gap) - 1rem);
+  }
+
+  .api-builder-page #apiWelcomeModal .modal-header{
+    align-items: flex-start;
+  }
+
+  .api-builder-page #apiWelcomeModal .modal-title{
+    line-height: 1.25;
+  }
+
+  .api-builder-page #apiWelcomeModal .close{
+    margin-left: 0.75rem;
+  }
 }
 
 
