@@ -15,7 +15,7 @@
 <style>
   #tutorial-flyover{
     position:fixed; top:8px; left:100%;
-    z-index:99999; display:flex; align-items:center; gap:10px;
+    z-index:11000; display:flex; align-items:center; gap:10px;
     pointer-events:none; animation: tf-fly 24s linear infinite; animation-delay:.8s;
   }
   #tutorial-flyover .tf-link, #tutorial-flyover .tf-close{ pointer-events:auto; }
@@ -32,6 +32,7 @@
   @keyframes tf-fly { 0%{transform:translateX(0)} 100%{transform:translateX(calc(-100vw - 120%))} }
   #tutorial-flyover:hover{ animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce){ #tutorial-flyover{ animation:none; left:50%; transform:translateX(-50%);} }
+  @media (max-width:1024px){ #tutorial-flyover{ top:calc(var(--protac-nav-height-mobile, 64px) + max(12px, env(safe-area-inset-top))); } }
   @media (max-width:480px){ .tf-banner{ font-size:.9rem; padding:6px 10px } .tf-plane{ font-size:18px } .tf-close{ width:26px; height:26px } }
 </style>
 

@@ -1,774 +1,145 @@
-<div id="nav-bg" aria-hidden="true"></div>
+{% set primary_nav_items = [
+  {
+    "href": url_for('ui.builder'),
+    "endpoint": "ui.builder",
+    "icon": "🧪",
+    "label": "PROTAC Builder",
+  },
+  {
+    "href": url_for('ui.api_builder'),
+    "endpoint": "ui.api_builder",
+    "icon": "⚙️",
+    "label": "API Builder",
+    "pill": "New",
+  },
+  {
+    "href": url_for('ui.about'),
+    "endpoint": "ui.about",
+    "icon": "📘",
+    "label": "About",
+  },
+] %}
 
-<nav class="top-nav-container protac-nav" aria-label="Primary navigation">
-  <a class="top-nav-brand" href="{{ url_for('ui.builder') }}" aria-label="PROTAC Builder home">
-    <span class="brand-mark" aria-hidden="true">🧪</span>
-    <span class="brand-text">PROTAC Builder</span>
+{% set discovery_nav_items = [
+  {
+    "href": "https://vlisemod.com",
+    "icon": "🧬",
+    "label": "V-LiSEMOD",
+    "external": true,
+  },
+  {
+    "href": url_for('ui.ligase_ligandalyzer'),
+    "endpoint": "ui.ligase_ligandalyzer",
+    "icon": "🔬",
+    "label": "E3 Ligandalyzer",
+  },
+  {
+    "href": "https://warheadhunter.com/",
+    "icon": "🎯",
+    "label": "Warhead Hunter",
+    "external": true,
+  },
+  {
+    "href": "https://schurerlab.org",
+    "icon": "🏛️",
+    "label": "Schürer Lab",
+    "external": true,
+  },
+] %}
+
+{% macro render_nav_link(item, mobile=False) -%}
+  <li class="{{ 'protac-mobile-drawer__item' if mobile else 'protac-site-nav__item' }}">
+    <a
+      href="{{ item.href }}"
+      class="
+        {{ 'protac-mobile-drawer__link' if mobile else 'protac-site-nav__link' }}
+        {% if item.endpoint and request.endpoint == item.endpoint %}is-active{% endif %}
+      "
+      {% if item.external %}target="_blank" rel="noopener noreferrer"{% endif %}
+    >
+      <span class="protac-nav-link__icon" aria-hidden="true">{{ item.icon }}</span>
+      <span class="protac-nav-link__label">{{ item.label }}</span>
+      {% if item.pill %}
+        <span class="protac-nav-link__pill">{{ item.pill }}</span>
+      {% endif %}
+      {% if item.external %}
+        <span class="protac-nav-link__external" aria-hidden="true">↗</span>
+      {% endif %}
+    </a>
+  </li>
+{%- endmacro %}
+
+<div class="protac-nav-glow" aria-hidden="true"></div>
+
+<nav class="protac-site-nav" aria-label="Primary navigation">
+  <a class="protac-site-nav__brand" href="{{ url_for('ui.builder') }}" aria-label="PROTAC Builder home">
+    <span class="protac-site-nav__brand-mark" aria-hidden="true">🧪</span>
+    <span class="protac-site-nav__brand-text">PROTAC Builder</span>
   </a>
 
+  <div class="protac-site-nav__desktop" aria-label="Desktop navigation">
+    <ul class="protac-site-nav__list">
+      {% for item in primary_nav_items %}
+        {{ render_nav_link(item) }}
+      {% endfor %}
+      {% for item in discovery_nav_items %}
+        {{ render_nav_link(item) }}
+      {% endfor %}
+    </ul>
+  </div>
+
   <button
-    class="hamburger"
-    id="hamburgerBtn"
+    class="protac-site-nav__toggle"
+    id="protacNavToggle"
     type="button"
     aria-label="Open navigation"
-    aria-controls="mobileMenu"
+    aria-controls="protacNavDrawer"
     aria-expanded="false"
   >
     <span></span>
     <span></span>
     <span></span>
   </button>
-
-  <div class="protac-nav-backdrop" id="protacNavBackdrop" hidden></div>
-
-  <ul class="top-nav-menu" id="mobileMenu">
-    <li class="mobile-menu-header">
-      <div class="mobile-menu-title">
-        <strong>Navigation</strong>
-        <span>Build, explore, and connect PROTAC discovery tools</span>
-      </div>
-
-      <button
-        class="mobile-menu-close"
-        id="protacNavClose"
-        type="button"
-        aria-label="Close navigation"
-      >
-        &times;
-      </button>
-    </li>
-
-    <li>
-      <a
-        href="{{ url_for('ui.builder') }}"
-        class="{% if request.endpoint == 'ui.builder' %}active{% endif %}"
-      >
-        <span class="nav-icon" aria-hidden="true">🧪</span>
-        <span class="nav-label">PROTAC Builder</span>
-      </a>
-    </li>
-
-    <li>
-      <a
-        href="{{ url_for('ui.api_builder') }}"
-        class="nav-new {% if request.endpoint == 'ui.api_builder' %}active{% endif %}"
-      >
-        <span class="nav-icon" aria-hidden="true">⚙️</span>
-        <span class="nav-label">API Builder</span>
-        <span class="nav-pill">New</span>
-      </a>
-    </li>
-
-    <li>
-      <a
-        href="{{ url_for('ui.about') }}"
-        class="{% if request.endpoint == 'ui.about' %}active{% endif %}"
-      >
-        <span class="nav-icon" aria-hidden="true">📘</span>
-        <span class="nav-label">About</span>
-      </a>
-    </li>
-
-    <li class="mobile-section-label">Discovery Suite</li>
-
-    <li>
-      <a href="https://vlisemod.com" target="_blank" rel="noopener noreferrer">
-        <span class="nav-icon" aria-hidden="true">🧬</span>
-        <span class="nav-label">V-LiSEMOD</span>
-        <span class="external-mark" aria-hidden="true">↗</span>
-      </a>
-    </li>
-
-    <li>
-      <a
-        href="{{ url_for('ui.ligase_ligandalyzer') }}"
-        class="{% if request.endpoint == 'ui.ligase_ligandalyzer' %}active{% endif %}"
-      >
-        <span class="nav-icon" aria-hidden="true">🔬</span>
-        <span class="nav-label">E3 Ligandalyzer</span>
-      </a>
-    </li>
-
-    <li>
-      <a href="https://warheadhunter.com/" target="_blank" rel="noopener noreferrer">
-        <span class="nav-icon" aria-hidden="true">🎯</span>
-        <span class="nav-label">Warhead Hunter</span>
-        <span class="external-mark" aria-hidden="true">↗</span>
-      </a>
-    </li>
-
-    <li>
-      <a href="https://schurerlab.org" target="_blank" rel="noopener noreferrer">
-        <span class="nav-icon" aria-hidden="true">🏛️</span>
-        <span class="nav-label">Schürer Lab</span>
-        <span class="external-mark" aria-hidden="true">↗</span>
-      </a>
-    </li>
-  </ul>
 </nav>
 
-<div class="header-spacer"></div>
-
-<style>
-  :root {
-    --protac-nav-bg: rgba(8, 13, 26, 0.78);
-    --protac-nav-bg-solid: rgba(8, 13, 26, 0.96);
-    --protac-nav-panel: rgba(5, 10, 22, 0.985);
-    --protac-primary: #5eead4;
-    --protac-primary-strong: #2dd4bf;
-    --protac-accent: #a78bfa;
-    --protac-gold: #facc15;
-    --protac-text: #f8fafc;
-    --protac-muted: #cbd5e1;
-    --protac-soft: #94a3b8;
-    --protac-border: rgba(94, 234, 212, 0.24);
-    --protac-border-strong: rgba(94, 234, 212, 0.42);
-    --protac-shadow: 0 26px 90px rgba(0, 0, 0, 0.5), 0 0 34px rgba(94, 234, 212, 0.12);
-  }
-
-  #nav-bg {
-    position: fixed;
-    inset: 0 0 auto 0;
-    height: 76px;
-    pointer-events: none;
-    z-index: 998;
-    background:
-      radial-gradient(circle at 12% 0%, rgba(94, 234, 212, 0.18), transparent 35%),
-      radial-gradient(circle at 92% 0%, rgba(167, 139, 250, 0.16), transparent 32%);
-    opacity: 0.9;
-  }
-
-  .top-nav-container,
-  .top-nav-container *,
-  .top-nav-container *::before,
-  .top-nav-container *::after {
-    box-sizing: border-box;
-  }
-
-  .top-nav-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    min-height: 68px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.85rem clamp(1rem, 3vw, 2rem);
-    background:
-      linear-gradient(135deg, rgba(8, 13, 26, 0.9), rgba(15, 23, 42, 0.75)),
-      var(--protac-nav-bg);
-    border-bottom: 1px solid var(--protac-border);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transition:
-      min-height 0.22s ease,
-      padding 0.22s ease,
-      background 0.22s ease,
-      border-color 0.22s ease;
-  }
-
-  .top-nav-container::after {
-    content: "";
-    position: absolute;
-    left: clamp(1rem, 3vw, 2rem);
-    right: clamp(1rem, 3vw, 2rem);
-    bottom: -1px;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(94, 234, 212, 0.65),
-      rgba(167, 139, 250, 0.48),
-      transparent
-    );
-    pointer-events: none;
-  }
-
-  .top-nav-container.nav-scrolled {
-    min-height: 58px;
-    padding-block: 0.55rem;
-    background: var(--protac-nav-bg-solid);
-    border-bottom-color: rgba(94, 234, 212, 0.32);
-  }
-
-  .header-spacer {
-    height: 68px;
-  }
-
-  .top-nav-brand {
-    position: relative;
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.58rem;
-    min-width: 0;
-    color: var(--protac-text);
-    font-weight: 800;
-    font-size: 1.08rem;
-    letter-spacing: -0.03em;
-    text-decoration: none !important;
-    white-space: nowrap;
-  }
-
-  .top-nav-brand:hover,
-  .top-nav-brand:focus {
-    color: var(--protac-text);
-    text-decoration: none !important;
-  }
-
-  .brand-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    flex: 0 0 auto;
-    border: 1px solid rgba(94, 234, 212, 0.34);
-    border-radius: 12px;
-    background:
-      radial-gradient(circle at top left, rgba(94, 234, 212, 0.24), transparent 54%),
-      rgba(15, 23, 42, 0.72);
-    box-shadow: 0 0 20px rgba(94, 234, 212, 0.16);
-  }
-
-  .brand-text {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    background: linear-gradient(135deg, #ffffff, #c4fff4 42%, #ddd6fe);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .top-nav-menu {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 0.42rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .top-nav-menu li {
-    position: relative;
-    margin: 0;
-    padding: 0;
-  }
-
-  .top-nav-menu a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.42rem;
-    min-height: 40px;
-    padding: 0.5rem 0.72rem;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    color: var(--protac-muted);
-    font-size: 0.92rem;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-    text-decoration: none !important;
-    transition:
-      color 0.18s ease,
-      background 0.18s ease,
-      border-color 0.18s ease,
-      transform 0.18s ease;
-  }
-
-  .top-nav-menu a:hover,
-  .top-nav-menu a:focus-visible {
-    outline: none;
-    color: var(--protac-primary);
-    background: rgba(94, 234, 212, 0.1);
-    border-color: rgba(94, 234, 212, 0.22);
-    transform: translateY(-1px);
-  }
-
-  .top-nav-menu a.active {
-    color: var(--protac-gold);
-    background: rgba(250, 204, 21, 0.1);
-    border-color: rgba(250, 204, 21, 0.3);
-  }
-
-  .nav-icon {
-    display: inline-flex;
-    width: 1.25em;
-    justify-content: center;
-    flex: 0 0 auto;
-  }
-
-  .nav-label {
-    min-width: 0;
-  }
-
-  .nav-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 0.12rem;
-    padding: 0.22rem 0.42rem;
-    border-radius: 999px;
-    color: #111827;
-    background: linear-gradient(135deg, var(--protac-gold), #fde68a);
-    font-size: 0.62rem;
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    box-shadow: 0 0 12px rgba(250, 204, 21, 0.18);
-  }
-
-  .external-mark {
-    color: var(--protac-soft);
-    font-size: 0.8rem;
-    transform: translateY(-1px);
-  }
-
-  .hamburger {
-    position: relative;
-    z-index: 1200;
-    display: none;
-    width: 44px;
-    height: 44px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 1px solid rgba(94, 234, 212, 0.28);
-    border-radius: 14px;
-    background:
-      radial-gradient(circle at top left, rgba(94, 234, 212, 0.14), transparent 54%),
-      rgba(15, 23, 42, 0.82);
-    color: var(--protac-text);
-    cursor: pointer;
-    box-shadow: 0 0 18px rgba(94, 234, 212, 0.1);
-  }
-
-  .hamburger:hover,
-  .hamburger:focus-visible {
-    outline: none;
-    background: rgba(94, 234, 212, 0.12);
-    border-color: var(--protac-border-strong);
-  }
-
-  .hamburger span {
-    position: absolute;
-    width: 22px;
-    height: 2px;
-    border-radius: 999px;
-    background: var(--protac-muted);
-    transition:
-      transform 0.22s ease,
-      opacity 0.22s ease,
-      top 0.22s ease,
-      background 0.22s ease;
-  }
-
-  .hamburger span:nth-child(1) {
-    top: 14px;
-  }
-
-  .hamburger span:nth-child(2) {
-    top: 21px;
-  }
-
-  .hamburger span:nth-child(3) {
-    top: 28px;
-  }
-
-  .hamburger.is-open span,
-  .hamburger.active span {
-    background: var(--protac-primary);
-  }
-
-  .hamburger.is-open span:nth-child(1),
-  .hamburger.active span:nth-child(1) {
-    top: 21px;
-    transform: rotate(45deg);
-  }
-
-  .hamburger.is-open span:nth-child(2),
-  .hamburger.active span:nth-child(2) {
-    opacity: 0;
-  }
-
-  .hamburger.is-open span:nth-child(3),
-  .hamburger.active span:nth-child(3) {
-    top: 21px;
-    transform: rotate(-45deg);
-  }
-
-  .protac-nav-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1001;
-    display: block;
-    background: rgba(2, 6, 23, 0.68);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.22s ease;
-  }
-
-  .protac-nav-backdrop.is-open,
-  .protac-nav-backdrop.show,
-  .protac-nav-backdrop.active {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .mobile-menu-header,
-  .mobile-section-label,
-  .mobile-menu-close {
-    display: none;
-  }
-
-  @media (max-width: 1160px) and (min-width: 769px) {
-    .top-nav-container {
-      padding-inline: 1rem;
-    }
-
-    .top-nav-menu {
-      gap: 0.22rem;
-    }
-
-    .top-nav-menu a {
-      padding-inline: 0.55rem;
-      font-size: 0.84rem;
-    }
-
-    .brand-text {
-      max-width: 210px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    #nav-bg {
-      height: 66px;
-    }
-
-    .top-nav-container,
-    .top-nav-container.nav-scrolled {
-      min-height: 62px;
-      padding: 0.62rem max(0.9rem, env(safe-area-inset-left)) 0.62rem max(0.9rem, env(safe-area-inset-left));
-    }
-
-    .header-spacer {
-      height: 62px;
-    }
-
-    .top-nav-brand {
-      flex: 1 1 auto;
-      max-width: calc(100vw - 5.8rem);
-      font-size: 1rem;
-    }
-
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 11px;
-    }
-
-    .brand-text {
-      max-width: min(62vw, 270px);
-    }
-
-    .hamburger {
-      display: inline-flex;
-    }
-
-    .top-nav-menu {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: auto;
-      z-index: 1002;
-      width: min(88vw, 390px);
-      max-width: 390px;
-      height: 100dvh;
-      max-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0;
-      padding: max(0.85rem, env(safe-area-inset-top)) 0.85rem max(1.05rem, env(safe-area-inset-bottom));
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      background:
-        radial-gradient(circle at top right, rgba(94, 234, 212, 0.18), transparent 34%),
-        radial-gradient(circle at 25% 10%, rgba(167, 139, 250, 0.12), transparent 34%),
-        linear-gradient(180deg, rgba(15, 23, 42, 0.99), var(--protac-nav-panel));
-      border-left: 1px solid rgba(94, 234, 212, 0.28);
-      box-shadow: var(--protac-shadow);
-      opacity: 1;
-      pointer-events: none;
-      transform: translateX(104%);
-      transition: transform 0.25s ease;
-    }
-
-    .top-nav-menu.is-open,
-    .top-nav-menu.show,
-    .top-nav-menu.active,
-    .top-nav-menu.open {
-      pointer-events: auto;
-      transform: translateX(0);
-    }
-
-    .top-nav-menu::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .top-nav-menu::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.35);
-      border-radius: 999px;
-    }
-
-    .top-nav-menu li {
-      width: 100%;
-    }
-
-    .top-nav-menu li + li {
-      margin-top: 0.32rem;
-    }
-
-    .mobile-menu-header {
-      display: flex !important;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 0.2rem 0.2rem 0.82rem;
-      margin-bottom: 0.38rem;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-    }
-
-    .mobile-menu-title {
-      display: flex;
-      flex-direction: column;
-      gap: 0.16rem;
-      min-width: 0;
-    }
-
-    .mobile-menu-title strong {
-      color: var(--protac-text);
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-    }
-
-    .mobile-menu-title span {
-      color: var(--protac-soft);
-      font-size: 0.76rem;
-      line-height: 1.25;
-    }
-
-    .mobile-menu-close {
-      display: inline-flex;
-      width: 40px;
-      height: 40px;
-      flex: 0 0 auto;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      border-radius: 13px;
-      background: rgba(15, 23, 42, 0.72);
-      color: var(--protac-muted);
-      font-size: 1.35rem;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .mobile-menu-close:hover,
-    .mobile-menu-close:focus-visible {
-      outline: none;
-      color: var(--protac-primary);
-      border-color: var(--protac-border-strong);
-      background: rgba(94, 234, 212, 0.12);
-    }
-
-    .mobile-section-label {
-      display: block;
-      margin: 0.82rem 0 0.22rem;
-      padding: 0 0.25rem;
-      color: var(--protac-soft);
-      font-size: 0.68rem;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .top-nav-menu a {
-      width: 100%;
-      justify-content: flex-start;
-      min-height: 50px;
-      padding: 0.86rem 0.9rem;
-      border-radius: 15px;
-      color: #e2e8f0;
-      background: rgba(15, 23, 42, 0.38);
-      border-color: rgba(148, 163, 184, 0.12);
-      font-size: 0.96rem;
-      line-height: 1.15;
-      white-space: normal;
-      transform: none;
-    }
-
-    .top-nav-menu a:hover,
-    .top-nav-menu a:focus-visible {
-      color: var(--protac-primary);
-      background: rgba(94, 234, 212, 0.13);
-      border-color: rgba(94, 234, 212, 0.3);
-      transform: none;
-    }
-
-    .top-nav-menu a.active {
-      color: var(--protac-gold);
-      background: rgba(250, 204, 21, 0.12);
-      border-color: rgba(250, 204, 21, 0.32);
-    }
-
-    .nav-icon {
-      width: 1.6rem;
-      height: 1.6rem;
-      align-items: center;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.045);
-    }
-
-    .nav-label {
-      flex: 1 1 auto;
-      min-width: 0;
-    }
-
-    .nav-pill {
-      margin-left: auto;
-    }
-
-    .external-mark {
-      margin-left: auto;
-      color: var(--protac-soft);
-    }
-  }
-
-  @media (max-width: 420px) {
-    .brand-text {
-      max-width: 55vw;
-    }
-
-    .top-nav-menu {
-      width: min(92vw, 390px);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .top-nav-container,
-    .top-nav-menu,
-    .protac-nav-backdrop,
-    .hamburger span,
-    .top-nav-menu a {
-      transition-duration: 0.01ms !important;
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-    }
-  }
-</style>
-
-<script>
-  (function () {
-    const nav = document.querySelector(".protac-nav");
-    const menu = document.getElementById("mobileMenu");
-    const toggle = document.getElementById("hamburgerBtn");
-    const closeBtn = document.getElementById("protacNavClose");
-    const backdrop = document.getElementById("protacNavBackdrop");
-
-    if (!nav || !menu || !toggle || !backdrop) return;
-
-    const mobileQuery = window.matchMedia("(max-width: 768px)");
-    let previousBodyOverflow = "";
-    let isOpen = false;
-
-    function setOpen(open) {
-      isOpen = open;
-
-      menu.classList.toggle("is-open", open);
-      menu.classList.toggle("show", open);
-      toggle.classList.toggle("is-open", open);
-      toggle.classList.toggle("active", open);
-      backdrop.classList.toggle("is-open", open);
-      backdrop.classList.toggle("show", open);
-
-      toggle.setAttribute("aria-expanded", String(open));
-      toggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
-
-      backdrop.hidden = !open;
-
-      if (open) {
-        previousBodyOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
-        window.setTimeout(function () {
-          if (closeBtn) closeBtn.focus();
-        }, 0);
-      } else {
-        document.body.style.overflow = previousBodyOverflow || "";
-      }
-    }
-
-    function closeMenu() {
-      setOpen(false);
-    }
-
-    function toggleMenu() {
-      setOpen(!isOpen);
-    }
-
-    function handleScroll() {
-      nav.classList.toggle("nav-scrolled", window.scrollY > 14);
-    }
-
-    toggle.addEventListener("click", function (event) {
-      event.preventDefault();
-      toggleMenu();
-    });
-
-    if (closeBtn) {
-      closeBtn.addEventListener("click", function (event) {
-        event.preventDefault();
-        closeMenu();
-      });
-    }
-
-    backdrop.addEventListener("click", closeMenu);
-
-    menu.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", function () {
-        if (mobileQuery.matches) closeMenu();
-      });
-    });
-
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && isOpen) closeMenu();
-    });
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    if (mobileQuery.addEventListener) {
-      mobileQuery.addEventListener("change", function () {
-        closeMenu();
-      });
-    } else if (mobileQuery.addListener) {
-      mobileQuery.addListener(function () {
-        closeMenu();
-      });
-    }
-  })();
-</script>
+<div class="protac-nav-backdrop" id="protacNavBackdrop" hidden></div>
+
+<aside
+  id="protacNavDrawer"
+  class="protac-mobile-drawer"
+  aria-hidden="true"
+  aria-label="Mobile navigation"
+  tabindex="-1"
+>
+  <div class="protac-mobile-drawer__header">
+    <div class="protac-mobile-drawer__title">
+      <strong>Navigation</strong>
+      <span>Build, explore, and connect PROTAC discovery tools</span>
+    </div>
+
+    <button
+      class="protac-mobile-drawer__close"
+      id="protacNavClose"
+      type="button"
+      aria-label="Close navigation"
+    >
+      &times;
+    </button>
+  </div>
+
+  <nav class="protac-mobile-drawer__nav" aria-label="Mobile primary navigation">
+    <ul class="protac-mobile-drawer__list">
+      {% for item in primary_nav_items %}
+        {{ render_nav_link(item, mobile=True) }}
+      {% endfor %}
+
+      <li class="protac-mobile-drawer__section">Discovery Suite</li>
+
+      {% for item in discovery_nav_items %}
+        {{ render_nav_link(item, mobile=True) }}
+      {% endfor %}
+    </ul>
+  </nav>
+</aside>
+
+<div class="protac-nav-spacer" aria-hidden="true"></div>
