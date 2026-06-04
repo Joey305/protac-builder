@@ -32,6 +32,8 @@ const LIGANDALYZER_BASE = "/api/e3ligase/pdb/";
 const LIGASE_SDF_PROXY_BASE = "/api/e3ligase/sdf/";
 const EXPORT_LIGASE_SDF_KEY = "exportLigaseSdf";
 const EXPORT_LIGASE_PDB_FILE_KEY = "exportLigasePdbFilename";
+const WARHEAD_SDF_PROXY_BASE = "/api/warhead/sdf/";
+const EXPORT_WARHEAD_SDF_KEY = "exportWarheadSdf";
 window.LIGANDALYZER_BASE = LIGANDALYZER_BASE;
 
 
@@ -1912,6 +1914,7 @@ async function getParameters() {
 
     sessionStorage.removeItem("warheadPdbFile");
     sessionStorage.removeItem("savedMolecule");
+    sessionStorage.removeItem(EXPORT_WARHEAD_SDF_KEY);
     sessionStorage.removeItem("warheadHunterJobId");
     sessionStorage.removeItem("warheadSource");
 
@@ -2270,6 +2273,7 @@ async function getParameters() {
       if (!sdfResp.ok) throw new Error(`Failed local SDF download (${sdfResp.status})`);
       const sdfText = await sdfResp.text();
       sessionStorage.setItem("savedMolecule", sdfText);
+      storeWarheadExportSdfText(sdfText);
 
       // Mark source
       sessionStorage.setItem("warheadHunterJobId", data.job_id);
@@ -2485,10 +2489,55 @@ async function cacheLigaseExportSdf({ ligase, pdbFile }) {
   }
 }
 
+function storeWarheadExportSdfText(sdfText) {
+  const normalized = molBlockToSdfText(sdfText);
+  if (!normalized) return false;
+  sessionStorage.setItem(EXPORT_WARHEAD_SDF_KEY, normalized);
+  return true;
+}
+
+function buildWarheadSdfProxyPath(pdbId, ligandCode) {
+  const cleanPdb = String(pdbId || "").trim().toUpperCase();
+  const cleanLigand = String(ligandCode || "").trim().toUpperCase();
+  if (!cleanPdb || !cleanLigand) return "";
+  return `${WARHEAD_SDF_PROXY_BASE}${encodeURIComponent(cleanPdb)}/${encodeURIComponent(cleanLigand)}`;
+}
+
+async function cacheWarheadExportSdf({ pdbId, ligandCode }) {
+  const cleanPdb = String(pdbId || "").trim().toUpperCase();
+  const cleanLigand = String(ligandCode || "").trim().toUpperCase();
+  if (!cleanPdb || !cleanLigand) return "";
+
+  const url = buildWarheadSdfProxyPath(cleanPdb, cleanLigand);
+  sessionStorage.removeItem(EXPORT_WARHEAD_SDF_KEY);
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      console.warn("[cacheWarheadExportSdf] warhead SDF fetch failed", {
+        pdbId: cleanPdb,
+        ligandCode: cleanLigand,
+        status: resp.status
+      });
+      return "";
+    }
+    const sdfText = await resp.text();
+    if (!storeWarheadExportSdfText(sdfText)) return "";
+    console.log("✅ Warhead export SDF cached from source file.", { pdbId: cleanPdb, ligandCode: cleanLigand });
+    return sdfText;
+  } catch (err) {
+    console.warn("[cacheWarheadExportSdf] request failed", {
+      pdbId: cleanPdb,
+      ligandCode: cleanLigand,
+      error: err?.message || String(err)
+    });
+    return "";
+  }
+}
+
 
 async function createZipFile(ligaseAtom, warheadAtom, protacParams) {
   const ligaseSDF  = sessionStorage.getItem(EXPORT_LIGASE_SDF_KEY);
-  let warheadSDF = sessionStorage.getItem("savedMolecule");
+  let warheadSDF = sessionStorage.getItem(EXPORT_WARHEAD_SDF_KEY) || sessionStorage.getItem("savedMolecule");
   const smiles     = sessionStorage.getItem("generatedSMILES");
 
   if (warheadSDF) {
@@ -3073,7 +3122,7 @@ window.finalizeProtac = function finalizeProtac() {
   // Determine warhead source
   const warheadSource  = sessionStorage.getItem("warheadSource") || "rcsb";
   const warheadPdbFile = sessionStorage.getItem("warheadPdbFile"); // blob URL if hunter/target import confirmed
-  const warheadSDF     = sessionStorage.getItem("savedMolecule");  // SDF text if hunter import confirmed
+  const warheadSDF     = sessionStorage.getItem(EXPORT_WARHEAD_SDF_KEY) || sessionStorage.getItem("savedMolecule");
 
   // If hunter source, ensure we actually have the SDF
   if (warheadSource === "hunter" && !warheadSDF) {
@@ -3093,6 +3142,10 @@ window.finalizeProtac = function finalizeProtac() {
     ligase: sessionStorage.getItem("selectedLigase") || "",
     pdbFile: ligasePdbFileName
   });
+  const warheadSdfPromise =
+    warheadSource === "hunter"
+      ? Promise.resolve(warheadSDF || "")
+      : cacheWarheadExportSdf({ pdbId: warheadPdb, ligandCode: warheadLigand });
 
   // Fetch warhead PDB (hunter uses blob already stored, else RCSB)
   const warheadPromise =
@@ -3103,7 +3156,7 @@ window.finalizeProtac = function finalizeProtac() {
         })
       : fetchRcsbPdbBlob(warheadPdb, "Warhead");
 
-  Promise.all([ligasePromise, warheadPromise, ligaseSdfPromise])
+  Promise.all([ligasePromise, warheadPromise, ligaseSdfPromise, warheadSdfPromise])
     .then(([ligaseBlob, warheadBlob]) => {
       // Revoke old blobs first
       const prevLig = sessionStorage.getItem("ligasePdbFile");
@@ -3177,6 +3230,11 @@ async function finalizeManualProtac() {
   // Fetch/refresh PDB blobs
   const warheadSource  = sessionStorage.getItem("warheadSource") || "rcsb";
   const warheadPdbFile = sessionStorage.getItem("warheadPdbFile");
+  await (
+    warheadSource === "hunter"
+      ? Promise.resolve(sessionStorage.getItem(EXPORT_WARHEAD_SDF_KEY) || sessionStorage.getItem("savedMolecule") || "")
+      : cacheWarheadExportSdf({ pdbId: warheadPdb, ligandCode: warheadLigand })
+  );
 
   const ligaseLocalPath = sessionStorage.getItem("ligaseLocalPath");
   const ligasePdbFileName =
@@ -3463,11 +3521,26 @@ function useWarheadCodes() {
   // If user is using codes, we must NOT use stale local job files
   sessionStorage.removeItem("warheadPdbFile");
   sessionStorage.removeItem("savedMolecule");
+  sessionStorage.removeItem(EXPORT_WARHEAD_SDF_KEY);
   sessionStorage.setItem("warheadSource", "rcsb");
   sessionStorage.setItem("warheadPdb", pdb);
   sessionStorage.setItem("warheadLigand", lig);
+  sessionStorage.setItem("ligandHead2", lig);
 
-  if (status) status.textContent = `✅ Using RCSB download: ${pdb} / ${lig}`;
+  if (status) status.textContent = `⏳ Fetching warhead ligand from ${pdb} / ${lig}...`;
+
+  cacheWarheadExportSdf({ pdbId: pdb, ligandCode: lig })
+    .then(sdfText => {
+      if (status) {
+        status.textContent = sdfText
+          ? `✅ Using RCSB download: ${pdb} / ${lig}`
+          : `⚠️ PDB selected, but Warhead.sdf could not be extracted for ${pdb} / ${lig}.`;
+      }
+    })
+    .catch(err => {
+      console.warn("[useWarheadCodes] failed to cache warhead export SDF", err);
+      if (status) status.textContent = `⚠️ Could not fetch Warhead.sdf for ${pdb} / ${lig}.`;
+    });
 }
 
 
@@ -3698,6 +3771,7 @@ function clearLigaseOnly() {
         // Do NOT clear saved linker/ligase because user may already have selected them.
         sessionStorage.removeItem("modifiedLigand");
         sessionStorage.removeItem("savedMolecule");
+        sessionStorage.removeItem(EXPORT_WARHEAD_SDF_KEY);
         sessionStorage.removeItem("combinedMOL");
         sessionStorage.removeItem("generatedSMILES");
 

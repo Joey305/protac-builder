@@ -199,6 +199,11 @@ def e3ligase_pdb_debug(ligase: str, filename: str):
     return impl.e3ligase_pdb_debug(ligase, filename)
 
 
+@api_bp.get("/api/warhead/sdf/<pdb_id>/<ligand_code>")
+def warhead_sdf_file(pdb_id: str, ligand_code: str):
+    return impl.warhead_sdf_file(pdb_id, ligand_code)
+
+
 @api_bp.post("/api/deeppk/run")
 def run_deeppk():
     payload = request.get_json(silent=True) or {}

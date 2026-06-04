@@ -93,6 +93,8 @@ from .warhead_handoff import (
 
 DEBUG_PROTAC = True
 bp = Blueprint("copy_app", __name__)
+_RCSB_PDB_BASE = "https://files.rcsb.org/download"
+_RCSB_LIGAND_BASE = "https://files.rcsb.org/ligands/download"
 
 
 def _missing_path_error(path: Path, status: int = 500):
@@ -101,6 +103,98 @@ def _missing_path_error(path: Path, status: int = 500):
 
 def _missing_folder_error(path: Path, message: str = "Missing required folder", status: int = 500):
     return jsonify({"error": message, "path": str(path)}), status
+
+
+def _validate_pdb_id(pdb_id: str) -> str:
+    clean = str(pdb_id or "").strip().upper()
+    if not re.fullmatch(r"[A-Z0-9]{4}", clean):
+        raise ValueError("Invalid PDB id.")
+    return clean
+
+
+def _validate_ligand_code(ligand_code: str) -> str:
+    clean = str(ligand_code or "").strip().upper()
+    if not re.fullmatch(r"(?:[A-Z0-9]{3}|[A-Z0-9]{5})", clean):
+        raise ValueError("Invalid ligand code.")
+    return clean
+
+
+def _fetch_rcsb_pdb_text(pdb_id: str, timeout: float = 20.0) -> str:
+    response = requests.get(f"{_RCSB_PDB_BASE}/{quote(pdb_id)}.pdb", timeout=timeout)
+    response.raise_for_status()
+    return response.text
+
+
+def _extract_ligand_pdb_block(pdb_text: str, ligand_code: str) -> str | None:
+    groups: dict[tuple[str, str, str], list[str]] = {}
+    serial_to_group: dict[int, tuple[str, str, str]] = {}
+    all_lines = str(pdb_text or "").splitlines()
+
+    for line in all_lines:
+        if not line.startswith("HETATM"):
+            continue
+        residue = line[17:20].strip().upper()
+        if residue != ligand_code:
+            continue
+        chain = line[21].strip() or "_"
+        resid = line[22:26].strip()
+        icode = line[26].strip() or "_"
+        group_key = (chain, resid, icode)
+        groups.setdefault(group_key, []).append(line)
+        try:
+            serial_to_group[int(line[6:11].strip())] = group_key
+        except ValueError:
+            continue
+
+    if not groups:
+        return None
+
+    selected_key = sorted(groups.keys(), key=lambda item: (item[0], item[1], item[2]))[0]
+    selected_lines = list(groups[selected_key])
+    selected_serials = {
+        int(line[6:11].strip())
+        for line in selected_lines
+        if line[6:11].strip().isdigit()
+    }
+
+    conect_lines: list[str] = []
+    for line in all_lines:
+        if not line.startswith("CONECT"):
+            continue
+        serial_fields = [line[i:i + 5].strip() for i in range(6, len(line), 5)]
+        numbers = [int(value) for value in serial_fields if value.isdigit()]
+        if not numbers:
+            continue
+        root = numbers[0]
+        if root not in selected_serials:
+            continue
+        kept = [num for num in numbers if num in selected_serials]
+        if len(kept) > 1:
+            conect_lines.append("CONECT" + "".join(f"{num:>5}" for num in kept))
+
+    block_lines = [*selected_lines, *conect_lines, "END"]
+    return "\n".join(block_lines) + "\n"
+
+
+def _extract_ligand_sdf_text_from_pdb(pdb_text: str, ligand_code: str) -> str | None:
+    ligand_block = _extract_ligand_pdb_block(pdb_text, ligand_code)
+    if not ligand_block:
+        return None
+    mol = Chem.MolFromPDBBlock(ligand_block, sanitize=False, removeHs=False)
+    if mol is None:
+        return None
+    try:
+        Chem.SanitizeMol(mol)
+    except Exception:
+        pass
+    return Chem.MolToMolBlock(mol) + "$$$$\n"
+
+
+def _fetch_rcsb_ligand_ideal_sdf(ligand_code: str, timeout: float = 20.0) -> str:
+    response = requests.get(f"{_RCSB_LIGAND_BASE}/{quote(ligand_code)}_ideal.sdf", timeout=timeout)
+    response.raise_for_status()
+    text = response.text
+    return text if "$$$$" in text else text.rstrip() + "\n$$$$\n"
 
 
 def _get_root_ligase_names() -> list[str]:
@@ -1599,3 +1693,55 @@ def e3ligase_pdb_debug(ligase: str, filename: str):
         return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), exc.status_code
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), 500
+
+
+@bp.route("/api/warhead/sdf/<pdb_id>/<ligand_code>", methods=["GET"])
+def warhead_sdf_file(pdb_id: str, ligand_code: str):
+    try:
+        clean_pdb = _validate_pdb_id(pdb_id)
+        clean_ligand = _validate_ligand_code(ligand_code)
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc), "pdb_id": pdb_id, "ligand_code": ligand_code}), 400
+
+    try:
+        pdb_text = _fetch_rcsb_pdb_text(clean_pdb)
+        extracted_sdf = _extract_ligand_sdf_text_from_pdb(pdb_text, clean_ligand)
+        if extracted_sdf:
+            return Response(
+                extracted_sdf,
+                mimetype="chemical/x-mdl-sdfile",
+                headers={
+                    "Cache-Control": "no-store",
+                    "X-Warhead-SDF-Source": "pdb-extracted",
+                    "X-Warhead-PDB": clean_pdb,
+                    "X-Warhead-Ligand": clean_ligand,
+                },
+            )
+
+        fallback_sdf = _fetch_rcsb_ligand_ideal_sdf(clean_ligand)
+        return Response(
+            fallback_sdf,
+            mimetype="chemical/x-mdl-sdfile",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Warhead-SDF-Source": "rcsb-ideal",
+                "X-Warhead-PDB": clean_pdb,
+                "X-Warhead-Ligand": clean_ligand,
+            },
+        )
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        if status == 404:
+            return jsonify(
+                {
+                    "ok": False,
+                    "error": "Warhead SDF not found for the requested PDB/ligand.",
+                    "pdb_id": clean_pdb,
+                    "ligand_code": clean_ligand,
+                }
+            ), 404
+        return jsonify({"ok": False, "error": f"Warhead SDF fetch failed: HTTP {status}"}), status
+    except requests.RequestException as exc:
+        return jsonify({"ok": False, "error": str(exc) or "Warhead SDF request failed."}), 502
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
