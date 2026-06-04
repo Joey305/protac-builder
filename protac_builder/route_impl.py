@@ -514,7 +514,14 @@ def load_recruiter(name: str):
         preview = load_sdf_as_preview(sdf_path)
         mol = Chem.MolFromMolBlock(preview["mol_block"], sanitize=False)
         smiles = Chem.MolToSmiles(mol) if mol else ""
-        return jsonify({"name": name, "smiles": smiles, "mol_block": preview["mol_block"]})
+        return jsonify(
+            {
+                "name": name,
+                "smiles": smiles,
+                "mol_block": preview["mol_block"],
+                "sdf_text": sdf_path.read_text(encoding="utf-8", errors="ignore"),
+            }
+        )
     except Exception:
         return jsonify({"error": "Invalid SDF file"}), 500
 
@@ -566,6 +573,7 @@ def load_converted(session_id: str):
         {
             "session_id": clean_session,
             "mol_block": Chem.MolToMolBlock(mol),
+            "sdf_text": response.text,
             "image": f"data:image/svg+xml;base64,{image}",
         }
     )

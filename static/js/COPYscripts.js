@@ -839,8 +839,8 @@ function saveLigase() {
         });
 
         const molBlock = ChemDoodle.writeMOL(molecule);
-        sessionStorage.setItem("savedLigase", molBlock);
-        console.log("✅ Ligase MOL Block saved.");
+        sessionStorage.setItem("savedLigase", molBlockToSdfText(molBlock));
+        console.log("✅ Ligase SDF saved.");
 
         saveClicks.ligase = true; // Mark ligase as saved
         saveButtonFeedback("ligaseSaveButton");
@@ -2426,11 +2426,41 @@ function saveFile(blob, fileName) {
   document.body.removeChild(link);
 }
 
+function molBlockToSdfText(molBlock) {
+  const text = String(molBlock || "").trim();
+  if (!text) return "";
+  return text.includes("$$$$") ? text : `${text}\n$$$$\n`;
+}
+
+function storeLigaseSdfText(sdfText) {
+  const normalized = molBlockToSdfText(sdfText);
+  if (!normalized) return false;
+  sessionStorage.setItem("savedLigase", normalized);
+  return true;
+}
+
 
 async function createZipFile(ligaseAtom, warheadAtom, protacParams) {
-  const ligaseSDF  = sessionStorage.getItem("savedLigase");
-  const warheadSDF = sessionStorage.getItem("savedMolecule");
+  let ligaseSDF  = sessionStorage.getItem("savedLigase");
+  let warheadSDF = sessionStorage.getItem("savedMolecule");
   const smiles     = sessionStorage.getItem("generatedSMILES");
+
+  if (!ligaseSDF && window.ligaseSketcher && typeof window.ligaseSketcher.getMolecule === "function") {
+    try {
+      const molecule = window.ligaseSketcher.getMolecule();
+      const molBlock = molecule ? ChemDoodle.writeMOL(molecule) : "";
+      ligaseSDF = molBlockToSdfText(molBlock);
+      if (ligaseSDF) {
+        sessionStorage.setItem("savedLigase", ligaseSDF);
+      }
+    } catch (err) {
+      console.warn("[createZipFile] failed to derive ligase SDF from sketcher", err);
+    }
+  }
+
+  if (warheadSDF) {
+    warheadSDF = molBlockToSdfText(warheadSDF);
+  }
 
   if (!ligaseSDF || !warheadSDF || !smiles) {
     throw new Error("Missing Ligase.sdf / Warhead.sdf / SMILES. Make sure you saved ligase + warhead and generated SMILES.");
@@ -2565,6 +2595,10 @@ function loadRecruiterMolecule(recruiterName) {
                     ligaseSketcher.loadMolecule(mol);
                     ligaseSketcher.repaint();
 
+                    if (storeLigaseSdfText(data.sdf_text || data.mol_block)) {
+                        console.log("✅ Recruiter ligase SDF cached for ZIP export.");
+                    }
+
                     console.log("✅ Recruiter loaded into ligase editor (MOL mode).");
 
                 } catch (err) {
@@ -2631,6 +2665,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 ligaseSketcher.clear();
                 ligaseSketcher.loadMolecule(mol);
                 ligaseSketcher.repaint();
+
+                if (storeLigaseSdfText(data.sdf_text || data.mol_block)) {
+                    console.log("✅ Converted ligase SDF cached for ZIP export.");
+                }
 
                 console.log("✅ Converted ligase successfully loaded!");
             })
