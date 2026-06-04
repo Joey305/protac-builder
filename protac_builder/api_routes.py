@@ -189,6 +189,11 @@ def e3ligase_pdb_file(ligase: str, filename: str):
     return impl.e3ligase_pdb_file(ligase, filename)
 
 
+@api_bp.get("/api/e3ligase/debug/pdb/<ligase>/<path:filename>")
+def e3ligase_pdb_debug(ligase: str, filename: str):
+    return impl.e3ligase_pdb_debug(ligase, filename)
+
+
 @api_bp.post("/api/deeppk/run")
 def run_deeppk():
     payload = request.get_json(silent=True) or {}

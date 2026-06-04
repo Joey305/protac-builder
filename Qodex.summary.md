@@ -1,84 +1,146 @@
 # Qodex.summary
 
 ## Task
-Fix PROTAC Builder E3 PDB handoff variant resolution.
+Diagnose and fix remaining live PROTAC Builder E3 PDB handoff failures.
 
 ## Original Goal
-Fix the PROTAC Builder/RANDY communication issue where `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` returns 404 because the handoff route cannot resolve the requested PDB filename upstream.
+Resolve continuing production 404s for `/api/e3ligase/pdb/...` after the initial variant-resolution patch, especially VHL `4B9K_TG0_1.pdb` and TRIM21 `7HMA_LV4.pdb`.
 
 ## Assumptions
-- RANDY’s current E3 contract is the source of truth: `/backup/e3/ligase-pdbs/<ligase>` and `/backup/e3/file/pdb/<ligase>/<filename>`.
-- `static/data/ligases.json` may contain stale-but-safe recruiter filenames such as `4B9K_TG0_1.pdb`, so the proxy should resolve variants instead of requiring a metadata rewrite.
-- Local validation in this workspace can mock the route behavior, but live RANDY verification depends on production-accessible config and token wiring that are not available here.
+- RANDY’s current E3 API contract remains `GET /backup/e3/healthz`, `GET /backup/e3/ligase-pdbs/<ligase>`, and `GET /backup/e3/file/pdb/<ligase>/<filename>`.
+- Public `401` responses from `randy.rove-vernier.ts.net/backup/e3/...` mean RANDY requires bearer auth for listing and file access.
+- The Heroku CLI context available from this workspace does not have access to the production app name/config, so config verification had to be inferred from live HTTP behavior rather than direct `heroku config:get`.
 
 ## Files Inspected
-- `protac_builder/api_routes.py` — confirmed `/api/e3ligase/pdb/<ligase>/<path:filename>` is registered here and delegates into route implementation.
-- `protac_builder/route_impl.py` — inspected the Flask route wrapper and its current error handling.
-- `protac_builder/e3_handoff.py` — found the failing proxy logic and the `all upstream bases returned 404` log message.
-- `RANDY/e3_data_routes.py` — verified the live RANDY E3 contract and its own variant-aware file lookup behavior.
-- `static/data/ligases.json` — confirmed the builder metadata still references `4B9K_TG0_1.pdb` for VHL.
-- `static/js/COPYscripts.js` — checked how the frontend builds the PDB URL and how it behaves when the proxy returns a non-OK response.
-- `README.md` — updated E3 proxy env var guidance and base normalization expectations.
-- `.env.example` — added the preferred E3 API base env var placeholder.
+- `protac_builder/e3_handoff.py` — inspected current base normalization, candidate generation, auth, and file-fetch logic.
+- `protac_builder/route_impl.py` — inspected the `/api/e3ligase/pdb/...` wrapper and added the debug route implementation.
+- `protac_builder/api_routes.py` — confirmed public route registration and added the debug route registration.
+- `static/js/COPYscripts.js` — inspected frontend proxy fallback behavior and added session-scoped 404 suppression.
+- `static/data/ligases.json` — confirmed the builder still requests `VHL/4B9K_TG0_1.pdb` and `TRIM21/7HMA_LV4.pdb`.
+- `static/data/recruiter_pdb_map.json` — confirmed both filenames are still present in shipped recruiter metadata.
+- `README.md` — updated E3 env var and debug-route documentation.
+- `.env.example` — added the E3 token placeholder.
+- `/Users/jxs794/Downloads/protac-builder-logs-1780529812488.txt` — inspected production logs to compare deployed behavior with current repo code.
 
 ## Files Changed
-- `protac_builder/e3_handoff.py` — added E3 base normalization, safe filename validation, RANDY listing lookup, short TTL cache, variant candidate fallback, and safer structured logging.
-- `protac_builder/route_impl.py` — added explicit `400` handling for invalid ligase/PDB requests and clean `404` JSON for missing upstream PDBs.
-- `README.md` — documented `E3_RANDY_API_BASE`, accepted legacy E3 base vars, and the normalized `/backup/e3` contract.
-- `.env.example` — added `E3_RANDY_API_BASE=`.
-- `Qodex.summary.md` — replaced the prior summary with this task summary.
+- `protac_builder/e3_handoff.py` — added legacy base-var compatibility, safe upstream diagnostics, per-base listing/fetch inspection, stronger failure logging, and a reusable debug helper.
+- `protac_builder/route_impl.py` — added `/api/e3ligase/debug/pdb/<ligase>/<filename>` and preserved clean `400`/`404` handling on the main proxy route.
+- `protac_builder/api_routes.py` — registered the debug route.
+- `static/js/COPYscripts.js` — added sessionStorage caching of known-missing ligase proxy URLs to avoid repeated 404 spam before falling back to RCSB.
+- `README.md` — documented `E3_RANDY_BASE_URL`, `E3_DATA_BASE_URL`, `E3_LIGANDALYZER_BASE_URL`, required auth, and the safe debug endpoint.
+- `.env.example` — added `E3_RANDY_TOKEN=`.
+- `Qodex.summary.md` — replaced the prior summary with this production-focused incident summary.
 
 ## Files Created
-- `Qodex.summary.md` — task summary for the E3 PDB handoff fix.
+- `Qodex.summary.md` — task summary for the live E3 PDB handoff diagnosis/fix.
 
 ## Implementation Summary
-The root cause was in `protac_builder/e3_handoff.py`. The builder proxy always took whatever base URL it had, blindly appended `backup/e3/file/pdb/<ligase>/<filename>`, and requested the exact filename from `static/data/ligases.json`. That meant a request such as `4B9K_TG0_1.pdb` failed whenever RANDY only exposed `4B9K_TG0.pdb` or another compatible variant, even though the ligase data itself was present upstream.
+The live evidence showed this was no longer just a filename-variant issue. Public production requests to:
 
-The fix keeps the same builder route and multi-base fallback pattern, but makes the proxy smarter. It now normalizes each configured base to exactly one `/backup/e3` suffix, ignores non-URL values such as `static/converted_sessions`, calls RANDY’s `GET /backup/e3/ligase-pdbs/<ligase>` endpoint first, and resolves the requested filename case-insensitively against the real remote inventory. If there is no exact match, it strips a trailing numeric variant suffix and tries safe ordered candidates such as `4B9K_TG0_1.pdb`, `4B9K_TG0.pdb`, `4B9K_TG0_2.pdb`, and so on before returning a clean downstream `404`.
+- `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb`
+- `/api/e3ligase/pdb/TRIM21/7HMA_LV4.pdb`
+- `/api/e3ligase/pdb/VHL/8VLB_3JF.pdb`
+- `/api/e3ligase/pdb/TRIM21/7HLP_A34_1.pdb`
+
+all returned the same clean downstream `404`, including filenames that should be “good-looking” metadata entries. At the same time, the two hard-coded fallback hosts still present in `protac_builder/e3_handoff.py`:
+
+- `https://e3ligandalyzer-adb8adfde220.herokuapp.com`
+- `https://stan.rove-vernier.ts.net`
+
+both return plain HTML `404` for:
+
+- `/backup/e3/healthz`
+- `/backup/e3/ligase-pdbs/VHL`
+- `/backup/e3/file/pdb/VHL/8VLB_3JF.pdb`
+
+That proves a real production failure mode: if the app is not reading a valid RANDY base from config, it silently falls through to dead fallback hosts and every ligase PDB request becomes a downstream `404`.
+
+The patch therefore focused on production-proof diagnostics and compatibility:
+
+1. Added support for legacy base env var names:
+   - `E3_RANDY_BASE_URL`
+   - `E3_DATA_BASE_URL`
+   - `E3_LIGANDALYZER_BASE_URL`
+
+   This removes a likely config mismatch where Heroku may already have an older var name set but current code only reads the newer `*_API_BASE` name.
+
+2. Added `inspect_remote_ligase_pdb()` and the safe route:
+   - `GET /api/e3ligase/debug/pdb/<ligase>/<filename>`
+
+   It returns safe diagnostics only: normalized host/path, which env-var names were present, whether the app is running in fallback-only mode, listing status/count, matched filename, and per-candidate fetch statuses.
+
+3. Preserved the main `/api/e3ligase/pdb/...` route behavior, but now its logs include enough structured context to distinguish:
+   - fallback-only config mistakes,
+   - listing failures,
+   - auth failures,
+   - true remote not-found cases.
+
+4. Added session-scoped frontend caching of proxy `404`s so the browser does not keep hammering the same missing ligase proxy URL before falling back to RCSB.
 
 ## Key Decisions
-- Preserved the existing route shape `/api/e3ligase/pdb/<ligase>/<filename>` so the frontend does not need to change.
-- Preserved multi-upstream fallback behavior, but normalized every base to the RANDY `/backup/e3` contract instead of concatenating path fragments ad hoc.
-- Preferred real RANDY inventory via `/ligase-pdbs/<ligase>` over speculative file fetches, because that lets stale builder metadata resolve safely to exact upstream filenames.
-- Kept cache correctness optional by using a short in-memory listing TTL only as an optimization.
-- Left `static/data/ligases.json` unchanged for now because the proxy can safely resolve stale `_1` filenames without broad metadata churn.
+- Did not rewrite the proxy architecture. The main route still proxies through the same builder API path.
+- Did not remove hard-coded fallback bases yet, because the request explicitly said to preserve fallback behavior unless it was proven wrong. Instead, the debug route now makes fallback-only operation visible.
+- Added compatibility for old base env names rather than assuming production had already migrated to `E3_RANDY_API_BASE`.
+- Kept the debug endpoint safe for production by exposing only host/path, filename, counts, and status codes, never raw env values or tokens.
+- Did not rewrite `static/data/ligases.json` yet, because live evidence showed even “likely good” filenames were failing; that points to upstream selection/config first, not just two stale records.
 
 ## Commands Run
-- `rg -n "e3_handoff|e3ligase|ligase-pdbs|file/pdb|backup/e3|4B9K|TG0|VHL|upstream bases|RANDY|E3_RANDY|E3.*BASE|ligases.json|builder\\?session|session=" .` — located the route, handoff helper, RANDY contract, and VHL metadata references.
-- `rg -n "api/e3ligase|def .*e3|e3_handoff|pdb/<|file/pdb|ligase-pdbs" .` — confirmed the exact builder and RANDY route definitions.
-- `rg -n "4B9K|TG0|VHL" static templates .` — confirmed `static/data/ligases.json` references `4B9K_TG0_1.pdb`.
-- `sed -n '1,260p' protac_builder/e3_handoff.py` — inspected the failing proxy helper.
-- `sed -n '1440,1505p' protac_builder/route_impl.py` — inspected the builder’s `/api/e3ligase/pdb/...` wrapper.
-- `sed -n '430,520p' RANDY/e3_data_routes.py` — verified RANDY’s listing and file routes.
+- `rg -n "e3_handoff|e3ligase|ligase-pdbs|file/pdb|backup/e3|E3_RANDY|RANDY|E3_.*BASE|Authorization|Bearer|4B9K_TG0|7HMA_LV4|VHL|TRIM21|recruiter_pdb_map|ligases.json|all upstream bases returned 404" .` — mapped route ownership, env vars, hard-coded fallbacks, auth handling, and metadata references.
+- `sed -n '1,280p' protac_builder/e3_handoff.py` — inspected current handoff helper.
+- `sed -n '1400,1535p' protac_builder/route_impl.py` — inspected current E3 proxy wrapper.
+- `sed -n '1,220p' protac_builder/api_routes.py` — confirmed public route registration.
+- `sed -n '1,220p' /Users/jxs794/Downloads/protac-builder-logs-1780529812488.txt` — confirmed the older production log message was still present in the saved log snapshot.
+- `curl -sS -D - https://protacbuilder.com/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb ...` — live check returned clean JSON `404`.
+- `curl -sS -D - https://protacbuilder.com/api/e3ligase/pdb/TRIM21/7HMA_LV4.pdb ...` — live check returned clean JSON `404`.
+- `curl -sS -D - https://protacbuilder.com/api/e3ligase/pdb/VHL/8VLB_3JF.pdb ...` — live check returned clean JSON `404`.
+- `curl -sS -D - https://protacbuilder.com/api/e3ligase/pdb/TRIM21/7HLP_A34_1.pdb ...` — live check returned clean JSON `404`.
+- `curl -sS -D - https://randy.rove-vernier.ts.net/backup/e3/healthz ...` — returned `401`, proving RANDY requires auth.
+- `curl -sS -D - https://randy.rove-vernier.ts.net/backup/e3/ligase-pdbs/VHL ...` — returned `401`, proving listing requires auth.
+- `curl ... https://e3ligandalyzer-adb8adfde220.herokuapp.com/backup/e3/...` and `curl ... https://stan.rove-vernier.ts.net/backup/e3/...` — both fallback hosts returned HTML `404` for health, listing, and file paths.
+- `python - <<'PY' ... bool(os.environ.get(...)) ... PY` — confirmed this local workspace does not have E3 base/token env vars set.
+- `python - <<'PY' ... recruiter_pdb_map.json ... PY` — confirmed `4B9K_TG0_1.pdb` and `7HMA_LV4.pdb` are still present in local recruiter metadata.
 - `python -m py_compile app.py protac_builder/e3_handoff.py protac_builder/route_impl.py protac_builder/api_routes.py` — passed.
-- `python - <<'PY' ... mocked Flask test client and patched protac_builder.e3_handoff.requests.get ... PY` — passed exact-match, `_1` variant fallback, missing-file, and traversal validation.
-- `python - <<'PY' from protac_builder.e3_handoff import normalize_e3_base_url ... PY` — confirmed host-root, `/backup/e3`, and duplicated `/backup/e3/backup/e3` inputs normalize correctly.
+- `node --check static/js/COPYscripts.js` — passed.
+- `python - <<'PY' ... mocked Flask test client with E3_RANDY_BASE_URL ... PY` — passed exact match, variant fallback, TRIM21 exact match, missing-file `404`, traversal `400`, and debug-route validation.
+- `python - <<'PY' ... mocked Flask test client with no E3 env vars ... PY` — passed and showed `used_fallback_only: true` plus only hard-coded dead bases in the debug payload.
 
 ## Validation Results
-- Route ownership confirmed: `/api/e3ligase/pdb/<ligase>/<path:filename>` is defined in `protac_builder/api_routes.py` and implemented in `protac_builder.route_impl.e3ligase_pdb_file()`.
-- Failing log origin confirmed: `all upstream bases returned 404` came from `protac_builder/e3_handoff.py`.
-- Upstream URL shape confirmed: the builder now targets normalized bases plus `GET /backup/e3/ligase-pdbs/<ligase>` and `GET /backup/e3/file/pdb/<ligase>/<filename>`.
-- Base normalization validation passed:
-  - `https://randy.rove-vernier.ts.net` -> `https://randy.rove-vernier.ts.net/backup/e3`
-  - `https://randy.rove-vernier.ts.net/backup/e3` -> unchanged
-  - `https://randy.rove-vernier.ts.net/backup/e3/backup/e3` -> deduplicated to one `/backup/e3`
-  - `static/converted_sessions` -> ignored for E3 remote proxying
-- Mock exact match passed: `GET /api/e3ligase/pdb/VHL/4B9K_TG0.pdb` returned `200` with `chemical/x-pdb`.
-- Mock variant fallback passed: `GET /api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` resolved through RANDY listing data to an available upstream file and returned `200`.
-- Path traversal rejection passed: `GET /api/e3ligase/pdb/VHL/../secret.pdb` returned `400` with `{"ok": false, "error": "Invalid filename." ...}`.
-- Missing file passed: `GET /api/e3ligase/pdb/VHL/DOES_NOT_EXIST.pdb` returned a clean `404` JSON response instead of a generic `500`.
-- Existing molecule and session endpoints were not modified in this patch.
+- Syntax validation passed for all modified Python files.
+- Frontend syntax validation passed for `static/js/COPYscripts.js`.
+- Mocked route validation passed:
+  - `GET /api/e3ligase/pdb/VHL/8VLB_3JF.pdb` -> `200`
+  - `GET /api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` -> resolved to `4B9K_TG0.pdb` and returned `200`
+  - `GET /api/e3ligase/pdb/TRIM21/7HMA_LV4.pdb` -> `200`
+  - `GET /api/e3ligase/pdb/VHL/DOES_NOT_EXIST.pdb` -> clean `404`
+  - `GET /api/e3ligase/pdb/VHL/../secret.pdb` -> `400`
+- Mocked debug-route validation passed and showed:
+  - legacy env var detection (`E3_RANDY_BASE_URL`)
+  - normalized `/backup/e3` base path
+  - listing status/count
+  - matched filename (`4B9K_TG0.pdb`)
+  - source (`randy-listing`)
+- Live production validation showed:
+  - the public builder route is now returning the newer clean JSON `404` shape,
+  - but even “good-looking” filenames return `404`,
+  - which makes pure stale-metadata explanation unlikely.
+- Live fallback-host validation showed both hard-coded fallback hosts are dead for the RANDY `/backup/e3` contract.
+- Direct Heroku config inspection could not be run from this workspace because `heroku apps:info -a protacbuilder` returned “app not found,” so exact production env names/values remain to be verified after deploy.
 
 ## Known Issues
-- Live RANDY inventory for VHL was not queried from this workspace, so I could not prove whether production currently serves `4B9K_TG0.pdb`, `4B9K_TG0_1.pdb`, or another exact variant.
-- The builder still carries stale-looking VHL filenames in `static/data/ligases.json`, but the proxy now resolves those safely without requiring a metadata migration.
-- The route still falls back to historical hard-coded upstream hosts if no preferred env var is set; that behavior was intentionally preserved.
+- The exact live Heroku app name and config access were unavailable here, so I could not directly confirm whether production currently sets:
+  - `E3_RANDY_API_BASE`
+  - `E3_RANDY_BASE_URL`
+  - `E3_RANDY_TOKEN`
+  - or related legacy vars.
+- Because RANDY requires auth and no token is available in this workspace, I could not query the live RANDY listing inventory directly for `4B9K_TG0_1.pdb` or `7HMA_LV4.pdb`.
+- Public production still needs one deploy using this updated repo before the new `/api/e3ligase/debug/pdb/...` route can prove the exact live per-base statuses.
 
 ## Manual Verification
-1. Open a builder session that uses a VHL recruiter.
-2. Confirm `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` no longer fails due to missing variant resolution.
-3. Confirm the 3D viewer loads the E3 ligase PDB or shows a clean not-found message.
-4. Confirm existing molecule modification and PROTAC logging still work.
+1. Test `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb`.
+2. Test `/api/e3ligase/pdb/TRIM21/7HMA_LV4.pdb`.
+3. Open a builder session imported from E3 Ligandalyzer.
+4. Confirm E3 PDB loading succeeds or fails with a clean, accurate message.
+5. Confirm existing builder molecule editing and PROTAC generation still work.
 
 ## Suggested Next Prompt
-Run one live production check against the deployed builder and RANDY for `/api/e3ligase/pdb/VHL/4B9K_TG0_1.pdb` so we can confirm which exact VHL filename RANDY currently serves in production.
+After deploying this branch, call `/api/e3ligase/debug/pdb/VHL/4B9K_TG0_1.pdb` and `/api/e3ligase/debug/pdb/TRIM21/7HMA_LV4.pdb`, then use the returned `normalized_bases`, `configured_env_vars`, and `direct_fetch_statuses` to set the exact Heroku `E3_RANDY_API_BASE` and token vars or confirm true RANDY data gaps.

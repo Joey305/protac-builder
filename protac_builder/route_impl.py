@@ -46,7 +46,7 @@ from .chemistry import (
     render_smiles_data_url,
     smiles_to_svg,
 )
-from .e3_handoff import E3HandoffRequestError, fetch_remote_ligase_pdb
+from .e3_handoff import E3HandoffRequestError, fetch_remote_ligase_pdb, inspect_remote_ligase_pdb
 from .io_utils import (
     api_linkers_exists,
     apply_cors_headers,
@@ -1494,3 +1494,19 @@ def e3ligase_pdb_file(ligase: str, filename: str):
         return jsonify({"ok": False, "error": str(exc) or "Remote ligase PDB request failed."}), 502
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@bp.route("/api/e3ligase/debug/pdb/<ligase>/<path:filename>", methods=["GET"])
+def e3ligase_pdb_debug(ligase: str, filename: str):
+    try:
+        diagnostic = inspect_remote_ligase_pdb(ligase, filename, include_content=False)
+        diagnostic.pop("_content", None)
+        diagnostic.pop("_content_type", None)
+        status = 200 if diagnostic.get("ok") else (diagnostic.get("final_upstream_status") or 404)
+        if not isinstance(status, int):
+            status = 404
+        return jsonify(diagnostic), status
+    except E3HandoffRequestError as exc:
+        return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), exc.status_code
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc), "ligase": ligase, "requested_filename": filename}), 500

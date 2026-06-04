@@ -326,8 +326,11 @@ Important variables:
 | `WARHEAD_HUNTER_JOB_API_BASE` | Optional deployed RANDY / Warhead Hunter job API base used for JSON job lookup and safe server-side file proxying. |
 | `WARHEAD_HUNTER_JOB_API_TOKEN` | Optional bearer token for the remote Warhead Hunter backup API. |
 | `E3_RANDY_API_BASE` | Preferred RANDY E3 API base for ligase PDB handoff. May be the host root or a `/backup/e3` URL; PROTAC Builder normalizes it to the live `/backup/e3` contract. |
+| `E3_RANDY_BASE_URL` | Legacy env var name also accepted for the same RANDY E3 base. |
 | `E3_DATA_API_BASE` | Legacy E3 API base also accepted for ligase PDB handoff. May be the host root or a `/backup/e3` URL. |
+| `E3_DATA_BASE_URL` | Legacy env var name also accepted for the same E3 data base. |
 | `E3_LIGANDALYZER_API_BASE` | Legacy fallback E3 API base also accepted for ligase PDB handoff. |
+| `E3_LIGANDALYZER_BASE_URL` | Legacy env var name also accepted for the same ligase handoff base. |
 | `PROTAC_BACKUP_TOKEN` | Fallback bearer token name accepted for the same remote backup API integration. |
 | `PROTAC_CONVERTED_SESSION_BASE` | Runtime location for converted session assets. |
 
@@ -351,7 +354,9 @@ PROTAC_CONVERTED_SESSION_BASE=static/converted_sessions
 
 `WARHEAD_HUNTER_JOB_API_BASE` should point to the deployed RANDY hunter-job backup API base. `WARHEAD_HUNTER_JOB_API_TOKEN` or `PROTAC_BACKUP_TOKEN` must be set to the matching server-side bearer token when the remote backup API requires authentication.
 
-For E3 ligase PDB handoff, prefer `E3_RANDY_API_BASE`. It can be configured as either `https://host` or `https://host/backup/e3`; the builder strips trailing slashes, adds `/backup/e3` when missing, and avoids duplicate `/backup/e3/backup/e3`. The ligase PDB proxy calls RANDY’s `GET /backup/e3/ligase-pdbs/<ligase>` listing endpoint first and then fetches the matched file from `GET /backup/e3/file/pdb/<ligase>/<filename>`.
+For E3 ligase PDB handoff, prefer `E3_RANDY_API_BASE`. It can be configured as either `https://host` or `https://host/backup/e3`; the builder strips trailing slashes, adds `/backup/e3` when missing, and avoids duplicate `/backup/e3/backup/e3`. The ligase PDB proxy calls RANDY’s `GET /backup/e3/ligase-pdbs/<ligase>` listing endpoint first and then fetches the matched file from `GET /backup/e3/file/pdb/<ligase>/<filename>`. Older deployments that still use `E3_RANDY_BASE_URL`, `E3_DATA_BASE_URL`, or `E3_LIGANDALYZER_BASE_URL` are also supported.
+
+`GET /api/e3ligase/debug/pdb/<ligase>/<filename>` returns safe production diagnostics for E3 PDB handoff without exposing tokens. It reports normalized base hosts and paths, whether any configured E3 env vars were present, listing status/count, matched filename, and direct fetch status codes. This is intended for deployment verification when `/api/e3ligase/pdb/...` is unexpectedly returning `404` or `502`.
 
 Target Builder / Warhead Hunter import now uses RANDY as a remote-only source of truth. PROTAC Builder no longer discovers import jobs from local job directories such as `TARGET_BUILDER_JOBS_DIR`, `WARHEAD_HUNTER_JOBS_DIR`, `static/hunter_jobs`, or `uploads/warhead_hunter_imports` when answering `/api/warheadhunter/job/<job_id>`. Local cache files may still be written under `uploads/warhead_hunter_imports` after a successful remote lookup or file proxy, but they do not determine whether a job exists.
 

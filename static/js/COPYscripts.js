@@ -2880,13 +2880,52 @@ function fetchRcsbPdbBlob(pdbCode, label) {
   });
 }
 
+const LIGASE_PROXY_MISS_CACHE_KEY = "ligaseProxyMissingPaths";
+
+function getKnownMissingLigaseProxyPaths() {
+  try {
+    const raw = sessionStorage.getItem(LIGASE_PROXY_MISS_CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function rememberMissingLigaseProxyPath(path) {
+  if (!path) return;
+  const known = getKnownMissingLigaseProxyPaths();
+  if (known.includes(path)) return;
+  known.push(path);
+  try {
+    sessionStorage.setItem(LIGASE_PROXY_MISS_CACHE_KEY, JSON.stringify(known));
+  } catch (err) {
+    console.warn("[rememberMissingLigaseProxyPath] failed to persist proxy miss cache", err);
+  }
+}
+
+function isKnownMissingLigaseProxyPath(path) {
+  return !!path && getKnownMissingLigaseProxyPaths().includes(path);
+}
+
 function fetchLigasePdbBlob({ ligaseLocalPath, ligasePdb }) {
   if (!ligaseLocalPath) {
     return fetchRcsbPdbBlob(ligasePdb, "Ligase");
   }
 
+  if (isKnownMissingLigaseProxyPath(ligaseLocalPath)) {
+    console.info("[fetchLigasePdbBlob] skipping known-missing ligase proxy path", {
+      ligaseLocalPath,
+      ligasePdb
+    });
+    return fetchRcsbPdbBlob(ligasePdb, "Ligase");
+  }
+
   return fetch(ligaseLocalPath).then(r => {
     if (!r.ok) {
+      if (r.status === 404) {
+        rememberMissingLigaseProxyPath(ligaseLocalPath);
+      }
       console.warn("[fetchLigasePdbBlob] proxy fetch failed, falling back to RCSB", {
         ligaseLocalPath,
         status: r.status,
