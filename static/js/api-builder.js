@@ -1398,9 +1398,10 @@
   window.downloadFailuresCSV = downloadFailuresCSV;
   window.copyCodeBlock = copyCodeBlock;
 
-  if (document.readyState === "complete") {
+  if (document.readyState === "complete" || document.readyState === "interactive") {
     startApiBuilder();
   } else {
+    document.addEventListener("DOMContentLoaded", startApiBuilder, { once: true });
     window.addEventListener("load", startApiBuilder, { once: true });
   }
 })();
