@@ -1,17 +1,17 @@
 # Qodex.summary
 
 ## Task
-Fix the `/builder` desktop layout regression caused by the mobile interface update.
+Refine the `/builder` mobile interface without touching the restored desktop layout.
 
 ## Original Goal
-The user wants the regular PROTAC Builder page to look great on mobile, but the recent update broke the computer/desktop layout and caused ChemDoodle controls to render as long vertical columns. The goal is to restore desktop while keeping mobile polished.
+The user wants mobile-only fixes for the regular PROTAC Builder page: remove the overlapping floating Step 3 Generate PROTAC section, eliminate huge empty editor container space, make Load from SMILES panels easy to use on mobile, and ensure the ChemDoodle periodic table appears in front of editor containers on mobile and desktop.
 
 ## Assumptions
-- Desktop behavior above `1024px` should remain as close as possible to the pre-mobile builder layout.
-- The recent wrapper markup in `templates/builder.html` can remain if desktop layout-changing CSS is removed from large screens.
-- ChemDoodle injects its own control DOM into the editor wrapper, so parent display rules must not force those controls into a narrow flex column.
-- Mobile/tablet enhancements should only activate at `1024px` and below.
-- Mobile canvas fitting is still useful, but the helper JS must be a no-op on desktop and must clear any inline canvas sizing when resizing back up.
+- Desktop at `1280px` and wider must remain visually unchanged from the restored post-regression state.
+- Mobile/tablet-specific layout fixes should stay scoped to `max-width: 1024px`.
+- ChemDoodle injects its own toolbar and dialog DOM, so parent wrapper styling and jQuery UI dialog stacking are the safe places to intervene.
+- The existing `toggleSmilesPanel(...)` handler should remain the source of truth for opening and closing SMILES panels.
+- The periodic table and related ChemDoodle dialogs use jQuery UI `.ui-dialog.ui-front` wrappers, so raising that wrapper stack level is safer than altering ChemDoodle source.
 
 ## Files Inspected
 - `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`
@@ -19,32 +19,37 @@ The user wants the regular PROTAC Builder page to look great on mobile, but the 
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/COPYstyles.css`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/ChemDoodleWeb.css`
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-nav.css`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/ChemDoodleWeb-uis.js`
 
 ## Files Changed
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
-  Reduced the global surface area to safe builder-only rules and moved all layout-changing mobile/tablet styling into `@media (max-width: 1024px)` and narrower breakpoints.
+  Removed the mobile sticky behavior from Step 3, reduced mobile editor-frame dead space, improved SMILES panel expansion, and added builder-scoped dialog z-index rules for ChemDoodle/jQuery UI popups.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
-  Gated canvas fitting behind `matchMedia("(max-width: 1024px)")`, added desktop inline-style cleanup, and prevented mobile resize work from mutating desktop layout.
+  Improved mobile-only SMILES panel behavior by tracking open editor cards and scrolling the active editor card into view more predictably on phones/tablets.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
-  Replaced the previous summary with this regression-focused record.
+  Replaced the previous summary with this mobile-polish implementation record.
 
 ## Files Created
 - None.
 
 ## Implementation Summary
-The root cause was CSS leakage from `static/css/protac-builder-mobile.css`, not a broken ChemDoodle mount point. The new `.builder-canvas-frame` wrapper was globally set to `display: flex`, and ChemDoodle injects its toolbar controls into that wrapper before the canvas. On desktop, that forced the toolbar into a very narrow stacked column and stretched the editor container vertically, which produced the long toolbar strip and the oversized pastel panels.
+The Step 3 overlap came from the mobile rule that kept `.builder-generate-section` sticky with its own `bottom` offset and `z-index`. That made the Generate PROTAC card float above earlier sections on narrow screens. I changed the mobile Step 3 section back to normal document flow so Step 1, Step 2, and Step 3 stack cleanly again.
 
-The fix was to make the mobile stylesheet truly mobile-only. I removed desktop-affecting base rules such as builder shell width overrides, workflow grid layout, canvas wrapper flex layout, parameter group wrapping, and modal spacing from the global scope. Those rules now only apply at `1024px` and below. On mobile, the canvas wrapper uses block flow with horizontal overflow protection instead of flex, so ChemDoodle controls can stay wide and readable without collapsing into a tall column.
+The oversized empty editor space on mobile came from two things working together: the editor cards were still allowed to stretch, and the mobile canvas wrapper kept extra reserved height while the legacy canvas margins added more vertical padding. I changed the mobile `.builder-canvas-frame` to a compact column layout, removed its fixed minimum height, removed the extra canvas block margins inside that wrapper, and stopped the mobile editor cards from stretching to taller neighbors.
 
-The JS helper was also tightened. It now only fits ChemDoodle canvases when the builder is actually at mobile/tablet widths, and it explicitly clears inline `width` and `height` when the viewport returns to desktop.
+The SMILES panel itself was functional but cramped on mobile because the open state was still capped at `220px`, and the helper script only did a weak `scrollIntoView(..., block: "nearest")`. I expanded the open panel height to `420px`, kept the panel in the active card with more room for the textarea and button, added a mobile-only `has-open-smiles` state to the editor card, and changed the helper script to scroll the active editor card into view using the mobile nav height as the offset.
+
+For the periodic table layering fix, I identified the relevant ChemDoodle popup path as the jQuery UI dialog wrapper around `#ligand-editor_atom_query_dialog` and its periodic-table canvas `#ligand-editor_atom_query_dialog_pt`. That wrapper was sitting at `z-index: 100`, which is far too low relative to the builder cards. I raised builder-page `.ui-dialog.ui-front` and `.ui-widget-overlay` to sit above normal page content while still staying below the mobile nav drawer stack.
 
 ## Key Decisions
-- Preserved `templates/builder.html` wrapper markup because the markup itself was not the primary regression source.
-- Used `1024px` as the strict mobile/tablet boundary.
-- Kept only minimal safe global rules outside media queries: CSS variables, hidden mobile step headings on desktop, text wrapping, and z-index helpers.
-- Did not modify ChemDoodle library files because the regression was caused by parent layout rules, not the library.
-- Kept the mobile helper JS, but made desktop behavior an explicit no-op.
+- Left `templates/builder.html` unchanged because the mobile issues were resolved in the mobile stylesheet and helper JS.
+- Removed sticky positioning from the mobile Generate PROTAC section instead of trying to preserve a floating CTA that was already overlapping content.
+- Reduced mobile editor dead space by changing wrapper behavior and card stretching, not by shrinking or hiding ChemDoodle controls.
+- Kept the existing SMILES open/close handler and improved the experience around it rather than rewriting builder logic in `COPYscripts.js`.
+- Scoped the periodic table fix to builder-page jQuery UI dialog selectors so the change stays narrow and does not alter unrelated pages.
+- Set the ChemDoodle dialog stack below `--protac-nav-drawer-z` so the mobile nav drawer still wins if both are present.
 
 ## Commands Run
 - `pwd`
@@ -52,60 +57,69 @@ The JS helper was also tightened. It now only fits ChemDoodle canvases when the 
 - `git status --short`
   Confirmed the worktree was clean before edits.
 - `git diff -- templates/builder.html static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js`
-  Reviewed the recent mobile changes.
+  Reviewed the current builder mobile changes before patching.
 - `sed -n '1,260p' static/css/protac-builder-mobile.css`
 - `sed -n '260,620p' static/css/protac-builder-mobile.css`
-- `grep -n "@media\|canvas\|ChemDoodle\|toolbar\|editor\|container\|row\|selector\|height\|width\|position\|display\|grid\|flex\|overflow" static/css/protac-builder-mobile.css`
-  Audited CSS scope and identified layout-changing base rules.
+- `grep -n "builder-generate-section\|sticky\|bottom:\|builder-canvas-frame\|min-height\|smiles-panel\|builder-editor-card\|builder-mobile-section\|overflow\|z-index" static/css/protac-builder-mobile.css templates/builder.html`
+  Isolated the Step 3 sticky rule, editor frame sizing, SMILES panel constraints, and stack-related selectors.
 - `sed -n '1,260p' static/js/protac-builder-mobile.js`
-- `grep -R "querySelector\|querySelectorAll\|getElementById\|canvas\|ChemDoodle\|style.width\|style.height\|resize\|MutationObserver\|setTimeout\|matchMedia" -n static/js/protac-builder-mobile.js static/js/COPYscripts.js templates/builder.html`
-  Reviewed the helper JS and ChemDoodle-related DOM mutations.
-- `grep -n "ligand-editor\|linker-editor\|ligase-editor\|protac-sketcher\|builder-editor\|workflow\|step\|ChemDoodle" templates/builder.html`
-- `grep -R "ligand-editor\|linker-editor\|ligase-editor\|protac-sketcher\|selector-box\|canvas\|ChemDoodle\|editor" -n templates/builder.html static/css/COPYstyles.css static/css/ChemDoodleWeb.css`
-  Compared builder markup and legacy desktop styling.
-- `git diff c1dc4af^ c1dc4af -- templates/builder.html static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js`
-  Compared the mobile update against the previous builder state.
+- `grep -R "smiles-toggle-btn\|scrollIntoView\|toggleSmilesPanel\|warhead-smiles-panel\|linker-smiles-panel\|ligase-smiles-panel" -n templates static/js static/css`
+  Confirmed the existing panel open behavior and where mobile scroll logic lived.
+- `grep -R "Periodic Table\|periodic\|ChemDoodle\|uis\|dialog\|ui-dialog\|ui-widget\|z-index" -n templates static/css static/js`
+  Located ChemDoodle and jQuery UI dialog selectors and z-index baselines.
+- `grep -n "builder-mobile-intro\|builder-mobile-section\|builder-generate-section\|builder-canvas-frame\|smiles-panel\|ligand-editor\|linker-editor\|ligase-editor" templates/builder.html`
+  Reconfirmed the relevant builder markup and required IDs.
+- `sed -n '430,490p' templates/builder.html`
+  Reviewed the base SMILES panel CSS already present in the template.
+- `sed -n '3840,3915p' static/js/COPYscripts.js`
+  Confirmed `toggleSmilesPanel(...)` and preserved builder logic.
 - `python app.py`
-  Started the local Flask app on `http://127.0.0.1:5069`.
+  Confirmed the local builder app was already running on port `5069`.
 - Browser automation against `/builder`
-  Captured before/after screenshots, inspected ChemDoodle wrapper DOM, measured toolbar geometry, and validated breakpoints at `1440px`, `1280px`, `1024px`, `768px`, `430px`, and `390px`.
+  Reproduced the mobile overlap and SMILES issues, measured editor heights, inspected ChemDoodle dialog selectors, and validated breakpoints after the fix.
 - `python -m py_compile app.py`
   Passed.
 - `python -m py_compile protac_builder/routes.py`
   Passed.
 - `node --check static/js/protac-builder-mobile.js`
   Passed.
-- `grep -R "id=\"ligand-editor\"\|id=\"linker-editor\"\|id=\"ligase-editor\"\|id=\"protac-sketcher\"\|id=\"curatedLinkersModal\"\|id=\"protacModal\"\|id=\"cheats-notes-overlay\"" -n templates`
-  Confirmed required IDs remain present.
 - `grep -R "protac-builder-mobile.css\|protac-builder-mobile.js" -n templates`
-  Confirmed the mobile assets are loaded only by `templates/builder.html`.
+  Confirmed the mobile assets are still loaded only by `templates/builder.html`.
+- `grep -R "id=\"warhead-smiles-panel\"\|id=\"linker-smiles-panel\"\|id=\"ligase-smiles-panel\"\|id=\"ligand-editor\"\|id=\"linker-editor\"\|id=\"ligase-editor\"\|id=\"protac-sketcher\"" -n templates`
+  Confirmed the required SMILES panel and ChemDoodle IDs remain present.
 
 ## Validation Results
-- Desktop screenshot and DOM validation at `1440px` and `1280px` showed the original three-column selector and editor layout restored.
-- Desktop and tablet transition check at `1024px` confirmed this is now the exact switchover into the mobile/tablet workflow styling.
-- Mobile checks at `768px`, `430px`, and `390px` confirmed stacked sections, fitted canvases, and no horizontal overflow.
-- `document.documentElement.scrollWidth === window.innerWidth` at `1440px`, `1280px`, `1024px`, `768px`, `430px`, and `390px`.
-- ChemDoodle toolbar geometry after the fix:
-  Desktop `1440px` and `1280px`: toolbar about `353px` wide by `116px` high, no tall vertical strip.
-  Tablet `768px`: toolbar about `624px` wide by `58px` high.
-  Mobile `390px`: canvas resized down to `276px` wide and stayed contained.
-- Cheats & Notes still opens on mobile.
-- Curated linker modal still opens on mobile.
-- Mobile nav drawer still opens and closes back to its off-canvas state.
+- Desktop checks at `1440px` and `1280px` kept the original selector/editor three-column layout and normal ChemDoodle toolbar proportions.
+- Desktop builder metrics after the fix:
+  `1280px` kept `scrollWidth === innerWidth`, the editor wrapper stayed `display: block`, and the toolbar stayed about `353px` wide by `116px` tall.
+- Tablet/mobile checks at `1024px`, `768px`, `430px`, and `390px` passed with `scrollWidth === innerWidth`.
+- Step 3 validation:
+  At `390px`, `.builder-generate-section` now computes as `position: static`, and its top is well below the Step 1 section instead of floating over it.
+- Editor space validation:
+  At `390px`, the mobile warhead editor frame dropped from about `432px` to about `399px`.
+  At `768px`, the frame dropped to about `367px`.
+- SMILES panel validation:
+  At `390px`, opening Warhead SMILES kept the correct panel open, applied the `has-open-smiles` card state, and increased the panel max height to `420px`.
+  The textarea and load button remained visible and tappable in the editor card screenshot.
+- Periodic table/dialog validation:
+  The ChemDoodle atom-query dialog wrapper resolves to `.ui-dialog.ui-front`.
+  Its computed builder-page z-index now resolves to `12890`, above normal builder content and below the mobile nav drawer stack at `13000`.
 
 ## Known Issues
-- The breakpoint is intentionally strict at `1024px`, so `1024px` now uses the tablet/mobile layout by design.
-- I did not change the legacy inline CSS in `templates/builder.html` beyond inspection because the regression was solved without touching desktop styling there.
-- I did not run a full end-to-end PROTAC generation flow; validation focused on layout, editor containment, and key builder UI interactions.
+- I validated ChemDoodle dialog stacking through the actual dialog wrapper selector and computed z-index, but I did not complete a full user-driven periodic-table click path in browser automation because the hidden ChemDoodle radio/button controls are awkward to trigger headlessly.
+- I did not modify any legacy inline CSS in `templates/builder.html`; there is still future cleanup value in moving more builder-specific styling out of the template.
+- The tutorial flyover can still visually crowd the top of the viewport on very small screens, but it was not part of this requested scope.
 
 ## Manual Verification
 1. Run the app from `/Users/jxs794/Documents/PROTAC_BUILDER` and open `http://127.0.0.1:5069/builder`.
-2. At `1440px` and `1280px`, confirm the hero, three selectors, and three ChemDoodle editors appear in the original desktop arrangement.
-3. Confirm the ChemDoodle controls are no longer a page-height vertical column and the canvases remain inside their cards.
-4. At `1024px`, confirm the mobile/tablet sections appear and the layout changes to the stacked workflow style.
-5. At `768px`, `430px`, and `390px`, confirm there is no horizontal overflow and the selector/editor cards stack cleanly.
-6. Open Cheats & Notes and the curated linker modal on mobile widths and confirm they layer above the content correctly.
-7. Open and close the mobile nav drawer and confirm it sits above page content.
+2. Check desktop at `1440px` and `1280px` and confirm the selector row, editor row, buttons, and Generate PROTAC section still match the restored layout.
+3. Open a ChemDoodle atom/periodic-table style popup on desktop and confirm it appears above the editor cards.
+4. Check `1024px`, `768px`, `430px`, and `390px`.
+5. Confirm Step 1, Step 2, and Step 3 now stack cleanly without Step 3 floating over other sections.
+6. In each editor card, tap `Load from SMILES` and confirm the correct textarea and load button open visibly inside that card.
+7. Confirm the page scrolls to a useful editor-card position on mobile after opening a SMILES panel.
+8. Confirm the editor cards no longer have large blank vertical space below the ChemDoodle canvas and controls.
+9. Open the mobile nav drawer and confirm it still layers above normal page content.
 
 ## Suggested Next Prompt
-Run one more `/builder` QA pass that exercises a full real PROTAC generation flow at `1280px` and `390px`, then clean up any remaining builder-specific inline CSS that is now redundant with the mobile stylesheet.
+Run one more `/builder` mobile QA pass focused on the tutorial flyover and the generated PROTAC output area, then trim any remaining builder-specific inline CSS that overlaps with the mobile stylesheet.

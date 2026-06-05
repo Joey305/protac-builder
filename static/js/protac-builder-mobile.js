@@ -60,6 +60,35 @@
       canvasIds.forEach((id) => fitCanvas(document.getElementById(id)));
     }
 
+    function syncSmilesPanelState() {
+      document.querySelectorAll(".builder-editor-card").forEach((card) => {
+        const hasOpenPanel = card.querySelector(".smiles-panel.open");
+        card.classList.toggle("has-open-smiles", Boolean(hasOpenPanel));
+      });
+    }
+
+    function scrollSmilesPanelIntoView(panel) {
+      if (!panel || !isMobileBuilder()) return;
+
+      const target = panel.closest(".builder-editor-card") || panel;
+      const navHeightValue = window
+        .getComputedStyle(document.documentElement)
+        .getPropertyValue("--protac-nav-height-mobile");
+      const navHeight = Number.parseInt(navHeightValue, 10) || 64;
+      const rect = target.getBoundingClientRect();
+      const topPadding = navHeight + 16;
+      const bottomPadding = 24;
+      const isVisible = rect.top >= topPadding && rect.bottom <= window.innerHeight - bottomPadding;
+
+      if (isVisible) return;
+
+      const absoluteTop = rect.top + window.scrollY;
+      window.scrollTo({
+        top: Math.max(absoluteTop - topPadding, 0),
+        behavior: "smooth",
+      });
+    }
+
     function syncOutputState() {
       if (!protacContainer) return;
       const isVisible = protacContainer.style.display !== "none";
@@ -72,6 +101,7 @@
 
     fitCanvases();
     syncOutputState();
+    syncSmilesPanelState();
     if (isMobileBuilder()) {
       window.setTimeout(fitCanvases, 250);
       window.setTimeout(fitCanvases, 900);
@@ -91,13 +121,15 @@
       button.addEventListener("click", () => {
         window.setTimeout(() => {
           fitCanvases();
+          syncSmilesPanelState();
 
-          if (window.innerWidth > 768 || !isMobileBuilder()) return;
           const targetId = button.getAttribute("onclick")?.match(/'([^']+)'/)?.[1];
           const panel = targetId ? document.getElementById(targetId) : null;
-          if (panel?.classList.contains("open")) {
-            panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-          }
+          if (!panel?.classList.contains("open") || window.innerWidth > 1024 || !isMobileBuilder()) return;
+
+          window.setTimeout(() => {
+            scrollSmilesPanelIntoView(panel);
+          }, 60);
         }, 380);
       });
     });
