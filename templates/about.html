@@ -185,6 +185,43 @@
             border-color: var(--teal);
             box-shadow: 0 0 12px rgba(79,182,194,.5);
         }
+        .related-card--paper {
+            position: relative;
+            background:
+                radial-gradient(circle at top, rgba(163, 255, 184, 0.18), transparent 55%),
+                linear-gradient(180deg, rgba(17, 53, 36, 0.96), rgba(9, 29, 22, 0.98));
+            border-color: rgba(132, 255, 176, 0.7);
+            box-shadow:
+                0 0 0 1px rgba(120, 255, 170, 0.14),
+                0 0 22px rgba(105, 255, 158, 0.28),
+                inset 0 0 24px rgba(82, 255, 143, 0.08);
+        }
+        .related-card--paper:hover {
+            border-color: #b7ff74;
+            box-shadow:
+                0 0 0 1px rgba(183, 255, 116, 0.2),
+                0 0 26px rgba(120, 255, 170, 0.4),
+                0 0 44px rgba(120, 255, 170, 0.2);
+        }
+        .related-card-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #7dffad, #d2ff68);
+            color: #0d2016;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            box-shadow: 0 0 18px rgba(150, 255, 129, 0.45);
+        }
+        .related-card--paper h3,
+        .related-card--paper p {
+            color: #f5fff7;
+        }
 
         /* ============================================
         FOOTER & FLOAT BUTTON
@@ -1435,7 +1472,7 @@ body.fade-out {
                     <a href="https://e3ligandalyzer.com/" target="_blank" class="link-glow">Ligandalyzer</a> maps E3 ligase
                     recruiters, scaffolds, and attachment strategies;
                     <a href="/builder" class="link-glow">PROTAC Builder</a> rapidly assembles complete degrader designs;
-                    and <a href="https://github.com/Joey305/pymacs" target="_blank" class="link-glow">PyMACS</a> supports
+                    and <a href="https://github.com/schurerlab/Pymacs" target="_blank" class="link-glow">PyMACS</a> supports
                     downstream molecular analysis and computational workflows.
                 </p>
 
@@ -1477,10 +1514,17 @@ body.fade-out {
             <p>Viral ligand + solvent-exposed moiety database</p>
         </a>
 
-        <a class="related-card" href="https://jmsum.com" target="_blank">
+        <a class="related-card related-card--paper" href="https://www.sciencedirect.com/science/article/pii/S0223523426004836" target="_blank" rel="noopener noreferrer">
+            <div class="related-card-badge">Published Now</div>
+            <div class="emoji">📗</div>
+            <h3>PyMACS Paper</h3>
+            <p>Read the published PyMACS article with a brighter, direct path to the final paper.</p>
+        </a>
+
+        <a class="related-card" href="https://github.com/schurerlab/Pymacs" target="_blank" rel="noopener noreferrer">
             <div class="emoji">🧠</div>
-            <h3>JMSum</h3>
-            <p>AI-powered scientific paper summarizer</p>
+            <h3>PyMACS GitHub</h3>
+            <p>Open-source PyMACS workflows, code, and project updates from Schürer Lab.</p>
         </a>
 
         <a class="related-card" href="https://e3ligandalyzer.com/" target="_blank">
