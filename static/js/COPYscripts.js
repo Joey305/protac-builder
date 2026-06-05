@@ -555,6 +555,54 @@ $("#linker").on("change", function () {
 let currentPage = 1;
 let currentSortBy = "Molecular Weight";
 let currentSortOrder = "asc";
+let curatedLinkersHasMore = true;
+let curatedLinkersLoading = false;
+const curatedLinkersPerPage = 100;
+const curatedLinkersMobileScrollThreshold = 220;
+
+function isBuilderMobileLinkerModal() {
+    return (
+        document.body?.dataset?.page === "builder" &&
+        window.matchMedia("(max-width: 768px)").matches
+    );
+}
+
+function renderCuratedLinkerCards(linkers, { append = false } = {}) {
+    const linkersList = $("#linkers-list");
+    if (!append) {
+        linkersList.empty();
+    }
+
+    linkers.forEach(linker => {
+        linkersList.append(`
+            <div class="linker-item" data-smiles="${linker.smiles}">
+                <div class="svg-thumb" style="width:120px; height:120px;">
+                    ${linker.svg}
+                </div>
+                <p><strong>Compound ID:</strong> ${linker.id}<br><strong>MW:</strong> ${linker.molecular_weight.toFixed(2)}</p>
+            </div>
+        `);
+    });
+}
+
+function maybeFetchMoreCuratedLinkers() {
+    if (!isBuilderMobileLinkerModal()) {
+        return;
+    }
+
+    const modalBody = document.querySelector("#curatedLinkersModal .modal-body");
+    const modalElement = document.getElementById("curatedLinkersModal");
+    if (!modalBody || !modalElement?.classList.contains("show")) {
+        return;
+    }
+
+    const remaining = modalBody.scrollHeight - modalBody.scrollTop - modalBody.clientHeight;
+    if (remaining > curatedLinkersMobileScrollThreshold || curatedLinkersLoading || !curatedLinkersHasMore) {
+        return;
+    }
+
+    fetchCuratedLinkers(currentPage + 1, currentSortBy, currentSortOrder, { append: true });
+}
 
 // ✅ Mapping frontend dropdown values to Flask-compatible backend sorting keys
 const sortOptionsMap = {
@@ -566,7 +614,14 @@ const sortOptionsMap = {
 };
 
 // ✅ Function to fetch curated linkers with sorting and filters
-function fetchCuratedLinkers(page, sortBy = "Molecular Weight", sortOrder = "asc") {
+function fetchCuratedLinkers(page, sortBy = "Molecular Weight", sortOrder = "asc", options = {}) {
+    const append = options.append === true;
+
+    if (curatedLinkersLoading) {
+        return;
+    }
+    curatedLinkersLoading = true;
+
     console.log(`Fetching curated linkers for page: ${page} | Sorting: ${sortBy} (${sortOrder})`);
 
     // ✅ Ensure correct mapping of sort keys
@@ -594,44 +649,61 @@ function fetchCuratedLinkers(page, sortBy = "Molecular Weight", sortOrder = "asc
         url: `/api/linkers/curated${queryString}`,
         type: "GET",
         beforeSend: function () {
-            $("#linkers-list").html("<p>Loading...</p>");
+            if (!append) {
+                curatedLinkersHasMore = true;
+                $("#linkers-list").html("<p>Loading...</p>");
+                $("#select-linker").prop("disabled", true);
+            } else {
+                $("#linkers-list .linkers-loading-more").remove();
+                $("#linkers-list").append(
+                    '<p class="linkers-loading-more text-center text-muted">Loading more linkers...</p>'
+                );
+            }
         },
         success: function (data) {
             const linkersList = $("#linkers-list");
-            linkersList.empty();
+            linkersList.find(".linkers-loading-more").remove();
 
             if (data.length === 0) {
                 console.warn("⚠️ No linkers found. Reverting to previous page.");
-                currentPage = Math.max(1, currentPage - 1);
-                fetchCuratedLinkers(currentPage, currentSortBy, currentSortOrder);
+                if (append) {
+                    curatedLinkersHasMore = false;
+                    currentPage = Math.max(1, page - 1);
+                } else {
+                    currentPage = Math.max(1, currentPage - 1);
+                    curatedLinkersLoading = false;
+                    window.setTimeout(() => {
+                        fetchCuratedLinkers(currentPage, currentSortBy, currentSortOrder);
+                    }, 0);
+                }
+                $("#next-page").prop("disabled", true);
                 return;
             }
 
-            data.forEach(linker => {
-                linkersList.append(`
-                    <div class="linker-item" data-smiles="${linker.smiles}">
-                        <div class="svg-thumb" style="width:120px; height:120px;">
-                            ${linker.svg}
-                        </div>
-                        <p><strong>Compound ID:</strong> ${linker.id}<br><strong>MW:</strong> ${linker.molecular_weight.toFixed(2)}</p>
-                    </div>
-                `);
-            });
+            renderCuratedLinkerCards(data, { append });
+            currentPage = page;
+            curatedLinkersHasMore = data.length >= curatedLinkersPerPage;
 
             $("#curatedLinkersModal").modal("show");
 
             $("#prev-page").prop("disabled", page === 1);
-            $("#next-page").prop("disabled", data.length === 0);
+            $("#next-page").prop("disabled", !curatedLinkersHasMore);
         },
         error: function () {
             console.error("❌ Error fetching curated linkers.");
-            $("#linkers-list").html("<p>Error loading linkers. Please try again.</p>");
+            $("#linkers-list .linkers-loading-more").remove();
+            if (!append) {
+                $("#linkers-list").html("<p>Error loading linkers. Please try again.</p>");
+            }
+            if (append) {
+                currentPage = Math.max(1, page - 1);
+            }
+        },
+        complete: function () {
+            curatedLinkersLoading = false;
         }
     });
 }
-
-
-
 
 // ✅ Update Sort Selection Dropdown to Modify Sorting State
 $("#sort-by").on("change", function () {
@@ -663,6 +735,10 @@ $("#prev-page").on("click", function () {
 $("#next-page").on("click", function () {
     currentPage++;
     fetchCuratedLinkers(currentPage, currentSortBy, currentSortOrder);
+});
+
+$("#curatedLinkersModal .modal-body").on("scroll", function () {
+    maybeFetchMoreCuratedLinkers();
 });
 
 // ✅ Enable "Select Linker" Button when a Linker is Selected

@@ -574,9 +574,14 @@ body[data-page="builder"] .ui-dialog.ui-front {
 
   body[data-page="builder"] #curatedLinkersModal #toggle-filters,
   body[data-page="builder"] #curatedLinkersModal #apply-filters,
-  body[data-page="builder"] #curatedLinkersModal #pagination-controls button,
   body[data-page="builder"] #curatedLinkersModal .modal-footer .btn {
     width: 100%;
+  }
+
+  body[data-page="builder"] #curatedLinkersModal #pagination-controls,
+  body[data-page="builder"] #curatedLinkersModal #prev-page,
+  body[data-page="builder"] #curatedLinkersModal #next-page {
+    display: none;
   }
 
   body[data-page="builder"] #curatedLinkersModal #linkers-list {

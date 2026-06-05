@@ -1,114 +1,101 @@
 # Qodex.summary
 
 ## Task
-Improve the `/builder` curated linker modal on mobile without changing desktop behavior.
+Refine the `/builder` curated linker modal on mobile so pagination is removed in favor of scrolling, without changing desktop behavior.
 
 ## Original Goal
-The user wants the mobile linker selection modal to show actual linkers clearly and allow scrolling/selection, because the filters currently dominate the screen and make it hard to reach the linker cards. Desktop should remain unchanged, and the fixed periodic table layering should be preserved.
+The user wants the mobile linker picker to stop showing the stray floating `Previous` button and stop relying on pagination. On phones, users should just scroll through linker cards. Desktop should keep its existing pagination and overall builder layout, and the ChemDoodle periodic-table layering fix should remain intact.
 
 ## Assumptions
-- Desktop builder and desktop curated-linker modal behavior should remain unchanged.
-- Mobile-specific curated-linker modal fixes can be safely scoped to `body[data-page="builder"]` and `max-width: 1024px` / `768px`.
-- The rendered linker entries use `.linker-item` cards inside `#linkers-list`.
-- Existing filter and pagination logic in `static/js/COPYscripts.js` should remain the source of data loading and selection state.
-- On phones, filters being collapsed by default is a better first-run experience than forcing users through the full filter form before they can see linkers.
-- The periodic table/dialog layering fix must remain as-is, with builder-page jQuery UI dialogs staying above normal content but below the mobile nav drawer.
+- Desktop builder layout and desktop curated-linker modal behavior should remain unchanged.
+- Mobile-only curated-linker modal adjustments should stay scoped to `body[data-page="builder"]` and phone widths at `max-width: 768px`.
+- Existing curated-linker data loading and selection logic in `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js` should remain the main source of truth.
+- The backend linker API already returns paged results of 100 items, so phone scrolling can be implemented as append-on-scroll rather than changing the API.
+- The periodic-table/dialog z-index fix should not be touched unless the new modal behavior conflicts with it.
 
 ## Files Inspected
 - `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-modal.css`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/COPYstyles.css`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`
+- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
 
 ## Files Changed
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
-  Added mobile/tablet-only curated-linker modal layout overrides so the modal body becomes the main scroll container, filters can collapse cleanly, linker cards display in a friendlier mobile grid/list, and the modal header/footer remain usable without trapping content.
+  Strengthened the phone-only linker-modal override so `#pagination-controls`, `#prev-page`, and `#next-page` are hidden on mobile.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`
+  Added mobile-only append-on-scroll support for curated linkers, including paging state, loading guards, and a modal-body scroll trigger that fetches the next page and appends cards instead of replacing them.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
-  Added builder-only mobile curated-linker modal helpers for collapsing filters by default on phones, syncing toggle text, scrolling focus back to the linker list after filter/pagination actions, and preserving desktop behavior.
+  Added a small mobile visibility sync so pagination controls are forced hidden on phones and restored automatically off-phone, while keeping the existing filter-collapse helper behavior.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
-  Replaced the previous summary with this linker-modal-specific implementation record.
+  Updated the summary for this mobile pagination removal pass.
 
 ## Files Created
 - None.
 
 ## Implementation Summary
-The root issue was a nested-scroll layout on mobile. The curated-linker modal body in `templates/builder.html` and `static/css/protac-modal.css` still behaved like a constrained flex shell with `overflow: hidden`, while both `#filters-container` and `#linkers-list` tried to scroll independently. On phones, the filter block expanded to consume most of the modal, the linker list was squeezed into a much smaller area, and the footer permanently occupied the bottom of the viewport.
+The remaining mobile modal issue was that the phone experience was still tied to desktop pagination. Even though the modal itself had been made more scrollable, the `Previous` and `Next` controls could still surface awkwardly on phones, which led to the floating `Previous` button the user captured.
 
-I fixed that in the builder mobile stylesheet by making the modal body the primary scroll container on mobile/tablet widths, allowing the filter area and linker list to flow naturally inside it instead of each trapping scroll separately. The filter block can now collapse cleanly, the linker list uses a mobile-friendly grid/list layout, thumbnails scale safely, metadata wraps, and the footer buttons remain reachable without hiding the actual cards.
-
-I also added small builder-only mobile JS so the curated-linker modal behaves more like a picker than a form on phones. Filters now start collapsed on phone widths, the toggle button text stays in sync, `Apply Filters` collapses the filters and returns focus to the results, and pagination also scrolls back toward the linker list so users stay oriented around the cards.
+I fixed that in two layers. First, the builder mobile stylesheet now hides the pagination wrapper and both individual buttons at phone widths so the desktop pager cannot visually leak into the mobile card stack. Second, the curated-linker fetch logic now supports a mobile append mode: when the phone user scrolls near the bottom of the modal body, the next backend page is fetched and appended into `#linkers-list`. That gives mobile a continuous scrolling picker while leaving desktop pagination intact.
 
 ## Key Decisions
-- Left `templates/builder.html` unchanged and solved the mobile modal issue in builder-scoped CSS/JS.
-- Kept desktop curated-linker modal behavior unchanged by only applying the major overflow/grid changes inside mobile/tablet breakpoints.
-- Chose the modal body as the single primary mobile scroll container instead of trying to keep both the filter pane and the list as separate scroll regions.
-- Collapsed filters by default on phones, but not on desktop, so mobile users see linkers immediately while still keeping filters accessible.
-- Preserved the existing filter/pagination/linker-selection logic in `static/js/COPYscripts.js` and only added focus/scroll helpers around it.
-- Kept the previously fixed periodic-table/jQuery UI dialog z-index rules intact and verified they still resolve correctly.
+- Kept the change builder-scoped and mobile-only instead of changing shared modal behavior.
+- Left desktop pagination in place and only hid it at phone widths.
+- Moved the mobile append-on-scroll behavior into `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`, where the curated-linker paging state already exists, instead of relying on an external helper object.
+- Added JS visibility syncing in `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js` as a second safeguard in case cached CSS or modal state temporarily exposes the pager on phones.
+- Preserved the existing periodic-table/dialog layering fix by not touching the z-index rules.
 
 ## Commands Run
 - `pwd`
   Confirmed the project root.
 - `git status --short`
-  Confirmed the worktree was clean before edits.
-- `git diff -- templates/builder.html static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js`
-  Reviewed the current builder mobile state before patching.
-- `grep -n "curatedLinkersModal\|toggle-filters\|filters-container\|linkers-list\|pagination-controls\|select-linker\|prev-page\|next-page" templates/builder.html`
-  Located the curated-linker modal markup and key IDs.
-- `grep -R "curatedLinkersModal\|filters-container\|linkers-list\|pagination-controls\|toggle-filters\|svg-thumb\|modal-body\|modal-footer\|modal-header" -n templates/builder.html static/css static/js`
-  Audited all curated-linker modal CSS/JS touchpoints.
-- `sed -n '1,340p' static/css/protac-builder-mobile.css`
-- `sed -n '340,760p' static/css/protac-builder-mobile.css`
-  Reviewed the current builder mobile stylesheet before patching.
-- `sed -n '1,340p' static/js/protac-builder-mobile.js`
-  Reviewed current builder-only mobile JS before adding modal helpers.
-- `grep -R "linkers-list\|toggle-filters\|filters-container\|apply-filters\|select-linker\|prev-page\|next-page\|curatedLinkersModal" -n static/js templates`
-  Confirmed existing curated-linker data loading and selection behavior in `COPYscripts.js`.
+  Confirmed the edited files in the current worktree.
+- `git diff -- static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js static/js/COPYscripts.js Qodex.summary.md`
+  Reviewed the current changes before and after patching.
+- `rg -n "curatedLinkersModal|pagination-controls|prev-page|next-page|toggle-filters|linkers-list|linker-item" templates/builder.html static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js static/js/COPYscripts.js`
+  Located all modal pagination and linker list touchpoints.
+- `sed -n '1170,1310p' templates/builder.html`
+  Reviewed the modal-related inline CSS in the builder template.
+- `sed -n '540,720p' static/js/COPYscripts.js`
+  Reviewed the curated-linker fetch and paging logic before patching.
+- `sed -n '360,470p' static/css/protac-builder-mobile.css`
+  Reviewed the builder-scoped mobile modal CSS before patching.
+- `sed -n '1,320p' static/js/protac-builder-mobile.js`
+  Reviewed the existing builder-only mobile helper logic before patching.
 - `python app.py`
   Confirmed port `5069` was already in use by the running local app instance.
-- Browser automation against `/builder`
-  Reproduced the desktop/mobile curated-linker modal states, measured overflow/scroll behavior, validated filter toggle and pagination behavior, and confirmed selection state after the fix.
+- `node --check static/js/COPYscripts.js`
+  Passed.
+- `node --check static/js/protac-builder-mobile.js`
+  Passed.
 - `python -m py_compile app.py`
   Passed.
 - `python -m py_compile protac_builder/routes.py`
   Passed.
-- `node --check static/js/protac-builder-mobile.js`
-  Passed.
-- `grep -R "id=\"curatedLinkersModal\"\|id=\"toggle-filters\"\|id=\"filters-container\"\|id=\"linkers-list\"\|id=\"select-linker\"" -n templates`
-  Confirmed required IDs remain present.
+- Browser-plugin setup attempts against the local builder page
+  Connected to the in-app browser runtime, but the available tab session stayed on `about:blank`, so I could not complete a fresh screenshot-based verification from this environment.
 
 ## Validation Results
-- Desktop validation:
-  `1280px` curated-linker modal retained the original desktop behavior: modal body still `display: flex` with hidden inner overflow, filters remained expanded by default, the list kept its desktop auto-scroll behavior, and no builder desktop layout changed.
-  `scrollWidth === innerWidth` at `1280px`.
-- Mobile validation:
-  At `390px`, the curated-linker modal body now computes as `overflow-y: auto`, the filters start collapsed, the linker list uses a single-column layout, and the document has no horizontal overflow.
-  At `390px`, the filter toggle starts as `Show Filters ▼`, expands to `Hide Filters ▲` when opened, and collapses again after `Apply Filters`.
-  At `390px`, after `Apply Filters`, the modal body scroll position moves back toward the linker list and the list remains the focus.
-  At `390px`, after tapping `Next`, the modal keeps the linker list area in focus rather than leaving the user stranded at the filters.
-  At `390px`, selecting a linker still applies `.selected` and enables `#select-linker`.
-- Additional responsive checks:
-  Tablet/mobile layout changes were scoped to the builder mobile stylesheet; desktop widths retained the earlier restored layout.
-- Periodic table/dialog layering:
-  The builder-page `.ui-dialog.ui-front` z-index still resolves to `12890`, so the ChemDoodle periodic-table/dialog layering fix remains in place.
+- Desktop protection:
+  The desktop pagination code path remains in `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`, and the mobile hide rules are scoped to phone widths only.
+- Mobile behavior:
+  On phone widths, the CSS now hides `#pagination-controls`, `#prev-page`, and `#next-page`, and the JS adds append-on-scroll loading through the curated-linker modal body rather than page buttons.
+- Syntax validation:
+  `node --check` passed for both edited JS files, and `python -m py_compile` passed for the checked Python files.
+- Visual validation:
+  I confirmed the local app was running, but I was not able to complete a fresh browser screenshot/interaction capture from the in-app browser because the available automation tab session would not navigate off `about:blank`. This means the code path is validated by inspection and syntax checks, but not by a new captured mobile screenshot in this environment.
 
 ## Known Issues
-- I validated the mobile curated-linker flow with live linker results, but I did not exhaustively test every possible filter combination or no-results state.
-- The modal header title remains compact on very small widths because the close button still needs room, though it is now materially more usable and the close control no longer stretches across the header.
-- I did not refactor any of the legacy inline curated-linker modal CSS in `templates/builder.html`; the mobile fixes were layered safely on top via the builder mobile stylesheet.
+- I was not able to complete a fresh browser-captured visual verification pass from this environment, so a quick manual phone-width check in the app/browser is still recommended before shipping.
+- The mobile infinite-scroll path assumes the curated-linker API continues returning stable paged results; if the API semantics change, the append logic should be revisited.
+- I did not change any of the legacy inline modal CSS in `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`; this pass stayed focused on the mobile pager removal.
 
 ## Manual Verification
 1. Run the app from `/Users/jxs794/Documents/PROTAC_BUILDER` and open `http://127.0.0.1:5069/builder`.
-2. At `1280px` or `1440px`, confirm the builder desktop layout still looks the same and the curated-linker modal still behaves like the current desktop version.
-3. Open the ChemDoodle periodic-table/dialog and confirm it still appears above editor containers.
-4. At `390px`, `430px`, and `768px`, open the curated-linker modal from the linker selector.
-5. Confirm the modal opens beneath the fixed nav, the title and close button are visible, and the filters can be shown/hidden.
-6. Confirm filters start collapsed on phone widths so the linker cards are immediately visible.
-7. Tap `Show Filters`, then `Apply Filters`, and confirm the modal returns focus to the linker cards.
-8. Scroll through the linker list, use `Previous` / `Next`, and confirm pagination remains reachable without a scroll trap.
-9. Select a linker and confirm the selected state is obvious and `Select Linker` becomes enabled.
+2. At `1280px` or wider, open the curated-linker modal and confirm `Previous` / `Next` still appear and desktop behavior looks unchanged.
+3. At `390px` or `430px`, open the curated-linker modal and confirm no floating `Previous` button appears anywhere in the linker card stack.
+4. Scroll downward in the mobile modal and confirm more linker cards load without exposing the pager.
+5. Confirm filters still show/hide correctly, card selection still enables `Select Linker`, and the periodic-table popup elsewhere in the builder still appears above editor containers.
 
 ## Suggested Next Prompt
-Clean up the legacy curated-linker modal CSS in `templates/builder.html` and consolidate duplicated modal styling into the builder-specific stylesheet now that the mobile behavior is stable.
+Add a small mobile “Loading more linkers…” sentinel and an end-of-results message in the curated linker modal so users get clearer feedback while infinite scrolling.
