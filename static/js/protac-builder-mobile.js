@@ -18,10 +18,18 @@
   onReady(() => {
     if (document.body?.dataset.page !== "builder") return;
 
+    const mobileMediaQuery = window.matchMedia("(max-width: 1024px)");
     const canvasIds = ["ligand-editor", "linker-editor", "ligase-editor", "protac-sketcher"];
     const protacContainer = document.getElementById("protac-container");
     const cheatsOverlay = document.getElementById("cheats-notes-overlay");
     const paramTooltip = document.querySelector(".param-tooltip");
+    const isMobileBuilder = () => mobileMediaQuery.matches;
+
+    function clearCanvasSize(canvas) {
+      if (!canvas) return;
+      canvas.style.width = "";
+      canvas.style.height = "";
+    }
 
     function fitCanvas(canvas) {
       if (!canvas) return;
@@ -32,9 +40,8 @@
 
       if (!frame || !widthAttr || !heightAttr) return;
 
-      if (window.innerWidth > 1024) {
-        canvas.style.width = "";
-        canvas.style.height = "";
+      if (!isMobileBuilder()) {
+        clearCanvasSize(canvas);
         return;
       }
 
@@ -46,6 +53,10 @@
     }
 
     function fitCanvases() {
+      if (!isMobileBuilder()) {
+        canvasIds.forEach((id) => clearCanvasSize(document.getElementById(id)));
+        return;
+      }
       canvasIds.forEach((id) => fitCanvas(document.getElementById(id)));
     }
 
@@ -61,20 +72,27 @@
 
     fitCanvases();
     syncOutputState();
-    window.setTimeout(fitCanvases, 250);
-    window.setTimeout(fitCanvases, 900);
+    if (isMobileBuilder()) {
+      window.setTimeout(fitCanvases, 250);
+      window.setTimeout(fitCanvases, 900);
+    }
 
     window.addEventListener("resize", debounce(fitCanvases, 120));
     window.addEventListener("orientationchange", () => {
+      if (!isMobileBuilder()) {
+        fitCanvases();
+        return;
+      }
       window.setTimeout(fitCanvases, 180);
     });
+    mobileMediaQuery.addEventListener("change", fitCanvases);
 
     document.querySelectorAll(".smiles-toggle-btn").forEach((button) => {
       button.addEventListener("click", () => {
         window.setTimeout(() => {
           fitCanvases();
 
-          if (window.innerWidth > 768) return;
+          if (window.innerWidth > 768 || !isMobileBuilder()) return;
           const targetId = button.getAttribute("onclick")?.match(/'([^']+)'/)?.[1];
           const panel = targetId ? document.getElementById(targetId) : null;
           if (panel?.classList.contains("open")) {
