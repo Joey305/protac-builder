@@ -1,89 +1,139 @@
 # Qodex.summary
 
 ## Task
-Fix API Builder welcome modal spacing under the shared fixed navigation.
+Create a premium mobile interface for the regular PROTAC Builder page only.
 
 ## Original Goal
-The user wants a little more space between the top navigation and the API Builder popup header because the modal close “X” is getting partially covered or crowded.
+The user wants the regular builder page to look really nice on mobile so moving from one page to another feels consistent and polished, without disrupting desktop.
 
 ## Assumptions
-- The affected route is `/api-builder`, rendered by `templates/api_builder.html`.
-- The shared fixed nav height comes from `static/css/protac-nav.css` via `--protac-nav-height` and `--protac-nav-height-mobile`.
-- The preferred fix is page-scoped CSS on the API Builder welcome modal, not a shared nav z-index reduction.
-- The CSV modal, ChemDoodle editors, upload controls, loading overlay, usage counters, and copy buttons should remain unchanged functionally.
+- The affected route is `/builder`, rendered by `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`.
+- Desktop should stay visually close to the current three-selector and three-editor layout.
+- The shared fixed nav continues to be the source of top-spacing and z-index constraints.
+- Builder-only mobile styling should be scoped with a route-specific body attribute instead of broad shared overrides.
+- ChemDoodle editor canvases can be safely CSS-scaled on smaller screens if their aspect ratio is preserved and resize recalculation runs after layout changes.
+- The curated linker modal, setup wizard modal, builder popup, cheats popup, and tutorial flyover should stay functional without moving backend logic.
 
 ## Files Inspected
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/api_builder.html`
-  Inspected the welcome modal markup and page-scoped modal CSS, including existing centering overrides.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`
+  Inspected the inline CSS, builder structure, overlays, selectors, ChemDoodle canvases, generated PROTAC section, and page-local scripts.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/templates/base.html`
-  Confirmed the page exposes `body_class` and `body_attrs` for route-scoped targeting.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_nav.html`
-  Confirmed the shared nav is fixed and always present on the page shell.
+  Confirmed support for `body_class` and `body_attrs`, shared nav placement, and page-shell layout.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_builder_popup.html`
+  Confirmed popup markup and builder welcome copy.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/_tutorial_flyover.html`
+  Confirmed tutorial banner positioning and its existing mobile rules.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-modal.css`
+  Reviewed current popup and curated linker modal sizing and sticky header/footer behavior.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/COPYstyles.css`
+  Reviewed builder-era global container, canvas, button, and modal rules loaded on this page.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`
+  Reviewed builder selectors, ChemDoodle initialization, modal triggers, generated PROTAC display behavior, and related DOM usage.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-counter.js`
+  Reviewed builder popup initialization and close behavior.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-admet.js`
+  Reviewed generated-parameters output and button rendering behavior.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-nav.css`
-  Measured the shared nav height and z-index variables used by the fix.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/app.py`
-  Confirmed the local Flask startup path for browser validation.
+  Confirmed shared nav height and z-index variables used by the builder mobile spacing rules.
 
 ## Files Changed
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/api_builder.html`
-  Added a nav-aware, page-scoped top offset and bounded-height modal layout for `#apiWelcomeModal`, removed the brittle `left: 12px` centering hack, and converted the modal header to a flex layout so the close button remains compact and visible on mobile.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`
+  Added `data-page="builder"`, scoped a few risky inline selectors to the builder route, fixed the invalid hero opacity value, included the new builder-only mobile assets, and added wrapper classes/step sections around selectors, editors, and generation areas without changing existing IDs or inline handlers.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
+  Replaced the previous API Builder summary with this builder-mobile implementation summary.
 
 ## Files Created
-- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
+  New builder-only responsive stylesheet for mobile/tablet layout, nav-aware overlays, safer modal sizing, tooltip wrapping, selector/editor cards, and generated-output presentation.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
+  New builder-only helper script for canvas resizing, modal/overlay resize recalculation, mobile tooltip toggling, and generated-output state syncing.
 
 ## Implementation Summary
-The welcome modal was opening too high because it inherited Bootstrap centering plus page-local overrides that forced the dialog horizontally with `left: 12px` and reserved no top-safe space for the fixed shared nav. The fix adds a scoped top inset driven by the shared nav CSS variables, constrains the welcome modal content to the remaining viewport height, and makes the modal body handle overflow internally.
+The builder page now has a mobile-specific workflow treatment that feels intentional instead of compressed. On tablet and phone widths, the hero compresses cleanly, a three-step workflow summary appears, selector cards become touch-friendly stacked sections, ChemDoodle editor areas sit inside clearer mobile cards, and the Generate PROTAC action becomes much more prominent.
 
-The modal header was also cleaned up with a scoped flex layout so the title and close button no longer fight Bootstrap’s floated `.close` behavior on narrow screens. This keeps the “X” compact, visible, and clickable without changing the shared navigation or the modal’s content.
+The supporting overlays were also tightened for mobile. The builder popup, Cheats & Notes overlay, curated linker modal, and setup wizard modal now use nav-aware top spacing, safer internal scrolling, and more controlled z-index layering on the builder page. The generated PROTAC area was updated for button wrapping, long-SMILES wrapping, and mobile tooltip visibility without changing the desktop layout model.
 
 ## Key Decisions
-- Reused `--protac-nav-height` and `--protac-nav-height-mobile` instead of introducing an unrelated hardcoded offset.
-- Scoped all spacing and overflow changes to `.api-builder-page #apiWelcomeModal` so other modals and pages are unaffected.
-- Preserved the nav z-index and fixed positioning because the issue was layout clearance, not a stacking bug.
-- Replaced the old API-modal centering hacks with proper margins, max-width, and viewport-bounded height.
-- Kept `modal-dialog-centered` in the markup but overrode the welcome modal’s layout only where necessary for top-safe spacing.
+- Added `data-page="builder"` in the template and scoped the new stylesheet and JS to that attribute so the work stays isolated to the regular builder page.
+- Kept the shared nav intact and reused its existing CSS variables for overlay and modal spacing rather than lowering nav z-index or introducing arbitrary offsets.
+- Left most desktop-facing builder markup and logic unchanged, using new wrapper classes plus mobile breakpoints instead of a shared redesign.
+- Used a dedicated stylesheet rather than expanding the already large inline CSS block further.
+- Added minimal JS instead of moving builder logic out of `COPYscripts.js`; the helper only recalculates canvas display size, keeps tooltip behavior mobile-friendly, and responds to overlay visibility changes.
+- Avoided changing required IDs and inline handlers so existing builder logic, ChemDoodle setup, and backend routes continue to work.
 
 ## Commands Run
 - `pwd`
   Confirmed the project root is `/Users/jxs794/Documents/PROTAC_BUILDER`.
-- `grep -n "apiWelcomeModal\|api-welcome-modal\|modal-dialog\|modal-content\|modal-header\|modal-footer\|left: 12px\|FORCE TRUE CENTERING\|FORCE PERFECT" templates/api_builder.html`
-  Found the welcome modal rules and the brittle `left: 12px` override.
-- `grep -R "site-nav\|protac-nav\|top-nav\|z-index\|header-spacer\|nav" -n templates/base.html templates/partials/_nav.html static/css/protac-nav.css`
-  Confirmed the shared nav is fixed with `--protac-nav-height: 70px`, `--protac-nav-height-mobile: 64px`, and `--protac-nav-z: 12000`.
-- `grep -n "modal" templates/api_builder.html`
-  Audited all modal-related rules and modal markup in the page.
-- `grep -n "body_class\|body_attrs\|data-page" templates/api_builder.html templates/base.html`
-  Confirmed route-scoped selectors are available.
-- `python app.py`
-  Started the local Flask app and validated the page in the browser at `http://127.0.0.1:5069/api-builder`.
+- `sed -n '1,260p' templates/builder.html`
+- `sed -n '260,620p' templates/builder.html`
+- `sed -n '620,980p' templates/builder.html`
+  Reviewed the builder template, inline CSS, and layout structure.
+- `grep -R "builder.html\|protac-page\|ligand-editor\|linker-editor\|ligase-editor\|protac-sketcher\|curatedLinkersModal\|protacModal\|cheats-notes\|builder-popup\|tutorial" -n templates static/css static/js`
+  Located builder-specific selectors, modal definitions, popup usage, and ChemDoodle-related references.
+- `grep -R "@media\|max-width\|min-width" -n templates/builder.html static/css/COPYstyles.css static/css/protac-modal.css static/css/protac-nav.css`
+  Audited existing responsive rules and nav breakpoints.
+- `grep -n "body\|\.container\|\.row\|label\|\.modal-content\|z-index\|overflow\|canvas\|\.selector-box\|\.hero-wrapper" templates/builder.html`
+  Found broad inline selectors contributing to the mobile issues.
+- `grep -R "getElementById\|querySelector\|ligand-editor\|linker-editor\|ligase-editor\|protac-sketcher\|resize\|ChemDoodle\|curatedLinkersModal\|protacModal" -n static/js/COPYscripts.js templates/builder.html`
+  Reviewed the JS surface area tied to the preserved IDs and builder overlays.
+- `grep -R "protac-nav-height\|protac-nav-z\|header-spacer\|site-nav\|z-index" -n static/css/protac-nav.css templates/base.html templates/partials/_nav.html`
+  Confirmed nav sizing and stacking variables.
+- `sed -n '900,1450p' templates/builder.html`
+- `sed -n '1450,2150p' templates/builder.html`
+- `sed -n '2150,2760p' templates/builder.html`
+- `sed -n '1,260p' static/css/protac-modal.css`
+- `sed -n '1,260p' templates/base.html`
+- `sed -n '1,220p' templates/partials/_builder_popup.html`
+- `sed -n '1,220p' templates/_tutorial_flyover.html`
+- `sed -n '1,220p' static/js/protac-counter.js`
+- `sed -n '1,220p' static/js/protac-admet.js`
+- `sed -n '1,240p' static/css/COPYstyles.css`
+  Reviewed the supporting shared files needed to keep the builder page isolated and safe.
 - `python -m py_compile app.py`
   Passed.
 - `python -m py_compile protac_builder/routes.py`
   Passed.
-- `grep -n "apiWelcomeModal\|api-welcome-modal\|modal-dialog\|modal-content\|modal-header" templates/api_builder.html`
-  Confirmed the final changes are scoped to the API Builder welcome modal.
-- `grep -R "\.modal.show\|\.modal-dialog\|\.modal-content" -n templates static/css | sort`
-  Confirmed no new broad global modal rule was added outside the existing template-local context.
+- `node --check static/js/protac-builder-mobile.js`
+  Passed.
+- `grep -R "protac-builder-mobile.css" -n templates`
+  Confirmed the new stylesheet is loaded only by `templates/builder.html`.
+- `grep -R "id=\"ligand-editor\"\|id=\"linker-editor\"\|id=\"ligase-editor\"\|id=\"protac-sketcher\"\|id=\"curatedLinkersModal\"\|id=\"protacModal\"\|id=\"cheats-notes-overlay\"" -n templates`
+  Confirmed the required builder IDs remain present and were not duplicated inside `builder.html`.
+- `python app.py`
+  The command reported port `5069` already in use, which indicated the local app was already running and available for validation.
+- `curl -I http://127.0.0.1:5069/builder`
+  Confirmed `/builder` returned `200 OK`.
+- Headless Chrome remote-debugging validation scripts against `http://127.0.0.1:5069/builder`
+  Captured screenshots and DOM metrics for `390px`, `430px`, `768px`, and `1024px`, plus mobile nav, popup, cheats overlay, curated linker modal, setup wizard modal, and a simulated generated-output state.
 
 ## Validation Results
-- Reproduced the bug before editing: the fixed nav bottom was at `70px` while the welcome modal dialog started at `28px`, so the header and close control opened under the nav.
-- After the fix, browser checks at desktop, `1024px`, `768px`, `430px`, and `390px` showed positive clearance between the fixed nav and the welcome modal, the close button stayed fully within the viewport, and there was no horizontal overflow.
-- Verified the welcome modal body remains internally scrollable when content exceeds the viewport height.
-- Verified closing the welcome modal still returns to the API Builder page with visible file upload controls, Generate button, ChemDoodle canvas elements, and the loading overlay element present in the DOM.
-- Verified the CSV column modal markup still exists, but I did not fully exercise its open/close interaction through the browser automation environment.
+- Verified `scrollWidth === innerWidth` at `390px`, `430px`, `768px`, and `1024px` in headless browser checks, so no horizontal overflow was detected in those states.
+- Verified the shared mobile nav drawer opens above builder content at `390px`.
+- Verified the builder popup opens below the nav and remains fully visible at `390px`.
+- Verified the Cheats & Notes overlay opens below the nav at `390px`.
+- Verified the curated linker modal and setup wizard modal open within the mobile viewport and remain nav-aware at `390px`.
+- Verified the tutorial flyover stays compact and does not cover the mobile nav toggle in the tested screenshots.
+- Verified the generated PROTAC panel can display long SMILES text and stacked action buttons at `390px` in a simulated visible state.
+- Verified desktop-targeted source files outside the regular builder page were not edited.
 
 ## Known Issues
-- I did not fully execute the CSV column modal workflow end-to-end in the browser; I verified its markup remains present and untouched.
-- I did not manually trigger the loading overlay through a real generation request; I verified the overlay element remains present and the welcome-modal fix does not target it.
+- I did not complete a true end-to-end ChemDoodle editing session with manual drawing interactions in browser automation; validation focused on layout, sizing, and DOM-level behavior.
+- I did not run a full real molecule generation flow to populate the generated PROTAC canvas from backend data; I simulated the visible output state to verify mobile wrapping and action layout.
+- The headless full-page screenshots capture fixed overlays only within the visible viewport area, so they are useful for spacing and layering checks but not a perfect representation of how a fixed overlay appears across a tall stitched screenshot.
+- `templates/builder.html` still contains a large amount of legacy inline CSS. The new builder-mobile stylesheet isolates the new responsive work, but there is still future cleanup value in moving more of the legacy builder styles out of the template.
 
 ## Manual Verification
-1. Run the app from `/Users/jxs794/Documents/PROTAC_BUILDER` with `python app.py`.
-2. Open [templates/api_builder.html](/Users/jxs794/Documents/PROTAC_BUILDER/templates/api_builder.html) through the `/api-builder` route in the browser.
-3. Let the API welcome modal appear and confirm there is visible breathing room below the fixed shared nav.
-4. Confirm the modal title and close “X” are fully visible and easy to click at desktop, `1024px`, `768px`, `430px`, and `390px`.
-5. Scroll the welcome modal body and confirm the header stays accessible while content scrolls inside the modal.
-6. Click `Continue` or the close button and confirm the API Builder page remains usable.
-7. Confirm the upload inputs, ChemDoodle areas, CSV modal trigger flow, Generate button, loading overlay, and shared mobile nav still behave as expected.
+1. Run the app from `/Users/jxs794/Documents/PROTAC_BUILDER`. If `python app.py` reports port `5069` is already in use, use the existing local instance.
+2. Open the `/builder` route and confirm the desktop view still keeps the familiar hero, three selectors, and three editor panels.
+3. Check `/builder` at `1024px`, `768px`, `430px`, and `390px`.
+4. Confirm there is no horizontal overflow and the mobile nav drawer opens above page content.
+5. Confirm the hero is compact, readable, and the Cheats & Notes button is easy to tap.
+6. Confirm the Step 1, Step 2, and Step 3 workflow sections appear on tablet/mobile widths.
+7. Confirm the selector cards stack cleanly, dropdowns are readable, and the Warhead Hunter and E3 Ligandalyzer buttons remain prominent.
+8. Confirm the three ChemDoodle editor cards stack cleanly, the canvases stay within the viewport, and the Save / Load from SMILES controls remain tappable.
+9. Confirm the Generate PROTAC action is obvious on mobile and the generated output panel wraps SMILES and action buttons cleanly.
+10. Open Cheats & Notes, the curated linker modal, and the setup wizard modal and confirm each one stays below the fixed nav and scrolls internally when needed.
+11. Open the mobile nav drawer while on `/builder` and confirm it layers above the page without trapping the interface behind the builder content.
 
 ## Suggested Next Prompt
-Verify the CSV column modal and loading overlay stacking on `/api-builder` against the shared nav at mobile widths, now that the welcome modal spacing is corrected.
+Run a true end-to-end `/builder` mobile QA pass that generates a real PROTAC, opens the Get Parameters tooltip and DeepPK result states, and records any remaining ChemDoodle interaction issues at `390px` and `430px`.

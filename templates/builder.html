@@ -2,6 +2,7 @@
 
 {% block title %}PROTAC Builder{% endblock %}
 {% block body_class %}protac-page{% endblock %}
+{% block body_attrs %}data-page="builder"{% endblock %}
 {% block popup %}
 {% include "partials/_builder_popup.html" %}
 {% set tutorial_url = "https://youtu.be/CYYsG1MpsE4" %}
@@ -765,7 +766,7 @@
         /* ============================================
         PAGE BASE
         ============================================ */
-        body {
+        body[data-page="builder"] {
             margin: 0;
             background: var(--charcoal);
             /* color: #f2f2f2; */
@@ -1057,7 +1058,7 @@
 
 /* Title animation: fade → lift → subtle scale-in */
 .animate-hero-title {
-    opacity: .5Í;
+    opacity: 0;
     transform: translateY(20px) scale(0.97);
     animation: heroTitleIn 1s ease forwards;
 }
@@ -1115,7 +1116,7 @@
    =============================================== */
 
 /* --- Fix label readability --- */
-label {
+body[data-page="builder"] label {
     color: #e8e8e8 !important;
     font-weight: 600;
     font-size: 1rem;
@@ -1123,7 +1124,7 @@ label {
 }
 
 /* --- Container spacing under nav --- */
-.row {
+body[data-page="builder"] .row {
     margin-top: 20px;
 }
 
@@ -1394,7 +1395,7 @@ body.fade-out {
 
 
 
-.modal-content {
+body[data-page="builder"] .modal-content {
     max-height: 85vh !important;
     overflow-y: auto !important;
 }
@@ -1609,6 +1610,7 @@ body.fade-out {
 
 
 </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/protac-builder-mobile.css') }}">
 {% endblock %}
 {% block content %}
 <!-- ===================================== -->
@@ -1635,12 +1637,13 @@ body.fade-out {
         
 
 
-        <div class="container mt-4">
+        <div class="container mt-4 builder-page-shell">
     <!-- Alert Message Container -->
     <div id="alert-box" class="alert alert-info text-center" style="display: none;"></div>
 
+    <div class="builder-workflow-shell">
     <!-- NEW HERO SECTION -->
-    <section class="hero-wrapper">
+    <section class="hero-wrapper builder-hero-card">
 
         <!-- Animated glow ring -->
         <div class="hero-glow"></div>
@@ -1661,6 +1664,24 @@ body.fade-out {
             </div>
         </div>
 
+    </section>
+
+    <section class="builder-mobile-intro" aria-label="Builder steps">
+        <div class="builder-mobile-step-card">
+            <span class="builder-mobile-step-number">Step 1</span>
+            <strong>Choose components</strong>
+            <p>Select a warhead, linker, and ligase recruiter.</p>
+        </div>
+        <div class="builder-mobile-step-card">
+            <span class="builder-mobile-step-number">Step 2</span>
+            <strong>Edit attachment points</strong>
+            <p>Use the ChemDoodle panels to place the required U and V atoms.</p>
+        </div>
+        <div class="builder-mobile-step-card">
+            <span class="builder-mobile-step-number">Step 3</span>
+            <strong>Generate your PROTAC</strong>
+            <p>Review the structure, export SMILES, and run parameter workflows.</p>
+        </div>
     </section>
 
     <!-- Cheats & Notes Popup -->
@@ -1874,8 +1895,15 @@ body.fade-out {
             
 
             <!-- Molecule Selection Section -->
-            <div class="row">
-                <div class="col-md-4 selector-box warhead-selector-box">
+            <section class="builder-mobile-section">
+                <div class="builder-section-heading">
+                    <span class="builder-section-step">Step 1</span>
+                    <h2 class="builder-section-title">Choose components</h2>
+                    <p class="builder-section-copy">Pick the three building blocks that define your degrader design.</p>
+                </div>
+
+            <div class="row builder-selector-row">
+                <div class="col-md-4 selector-box builder-selector-card warhead-selector-box">
                     <label for="warhead">Select Warhead From V-LiSEMOD:</label>
 
                     <select id="warhead" class="form-control" onchange="loadLigand(this.value)">
@@ -1898,7 +1926,7 @@ body.fade-out {
                     </button>
                 </div>
 
-                <div class="col-md-4 selector-box">
+                <div class="col-md-4 selector-box builder-selector-card">
                     <label for="linker">Select Linker:</label>
                     <select id="linker" class="form-control">
 
@@ -1914,7 +1942,7 @@ body.fade-out {
 
                 
         
-              <div class="col-md-4 selector-box">
+              <div class="col-md-4 selector-box builder-selector-card">
                     <!-- Label with Info Icon -->
                     <label for="ligase-dropdown" class="selector-label">
                         Select Ligase:
@@ -1946,20 +1974,30 @@ body.fade-out {
                     </button>
                 </div>
             </div>
+            </section>
 
 
 
 
           <!-- ChemDoodle Editors Section -->
-            <div class="row mt-4">
-                <div class="col-md-4" id="ligand-container">
+            <section class="builder-mobile-section">
+                <div class="builder-section-heading">
+                    <span class="builder-section-step">Step 2</span>
+                    <h2 class="builder-section-title">Edit attachment points</h2>
+                    <p class="builder-section-copy">Refine each component and save it after adding the correct linker attachment atom.</p>
+                </div>
+
+            <div class="row mt-4 builder-editor-row">
+                <div class="col-md-4 builder-editor-card" id="ligand-container">
                     <h5>Modify Warhead 
                         <span class="info-icon"
                             data-tooltip="Add a bonded U element to the attachment site of the Warhead"
                             data-gif="Warhead.gif">ⓘ</span>
                     </h5>
 
-                    <canvas id="ligand-editor" width="300" height="300"></canvas>
+                    <div class="builder-canvas-frame">
+                        <canvas id="ligand-editor" width="300" height="300"></canvas>
+                    </div>
 
                     <button type="button"
                             class="btn btn-outline-info btn-block mt-3 smiles-toggle-btn"
@@ -1987,14 +2025,16 @@ body.fade-out {
                     </button>
                 </div>
 
-                <div class="col-md-4" id="linker-container">
+                <div class="col-md-4 builder-editor-card" id="linker-container">
                     <h5>Modify Linker 
                         <span class="info-icon"
                             data-tooltip="Add a bonded U element to the Warhead attachment site &amp; V element to the Ligase attachment Site"
                             data-gif="linker.gif">ⓘ</span>
                     </h5>
 
-                    <canvas id="linker-editor" width="300" height="300"></canvas>
+                    <div class="builder-canvas-frame">
+                        <canvas id="linker-editor" width="300" height="300"></canvas>
+                    </div>
 
                     <button type="button"
                             class="btn btn-outline-info btn-block mt-3 smiles-toggle-btn"
@@ -2022,14 +2062,16 @@ body.fade-out {
                     </button>
                 </div>
 
-                <div class="col-md-4" id="ligase-container">
+                <div class="col-md-4 builder-editor-card" id="ligase-container">
                     <h5>Selected Ligase 
                         <span class="info-icon"
                             data-tooltip="Add a bonded V element to the attachment site of the Ligase Recruiter"
                             data-gif="Ligase.gif">ⓘ</span>
                     </h5>
 
-                    <canvas id="ligase-editor" width="300" height="300"></canvas>
+                    <div class="builder-canvas-frame">
+                        <canvas id="ligase-editor" width="300" height="300"></canvas>
+                    </div>
 
                     <button type="button"
                             class="btn btn-outline-info btn-block mt-3 smiles-toggle-btn"
@@ -2057,18 +2099,27 @@ body.fade-out {
                     </button>
                 </div>
             </div>
+            </section>
 
 
             <!-- Generate PROTAC Button -->
             <!-- Generate PROTAC Button -->
-            <div class="text-center mt-4">
-                <button class="btn btn-success" onclick="combineMolecules()">Generate PROTAC</button>
+            <section class="builder-mobile-section builder-generate-section">
+                <div class="builder-section-heading">
+                    <span class="builder-section-step">Step 3</span>
+                    <h2 class="builder-section-title">Generate PROTAC</h2>
+                    <p class="builder-section-copy">Combine the saved components, then inspect the result and downstream analysis outputs.</p>
+                </div>
+
+            <div class="text-center mt-4 builder-generate-cta-wrap">
+                <button class="btn btn-success builder-generate-button" onclick="combineMolecules()">Generate PROTAC</button>
             </div>
 
             <!-- Loader -->
             <div id="loader" class="spinner-border text-success mt-3" style="display: none;" role="status">
                 <span class="sr-only">Loading...</span>
             </div>
+            </section>
 
             <!-- ============================================
                 GENERATED PROTAC SECTION (NEON PANEL)
@@ -2077,7 +2128,9 @@ body.fade-out {
                 <h3 class="generated-title">Generated PROTAC</h3>
 
                 <div class="generated-inner">
-                    <canvas id="protac-sketcher" width="600" height="400"></canvas>
+                    <div class="builder-canvas-frame builder-output-canvas-frame">
+                        <canvas id="protac-sketcher" width="600" height="400"></canvas>
+                    </div>
 
                     <p id="smiles-output" class="smiles-box"></p>
 
@@ -2087,7 +2140,7 @@ body.fade-out {
                             ⬇️ Download SMILES
                         </button>
 
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 builder-parameter-group">
                             <button id="get-parameters-button"
                                     class="neon-btn neon-info"
                                     onclick="getParameters()">
@@ -2256,6 +2309,7 @@ body.fade-out {
         </div>
 
 
+        </div>
         </div>
         <div id="page-data" data-linker="{{ linker_smiles }}"></div>
 
@@ -2690,6 +2744,7 @@ body.fade-out {
 <script src="{{ url_for('static', filename='js/COPYscripts.js') }}"></script>
 <script src="{{ url_for('static', filename='js/protac-counter.js') }}"></script>
 <script src="{{ url_for('static', filename='js/protac-admet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/protac-builder-mobile.js') }}"></script>
 
 <script>
 window.convertedSession = {{ (converted_session or '') | tojson }};
