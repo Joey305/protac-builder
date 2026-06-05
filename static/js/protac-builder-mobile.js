@@ -19,11 +19,21 @@
     if (document.body?.dataset.page !== "builder") return;
 
     const mobileMediaQuery = window.matchMedia("(max-width: 1024px)");
+    const phoneMediaQuery = window.matchMedia("(max-width: 768px)");
     const canvasIds = ["ligand-editor", "linker-editor", "ligase-editor", "protac-sketcher"];
     const protacContainer = document.getElementById("protac-container");
     const cheatsOverlay = document.getElementById("cheats-notes-overlay");
+    const curatedLinkersModal = document.getElementById("curatedLinkersModal");
+    const curatedLinkersModalBody = curatedLinkersModal?.querySelector(".modal-body");
+    const filtersToggle = document.getElementById("toggle-filters");
+    const filtersContainer = document.getElementById("filters-container");
+    const linkersList = document.getElementById("linkers-list");
+    const applyFiltersButton = document.getElementById("apply-filters");
+    const prevPageButton = document.getElementById("prev-page");
+    const nextPageButton = document.getElementById("next-page");
     const paramTooltip = document.querySelector(".param-tooltip");
     const isMobileBuilder = () => mobileMediaQuery.matches;
+    const isPhoneBuilder = () => phoneMediaQuery.matches;
 
     function clearCanvasSize(canvas) {
       if (!canvas) return;
@@ -95,6 +105,37 @@
       document.body.classList.toggle("builder-has-output", isVisible);
     }
 
+    function setFiltersToggleLabel(collapsed) {
+      if (!filtersToggle) return;
+      filtersToggle.textContent = collapsed ? "Show Filters ▼" : "Hide Filters ▲";
+    }
+
+    function setFiltersCollapsed(collapsed) {
+      if (!filtersContainer) return;
+      filtersContainer.classList.toggle("collapsed", collapsed);
+      setFiltersToggleLabel(collapsed);
+    }
+
+    function scrollModalBodyTo(element) {
+      if (!element || !curatedLinkersModalBody || !isMobileBuilder()) return;
+
+      const bodyRect = curatedLinkersModalBody.getBoundingClientRect();
+      const targetRect = element.getBoundingClientRect();
+      const nextTop = targetRect.top - bodyRect.top + curatedLinkersModalBody.scrollTop - 12;
+
+      curatedLinkersModalBody.scrollTo({
+        top: Math.max(nextTop, 0),
+        behavior: "smooth",
+      });
+    }
+
+    function focusLinkerResults() {
+      if (!linkersList) return;
+      window.setTimeout(() => {
+        scrollModalBodyTo(linkersList);
+      }, 260);
+    }
+
     function closeTooltip() {
       paramTooltip?.classList.remove("is-open");
     }
@@ -116,6 +157,10 @@
       window.setTimeout(fitCanvases, 180);
     });
     mobileMediaQuery.addEventListener("change", fitCanvases);
+    phoneMediaQuery.addEventListener("change", () => {
+      if (!curatedLinkersModal?.classList.contains("show")) return;
+      setFiltersCollapsed(isPhoneBuilder());
+    });
 
     document.querySelectorAll(".smiles-toggle-btn").forEach((button) => {
       button.addEventListener("click", () => {
@@ -156,7 +201,50 @@
           window.setTimeout(syncOutputState, 180);
         });
       });
+
+      if (curatedLinkersModal) {
+        const curatedModal = window.jQuery(curatedLinkersModal);
+        curatedModal.on("shown.bs.modal", () => {
+          if (curatedLinkersModalBody) {
+            curatedLinkersModalBody.scrollTop = 0;
+          }
+          setFiltersCollapsed(isPhoneBuilder());
+          if (isPhoneBuilder()) {
+            focusLinkerResults();
+          }
+        });
+
+        curatedModal.on("hidden.bs.modal", () => {
+          setFiltersCollapsed(false);
+        });
+      }
     }
+
+    filtersToggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      const collapsed = !filtersContainer?.classList.contains("collapsed");
+      setFiltersCollapsed(collapsed);
+      if (collapsed) {
+        focusLinkerResults();
+      } else {
+        window.setTimeout(() => {
+          scrollModalBodyTo(filtersToggle);
+        }, 60);
+      }
+    });
+
+    applyFiltersButton?.addEventListener("click", () => {
+      if (!isPhoneBuilder()) return;
+      setFiltersCollapsed(true);
+      focusLinkerResults();
+    });
+
+    [prevPageButton, nextPageButton].forEach((button) => {
+      button?.addEventListener("click", () => {
+        if (!isMobileBuilder()) return;
+        focusLinkerResults();
+      });
+    });
 
     if (cheatsOverlay) {
       const overlayObserver = new MutationObserver(() => {

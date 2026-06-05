@@ -1,55 +1,52 @@
 # Qodex.summary
 
 ## Task
-Refine the `/builder` mobile interface without touching the restored desktop layout.
+Improve the `/builder` curated linker modal on mobile without changing desktop behavior.
 
 ## Original Goal
-The user wants mobile-only fixes for the regular PROTAC Builder page: remove the overlapping floating Step 3 Generate PROTAC section, eliminate huge empty editor container space, make Load from SMILES panels easy to use on mobile, and ensure the ChemDoodle periodic table appears in front of editor containers on mobile and desktop.
+The user wants the mobile linker selection modal to show actual linkers clearly and allow scrolling/selection, because the filters currently dominate the screen and make it hard to reach the linker cards. Desktop should remain unchanged, and the fixed periodic table layering should be preserved.
 
 ## Assumptions
-- Desktop at `1280px` and wider must remain visually unchanged from the restored post-regression state.
-- Mobile/tablet-specific layout fixes should stay scoped to `max-width: 1024px`.
-- ChemDoodle injects its own toolbar and dialog DOM, so parent wrapper styling and jQuery UI dialog stacking are the safe places to intervene.
-- The existing `toggleSmilesPanel(...)` handler should remain the source of truth for opening and closing SMILES panels.
-- The periodic table and related ChemDoodle dialogs use jQuery UI `.ui-dialog.ui-front` wrappers, so raising that wrapper stack level is safer than altering ChemDoodle source.
+- Desktop builder and desktop curated-linker modal behavior should remain unchanged.
+- Mobile-specific curated-linker modal fixes can be safely scoped to `body[data-page="builder"]` and `max-width: 1024px` / `768px`.
+- The rendered linker entries use `.linker-item` cards inside `#linkers-list`.
+- Existing filter and pagination logic in `static/js/COPYscripts.js` should remain the source of data loading and selection state.
+- On phones, filters being collapsed by default is a better first-run experience than forcing users through the full filter form before they can see linkers.
+- The periodic table/dialog layering fix must remain as-is, with builder-page jQuery UI dialogs staying above normal content but below the mobile nav drawer.
 
 ## Files Inspected
 - `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-modal.css`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/COPYstyles.css`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/ChemDoodleWeb.css`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-nav.css`
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/ChemDoodleWeb-uis.js`
 
 ## Files Changed
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
-  Removed the mobile sticky behavior from Step 3, reduced mobile editor-frame dead space, improved SMILES panel expansion, and added builder-scoped dialog z-index rules for ChemDoodle/jQuery UI popups.
+  Added mobile/tablet-only curated-linker modal layout overrides so the modal body becomes the main scroll container, filters can collapse cleanly, linker cards display in a friendlier mobile grid/list, and the modal header/footer remain usable without trapping content.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
-  Improved mobile-only SMILES panel behavior by tracking open editor cards and scrolling the active editor card into view more predictably on phones/tablets.
+  Added builder-only mobile curated-linker modal helpers for collapsing filters by default on phones, syncing toggle text, scrolling focus back to the linker list after filter/pagination actions, and preserving desktop behavior.
 - `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
-  Replaced the previous summary with this mobile-polish implementation record.
+  Replaced the previous summary with this linker-modal-specific implementation record.
 
 ## Files Created
 - None.
 
 ## Implementation Summary
-The Step 3 overlap came from the mobile rule that kept `.builder-generate-section` sticky with its own `bottom` offset and `z-index`. That made the Generate PROTAC card float above earlier sections on narrow screens. I changed the mobile Step 3 section back to normal document flow so Step 1, Step 2, and Step 3 stack cleanly again.
+The root issue was a nested-scroll layout on mobile. The curated-linker modal body in `templates/builder.html` and `static/css/protac-modal.css` still behaved like a constrained flex shell with `overflow: hidden`, while both `#filters-container` and `#linkers-list` tried to scroll independently. On phones, the filter block expanded to consume most of the modal, the linker list was squeezed into a much smaller area, and the footer permanently occupied the bottom of the viewport.
 
-The oversized empty editor space on mobile came from two things working together: the editor cards were still allowed to stretch, and the mobile canvas wrapper kept extra reserved height while the legacy canvas margins added more vertical padding. I changed the mobile `.builder-canvas-frame` to a compact column layout, removed its fixed minimum height, removed the extra canvas block margins inside that wrapper, and stopped the mobile editor cards from stretching to taller neighbors.
+I fixed that in the builder mobile stylesheet by making the modal body the primary scroll container on mobile/tablet widths, allowing the filter area and linker list to flow naturally inside it instead of each trapping scroll separately. The filter block can now collapse cleanly, the linker list uses a mobile-friendly grid/list layout, thumbnails scale safely, metadata wraps, and the footer buttons remain reachable without hiding the actual cards.
 
-The SMILES panel itself was functional but cramped on mobile because the open state was still capped at `220px`, and the helper script only did a weak `scrollIntoView(..., block: "nearest")`. I expanded the open panel height to `420px`, kept the panel in the active card with more room for the textarea and button, added a mobile-only `has-open-smiles` state to the editor card, and changed the helper script to scroll the active editor card into view using the mobile nav height as the offset.
-
-For the periodic table layering fix, I identified the relevant ChemDoodle popup path as the jQuery UI dialog wrapper around `#ligand-editor_atom_query_dialog` and its periodic-table canvas `#ligand-editor_atom_query_dialog_pt`. That wrapper was sitting at `z-index: 100`, which is far too low relative to the builder cards. I raised builder-page `.ui-dialog.ui-front` and `.ui-widget-overlay` to sit above normal page content while still staying below the mobile nav drawer stack.
+I also added small builder-only mobile JS so the curated-linker modal behaves more like a picker than a form on phones. Filters now start collapsed on phone widths, the toggle button text stays in sync, `Apply Filters` collapses the filters and returns focus to the results, and pagination also scrolls back toward the linker list so users stay oriented around the cards.
 
 ## Key Decisions
-- Left `templates/builder.html` unchanged because the mobile issues were resolved in the mobile stylesheet and helper JS.
-- Removed sticky positioning from the mobile Generate PROTAC section instead of trying to preserve a floating CTA that was already overlapping content.
-- Reduced mobile editor dead space by changing wrapper behavior and card stretching, not by shrinking or hiding ChemDoodle controls.
-- Kept the existing SMILES open/close handler and improved the experience around it rather than rewriting builder logic in `COPYscripts.js`.
-- Scoped the periodic table fix to builder-page jQuery UI dialog selectors so the change stays narrow and does not alter unrelated pages.
-- Set the ChemDoodle dialog stack below `--protac-nav-drawer-z` so the mobile nav drawer still wins if both are present.
+- Left `templates/builder.html` unchanged and solved the mobile modal issue in builder-scoped CSS/JS.
+- Kept desktop curated-linker modal behavior unchanged by only applying the major overflow/grid changes inside mobile/tablet breakpoints.
+- Chose the modal body as the single primary mobile scroll container instead of trying to keep both the filter pane and the list as separate scroll regions.
+- Collapsed filters by default on phones, but not on desktop, so mobile users see linkers immediately while still keeping filters accessible.
+- Preserved the existing filter/pagination/linker-selection logic in `static/js/COPYscripts.js` and only added focus/scroll helpers around it.
+- Kept the previously fixed periodic-table/jQuery UI dialog z-index rules intact and verified they still resolve correctly.
 
 ## Commands Run
 - `pwd`
@@ -57,69 +54,61 @@ For the periodic table layering fix, I identified the relevant ChemDoodle popup 
 - `git status --short`
   Confirmed the worktree was clean before edits.
 - `git diff -- templates/builder.html static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js`
-  Reviewed the current builder mobile changes before patching.
-- `sed -n '1,260p' static/css/protac-builder-mobile.css`
-- `sed -n '260,620p' static/css/protac-builder-mobile.css`
-- `grep -n "builder-generate-section\|sticky\|bottom:\|builder-canvas-frame\|min-height\|smiles-panel\|builder-editor-card\|builder-mobile-section\|overflow\|z-index" static/css/protac-builder-mobile.css templates/builder.html`
-  Isolated the Step 3 sticky rule, editor frame sizing, SMILES panel constraints, and stack-related selectors.
-- `sed -n '1,260p' static/js/protac-builder-mobile.js`
-- `grep -R "smiles-toggle-btn\|scrollIntoView\|toggleSmilesPanel\|warhead-smiles-panel\|linker-smiles-panel\|ligase-smiles-panel" -n templates static/js static/css`
-  Confirmed the existing panel open behavior and where mobile scroll logic lived.
-- `grep -R "Periodic Table\|periodic\|ChemDoodle\|uis\|dialog\|ui-dialog\|ui-widget\|z-index" -n templates static/css static/js`
-  Located ChemDoodle and jQuery UI dialog selectors and z-index baselines.
-- `grep -n "builder-mobile-intro\|builder-mobile-section\|builder-generate-section\|builder-canvas-frame\|smiles-panel\|ligand-editor\|linker-editor\|ligase-editor" templates/builder.html`
-  Reconfirmed the relevant builder markup and required IDs.
-- `sed -n '430,490p' templates/builder.html`
-  Reviewed the base SMILES panel CSS already present in the template.
-- `sed -n '3840,3915p' static/js/COPYscripts.js`
-  Confirmed `toggleSmilesPanel(...)` and preserved builder logic.
+  Reviewed the current builder mobile state before patching.
+- `grep -n "curatedLinkersModal\|toggle-filters\|filters-container\|linkers-list\|pagination-controls\|select-linker\|prev-page\|next-page" templates/builder.html`
+  Located the curated-linker modal markup and key IDs.
+- `grep -R "curatedLinkersModal\|filters-container\|linkers-list\|pagination-controls\|toggle-filters\|svg-thumb\|modal-body\|modal-footer\|modal-header" -n templates/builder.html static/css static/js`
+  Audited all curated-linker modal CSS/JS touchpoints.
+- `sed -n '1,340p' static/css/protac-builder-mobile.css`
+- `sed -n '340,760p' static/css/protac-builder-mobile.css`
+  Reviewed the current builder mobile stylesheet before patching.
+- `sed -n '1,340p' static/js/protac-builder-mobile.js`
+  Reviewed current builder-only mobile JS before adding modal helpers.
+- `grep -R "linkers-list\|toggle-filters\|filters-container\|apply-filters\|select-linker\|prev-page\|next-page\|curatedLinkersModal" -n static/js templates`
+  Confirmed existing curated-linker data loading and selection behavior in `COPYscripts.js`.
 - `python app.py`
-  Confirmed the local builder app was already running on port `5069`.
+  Confirmed port `5069` was already in use by the running local app instance.
 - Browser automation against `/builder`
-  Reproduced the mobile overlap and SMILES issues, measured editor heights, inspected ChemDoodle dialog selectors, and validated breakpoints after the fix.
+  Reproduced the desktop/mobile curated-linker modal states, measured overflow/scroll behavior, validated filter toggle and pagination behavior, and confirmed selection state after the fix.
 - `python -m py_compile app.py`
   Passed.
 - `python -m py_compile protac_builder/routes.py`
   Passed.
 - `node --check static/js/protac-builder-mobile.js`
   Passed.
-- `grep -R "protac-builder-mobile.css\|protac-builder-mobile.js" -n templates`
-  Confirmed the mobile assets are still loaded only by `templates/builder.html`.
-- `grep -R "id=\"warhead-smiles-panel\"\|id=\"linker-smiles-panel\"\|id=\"ligase-smiles-panel\"\|id=\"ligand-editor\"\|id=\"linker-editor\"\|id=\"ligase-editor\"\|id=\"protac-sketcher\"" -n templates`
-  Confirmed the required SMILES panel and ChemDoodle IDs remain present.
+- `grep -R "id=\"curatedLinkersModal\"\|id=\"toggle-filters\"\|id=\"filters-container\"\|id=\"linkers-list\"\|id=\"select-linker\"" -n templates`
+  Confirmed required IDs remain present.
 
 ## Validation Results
-- Desktop checks at `1440px` and `1280px` kept the original selector/editor three-column layout and normal ChemDoodle toolbar proportions.
-- Desktop builder metrics after the fix:
-  `1280px` kept `scrollWidth === innerWidth`, the editor wrapper stayed `display: block`, and the toolbar stayed about `353px` wide by `116px` tall.
-- Tablet/mobile checks at `1024px`, `768px`, `430px`, and `390px` passed with `scrollWidth === innerWidth`.
-- Step 3 validation:
-  At `390px`, `.builder-generate-section` now computes as `position: static`, and its top is well below the Step 1 section instead of floating over it.
-- Editor space validation:
-  At `390px`, the mobile warhead editor frame dropped from about `432px` to about `399px`.
-  At `768px`, the frame dropped to about `367px`.
-- SMILES panel validation:
-  At `390px`, opening Warhead SMILES kept the correct panel open, applied the `has-open-smiles` card state, and increased the panel max height to `420px`.
-  The textarea and load button remained visible and tappable in the editor card screenshot.
-- Periodic table/dialog validation:
-  The ChemDoodle atom-query dialog wrapper resolves to `.ui-dialog.ui-front`.
-  Its computed builder-page z-index now resolves to `12890`, above normal builder content and below the mobile nav drawer stack at `13000`.
+- Desktop validation:
+  `1280px` curated-linker modal retained the original desktop behavior: modal body still `display: flex` with hidden inner overflow, filters remained expanded by default, the list kept its desktop auto-scroll behavior, and no builder desktop layout changed.
+  `scrollWidth === innerWidth` at `1280px`.
+- Mobile validation:
+  At `390px`, the curated-linker modal body now computes as `overflow-y: auto`, the filters start collapsed, the linker list uses a single-column layout, and the document has no horizontal overflow.
+  At `390px`, the filter toggle starts as `Show Filters ▼`, expands to `Hide Filters ▲` when opened, and collapses again after `Apply Filters`.
+  At `390px`, after `Apply Filters`, the modal body scroll position moves back toward the linker list and the list remains the focus.
+  At `390px`, after tapping `Next`, the modal keeps the linker list area in focus rather than leaving the user stranded at the filters.
+  At `390px`, selecting a linker still applies `.selected` and enables `#select-linker`.
+- Additional responsive checks:
+  Tablet/mobile layout changes were scoped to the builder mobile stylesheet; desktop widths retained the earlier restored layout.
+- Periodic table/dialog layering:
+  The builder-page `.ui-dialog.ui-front` z-index still resolves to `12890`, so the ChemDoodle periodic-table/dialog layering fix remains in place.
 
 ## Known Issues
-- I validated ChemDoodle dialog stacking through the actual dialog wrapper selector and computed z-index, but I did not complete a full user-driven periodic-table click path in browser automation because the hidden ChemDoodle radio/button controls are awkward to trigger headlessly.
-- I did not modify any legacy inline CSS in `templates/builder.html`; there is still future cleanup value in moving more builder-specific styling out of the template.
-- The tutorial flyover can still visually crowd the top of the viewport on very small screens, but it was not part of this requested scope.
+- I validated the mobile curated-linker flow with live linker results, but I did not exhaustively test every possible filter combination or no-results state.
+- The modal header title remains compact on very small widths because the close button still needs room, though it is now materially more usable and the close control no longer stretches across the header.
+- I did not refactor any of the legacy inline curated-linker modal CSS in `templates/builder.html`; the mobile fixes were layered safely on top via the builder mobile stylesheet.
 
 ## Manual Verification
 1. Run the app from `/Users/jxs794/Documents/PROTAC_BUILDER` and open `http://127.0.0.1:5069/builder`.
-2. Check desktop at `1440px` and `1280px` and confirm the selector row, editor row, buttons, and Generate PROTAC section still match the restored layout.
-3. Open a ChemDoodle atom/periodic-table style popup on desktop and confirm it appears above the editor cards.
-4. Check `1024px`, `768px`, `430px`, and `390px`.
-5. Confirm Step 1, Step 2, and Step 3 now stack cleanly without Step 3 floating over other sections.
-6. In each editor card, tap `Load from SMILES` and confirm the correct textarea and load button open visibly inside that card.
-7. Confirm the page scrolls to a useful editor-card position on mobile after opening a SMILES panel.
-8. Confirm the editor cards no longer have large blank vertical space below the ChemDoodle canvas and controls.
-9. Open the mobile nav drawer and confirm it still layers above normal page content.
+2. At `1280px` or `1440px`, confirm the builder desktop layout still looks the same and the curated-linker modal still behaves like the current desktop version.
+3. Open the ChemDoodle periodic-table/dialog and confirm it still appears above editor containers.
+4. At `390px`, `430px`, and `768px`, open the curated-linker modal from the linker selector.
+5. Confirm the modal opens beneath the fixed nav, the title and close button are visible, and the filters can be shown/hidden.
+6. Confirm filters start collapsed on phone widths so the linker cards are immediately visible.
+7. Tap `Show Filters`, then `Apply Filters`, and confirm the modal returns focus to the linker cards.
+8. Scroll through the linker list, use `Previous` / `Next`, and confirm pagination remains reachable without a scroll trap.
+9. Select a linker and confirm the selected state is obvious and `Select Linker` becomes enabled.
 
 ## Suggested Next Prompt
-Run one more `/builder` mobile QA pass focused on the tutorial flyover and the generated PROTAC output area, then trim any remaining builder-specific inline CSS that overlaps with the mobile stylesheet.
+Clean up the legacy curated-linker modal CSS in `templates/builder.html` and consolidate duplicated modal styling into the builder-specific stylesheet now that the mobile behavior is stable.
