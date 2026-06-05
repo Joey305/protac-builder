@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const backdrop = document.getElementById("protacNavBackdrop");
   const year = document.getElementById("year");
   const mobileQuery = window.matchMedia("(max-width: 1024px)");
+  const desktopMenus = Array.from(document.querySelectorAll(".protac-site-nav__item--menu"));
 
   let isOpen = false;
   let lastFocusedElement = null;
@@ -111,6 +112,28 @@ document.addEventListener("DOMContentLoaded", () => {
     setOpen(false);
   }
 
+  function closeDesktopMenus() {
+    desktopMenus.forEach((menu) => {
+      const trigger = menu.querySelector(".protac-site-nav__menu-trigger");
+      menu.classList.remove("is-open");
+      if (trigger) {
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  function toggleDesktopMenu(menu) {
+    const trigger = menu.querySelector(".protac-site-nav__menu-trigger");
+    const willOpen = !menu.classList.contains("is-open");
+    closeDesktopMenus();
+    if (willOpen) {
+      menu.classList.add("is-open");
+      if (trigger) {
+        trigger.setAttribute("aria-expanded", "true");
+      }
+    }
+  }
+
   function toggleDrawer() {
     if (!mobileQuery.matches) return;
     setOpen(!isOpen);
@@ -185,6 +208,35 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
+
+  desktopMenus.forEach((menu) => {
+    const trigger = menu.querySelector(".protac-site-nav__menu-trigger");
+    if (!trigger) return;
+
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      toggleDesktopMenu(menu);
+    });
+
+    menu.addEventListener("mouseleave", () => {
+      if (!mobileQuery.matches) {
+        closeDesktopMenus();
+      }
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Node)) return;
+    if (!desktopMenus.some((menu) => menu.contains(event.target))) {
+      closeDesktopMenus();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeDesktopMenus();
+    }
+  });
 
   window.addEventListener("scroll", handleNavScroll, { passive: true });
   handleNavScroll();

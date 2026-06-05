@@ -1,30 +1,48 @@
 <footer class="glow-footer protac-footer">
   <div class="footer-inner">
     <div class="footer-col">
-      <h4>Explore</h4>
+      <h4>Builder</h4>
+      <a href="{{ url_for('ui.home') }}">Home</a>
       <a href="{{ url_for('ui.builder') }}">PROTAC Builder</a>
-      <a href="https://warheadhunter.com/" target="_blank" rel="noopener noreferrer">Warhead Hunter</a>
-      <a href="{{ url_for('ui.ligase_ligandalyzer') }}">E3 Ligandalyzer</a>
-      <a href="https://vlisemod.com" target="_blank" rel="noopener noreferrer">V-LiSEMOD</a>
-      <a href="https://github.com/schurerlab/Pymacs" target="_blank" rel="noopener noreferrer">PyMACS GitHub</a>
-      <a href="https://www.sciencedirect.com/science/article/pii/S0223523426004836" target="_blank" rel="noopener noreferrer">PyMACS Paper</a>
+      <a href="{{ url_for('ui.api_builder') }}">API Builder</a>
+      <a href="{{ url_for('ui.examples') }}">Examples</a>
+      <a href="{{ url_for('ui.how_to_build_a_protac') }}">How to Build a PROTAC</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Discovery</h4>
+      <a href="{{ url_for('ui.component_hubs') }}">Component Hubs</a>
+      <a href="{{ url_for('ui.warheads') }}">Warhead Discovery</a>
+      <a href="{{ url_for('ui.linkers') }}">Linker Design</a>
+      <a href="{{ url_for('ui.e3_ligase_recruiters') }}">E3 Recruiter Discovery</a>
+      <a href="{{ url_for('ui.downstream_modeling_tools') }}">Downstream Modeling</a>
     </div>
 
     <div class="footer-col">
       <h4>Resources</h4>
-      <a href="{{ url_for('ui.api_builder') }}">API Builder</a>
       <a href="{{ url_for('ui.api_docs') }}">API Reference</a>
+      <a href="{{ url_for('ui.faq') }}">FAQ</a>
+      <a href="{{ url_for('ui.methods') }}">Methods</a>
+      <a href="{{ url_for('ui.download_manifest') }}">Download Manifest</a>
       <a href="{{ url_for('ui.about') }}">About</a>
-      <a href="https://github.com/schurerlab/protacbuilder" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
-      <a href="https://github.com/schurerlab/protacbuilder?tab=readme-ov-file#table-of-contents" target="_blank" rel="noopener noreferrer">Documentation</a>
+      <a href="{{ url_for('ui.ecosystem') }}">Ecosystem</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Connected Tools</h4>
+      <a href="https://warheadhunter.com/" target="_blank" rel="noopener noreferrer">Warhead Hunter</a>
+      <a href="https://e3ligandalyzer.com/explorer" target="_blank" rel="noopener noreferrer">E3 Ligandalyzer</a>
+      <a href="https://vlisemod.com/protacability_page" target="_blank" rel="noopener noreferrer">V-LiSEMOD</a>
+      <a href="https://schurerlab.org" target="_blank" rel="noopener noreferrer">Schürer Lab</a>
     </div>
 
     <div class="footer-col">
       <h4>Connect</h4>
+      <a href="https://github.com/schurerlab/protacbuilder" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+      <a href="https://github.com/schurerlab/protacbuilder?tab=readme-ov-file#table-of-contents" target="_blank" rel="noopener noreferrer">Documentation</a>
       <a href="mailto:jxs794@miami.edu?subject=Feedback%20About%20PROTAC%20Builder">Contact</a>
       <a href="mailto:jxs794@miami.edu?subject=PROTAC%20Builder%20Feedback">Feedback</a>
       <a href="mailto:jxs794@miami.edu?subject=Collaboration%20on%20PROTAC%20Builder%20Project">Contribute</a>
-      <a href="https://schurerlab.org" target="_blank" rel="noopener noreferrer">Schürer Lab</a>
     </div>
   </div>
 

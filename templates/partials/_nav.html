@@ -1,89 +1,118 @@
-{% set primary_nav_items = [
+{% set nav_groups = [
   {
-    "href": url_for('ui.builder'),
-    "endpoint": "ui.builder",
+    "label": "Builder",
     "icon": "🧪",
-    "label": "PROTAC Builder",
+    "active_prefixes": ["/builder", "/api-builder", "/how-to-build-a-protac", "/examples"],
+    "items": [
+      {"label": "PROTAC Builder", "href": url_for('ui.builder'), "endpoint": "ui.builder", "description": "Interactive degrader assembly workflow"},
+      {"label": "API Builder", "href": url_for('ui.api_builder'), "endpoint": "ui.api_builder", "description": "Prepare script and batch workflows"},
+      {"label": "How to Build a PROTAC", "href": url_for('ui.how_to_build_a_protac'), "endpoint": "ui.how_to_build_a_protac", "description": "Step-by-step practical guide"},
+      {"label": "Examples", "href": url_for('ui.examples'), "endpoint": "ui.examples", "description": "Workflow gallery and handoff examples"},
+    ],
   },
   {
-    "href": url_for('ui.api_builder'),
-    "endpoint": "ui.api_builder",
-    "icon": "⚙️",
-    "label": "API Builder",
-    "pill": "New",
+    "label": "Discovery",
+    "icon": "🔎",
+    "active_prefixes": ["/warheads", "/linkers", "/e3-ligase-recruiters", "/component-hubs", "/ligase-ligandalyzer", "/downstream-modeling-tools"],
+    "items": [
+      {"label": "Warhead Discovery", "href": url_for('ui.warheads'), "endpoint": "ui.warheads", "description": "Target-binding warhead hub"},
+      {"label": "Linker Design", "href": url_for('ui.linkers'), "endpoint": "ui.linkers", "description": "Bridgeability and linker design hub"},
+      {"label": "E3 Recruiter Discovery", "href": url_for('ui.e3_ligase_recruiters'), "endpoint": "ui.e3_ligase_recruiters", "description": "Recruiter and ligase discovery hub"},
+      {"label": "Component Hubs", "href": url_for('ui.component_hubs'), "endpoint": "ui.component_hubs", "description": "Overview of warheads, linkers, and recruiters"},
+      {"label": "Ligase / Tissue Context", "href": "https://vlisemod.com/protacability_page", "description": "Structure-guided context in V-LiSEMOD", "external": true},
+      {"label": "Downstream Modeling", "href": url_for('ui.downstream_modeling_tools'), "endpoint": "ui.downstream_modeling_tools", "description": "Modeling and scoring workflows"},
+    ],
   },
   {
-    "href": url_for('ui.about'),
-    "endpoint": "ui.about",
-    "icon": "📘",
-    "label": "About",
+    "label": "Science",
+    "icon": "🧠",
+    "active_prefixes": ["/what-is-a-protac", "/constraint-driven-protac-design", "/in-silico-protac-modeling", "/benchmarking"],
+    "items": [
+      {"label": "What Is a PROTAC?", "href": url_for('ui.what_is_a_protac'), "endpoint": "ui.what_is_a_protac", "description": "Foundational targeted protein degradation explainer"},
+      {"label": "Constraint-Driven PROTAC Design", "href": url_for('ui.constraint_driven_protac_design'), "endpoint": "ui.constraint_driven_protac_design", "description": "Anchor- and geometry-aware design principles"},
+      {"label": "In Silico PROTAC Modeling", "href": url_for('ui.in_silico_protac_modeling'), "endpoint": "ui.in_silico_protac_modeling", "description": "Docking, refinement, and hybrid workflows"},
+      {"label": "Benchmarking", "href": url_for('ui.benchmarking'), "endpoint": "ui.benchmarking", "description": "Reporting and evaluation guidance"},
+      {"label": "Downstream Modeling Tools", "href": url_for('ui.downstream_modeling_tools'), "endpoint": "ui.downstream_modeling_tools", "description": "Where builder outputs go next"},
+    ],
   },
-] %}
-
-{% set discovery_nav_items = [
   {
-    "href": "https://vlisemod.com",
+    "label": "Resources",
+    "icon": "📚",
+    "active_prefixes": ["/about", "/faq", "/methods", "/database-schema", "/release-notes", "/download-manifest", "/case-studies", "/submit-data"],
+    "items": [
+      {"label": "Documentation", "href": url_for('ui.about'), "endpoint": "ui.about", "description": "Project background and scientific context"},
+      {"label": "FAQ", "href": url_for('ui.faq'), "endpoint": "ui.faq", "description": "Scope and workflow questions"},
+      {"label": "API Reference", "href": url_for('ui.api_docs'), "endpoint": "ui.api_docs", "description": "Documented public route surface"},
+      {"label": "Methods", "href": url_for('ui.methods'), "endpoint": "ui.methods", "description": "Current method scope"},
+      {"label": "Database Schema", "href": url_for('ui.database_schema'), "endpoint": "ui.database_schema", "description": "Public data and schema notes"},
+      {"label": "Release Notes", "href": url_for('ui.release_notes'), "endpoint": "ui.release_notes", "description": "Current release snapshot"},
+      {"label": "Download Manifest", "href": url_for('ui.download_manifest'), "endpoint": "ui.download_manifest", "description": "Public downloads and discovery files"},
+      {"label": "Case Studies", "href": url_for('ui.case_studies'), "endpoint": "ui.case_studies", "description": "Workflow-oriented examples"},
+      {"label": "Submit Data / Contribute", "href": url_for('ui.submit_data'), "endpoint": "ui.submit_data", "description": "Contribution paths and repository link"},
+    ],
+  },
+  {
+    "label": "Ecosystem",
     "icon": "🧬",
-    "label": "V-LiSEMOD",
-    "external": true,
+    "active_prefixes": ["/ecosystem"],
+    "items": [
+      {"label": "Warhead Hunter", "href": "https://warheadhunter.com", "description": "Warhead-focused discovery", "external": true},
+      {"label": "E3 Ligandalyzer", "href": "https://e3ligandalyzer.com/explorer", "description": "Recruiter and scaffold exploration", "external": true},
+      {"label": "V-LiSEMOD", "href": "https://vlisemod.com", "description": "Context, readiness, and triage", "external": true},
+      {"label": "Schurer Lab", "href": "https://schurerlab.org", "description": "Related lab and tool ecosystem", "external": true},
+      {"label": "PROTAC Builder", "href": url_for('ui.ecosystem'), "endpoint": "ui.ecosystem", "description": "How the tools connect together"},
+    ],
   },
   {
-    "href": url_for('ui.ligase_ligandalyzer'),
-    "endpoint": "ui.ligase_ligandalyzer",
-    "icon": "🔬",
-    "label": "E3 Ligandalyzer",
-  },
-  {
-    "href": "https://warheadhunter.com/",
-    "icon": "🎯",
-    "label": "Warhead Hunter",
-    "external": true,
-  },
-  {
-    "href": "https://schurerlab.org",
-    "icon": "🏛️",
-    "label": "Schürer Lab",
-    "external": true,
+    "label": "Developer",
+    "icon": "⚙️",
+    "active_prefixes": ["/api-docs", "/api-examples", "/batch-workflows", "/openapi", "/llms.txt"],
+    "items": [
+      {"label": "API Docs", "href": url_for('ui.api_docs'), "endpoint": "ui.api_docs", "description": "Human-readable API documentation"},
+      {"label": "OpenAPI JSON", "href": url_for('ui.openapi_json'), "description": "Machine-readable API schema"},
+      {"label": "OpenAPI YAML", "href": url_for('ui.openapi_yaml'), "description": "YAML API schema"},
+      {"label": "API Examples", "href": url_for('ui.api_examples'), "endpoint": "ui.api_examples", "description": "Useful starter endpoints"},
+      {"label": "Batch Workflows", "href": url_for('ui.batch_workflows'), "endpoint": "ui.batch_workflows", "description": "Template and batch guidance"},
+      {"label": "llms.txt", "href": url_for('ui.llms_txt'), "description": "Agent discovery file"},
+    ],
   },
 ] %}
-
-{% macro render_nav_link(item, mobile=False) -%}
-  <li class="{{ 'protac-mobile-drawer__item' if mobile else 'protac-site-nav__item' }}">
-    <a
-      href="{{ item.href }}"
-      class="
-        {{ 'protac-mobile-drawer__link' if mobile else 'protac-site-nav__link' }}
-        {% if item.endpoint and request.endpoint == item.endpoint %}is-active{% endif %}
-      "
-      {% if item.external %}target="_blank" rel="noopener noreferrer"{% endif %}
-    >
-      <span class="protac-nav-link__icon" aria-hidden="true">{{ item.icon }}</span>
-      <span class="protac-nav-link__label">{{ item.label }}</span>
-      {% if item.pill %}
-        <span class="protac-nav-link__pill">{{ item.pill }}</span>
-      {% endif %}
-      {% if item.external %}
-        <span class="protac-nav-link__external" aria-hidden="true">↗</span>
-      {% endif %}
-    </a>
-  </li>
-{%- endmacro %}
 
 <div class="protac-nav-glow" aria-hidden="true"></div>
 
 <nav class="protac-site-nav" aria-label="Primary navigation">
-  <a class="protac-site-nav__brand" href="{{ url_for('ui.builder') }}" aria-label="PROTAC Builder home">
+  <a class="protac-site-nav__brand" href="{{ url_for('ui.home') }}" aria-label="PROTAC Builder home">
     <span class="protac-site-nav__brand-mark" aria-hidden="true">🧪</span>
     <span class="protac-site-nav__brand-text">PROTAC Builder</span>
   </a>
 
   <div class="protac-site-nav__desktop" aria-label="Desktop navigation">
     <ul class="protac-site-nav__list">
-      {% for item in primary_nav_items %}
-        {{ render_nav_link(item) }}
-      {% endfor %}
-      {% for item in discovery_nav_items %}
-        {{ render_nav_link(item) }}
+      {% for group in nav_groups %}
+        <li class="protac-site-nav__item protac-site-nav__item--menu">
+          <button
+            class="protac-site-nav__menu-trigger{% if request.endpoint == 'ui.home' and group.label == 'Builder' or request.path in group.active_prefixes %} is-active{% endif %}"
+            type="button"
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            <span class="protac-nav-link__icon" aria-hidden="true">{{ group.icon }}</span>
+            <span class="protac-nav-link__label">{{ group.label }}</span>
+          </button>
+          <div class="protac-nav-menu" role="menu">
+            {% for item in group["items"] %}
+            <a
+              href="{{ item.href }}"
+              class="protac-nav-menu__link{% if item.endpoint and request.endpoint == item.endpoint %} is-active{% endif %}"
+              role="menuitem"
+              {% if item.external %}target="_blank" rel="noopener noreferrer"{% endif %}
+            >
+              <span class="protac-nav-menu__title">{{ item.label }}{% if item.external %} <span aria-hidden="true">↗</span>{% endif %}</span>
+              <span class="protac-nav-menu__desc">{{ item.description }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </li>
       {% endfor %}
     </ul>
   </div>
@@ -114,7 +143,7 @@
   <div class="protac-mobile-drawer__header">
     <div class="protac-mobile-drawer__title">
       <strong>Navigation</strong>
-      <span>Build, explore, and connect PROTAC discovery tools</span>
+      <span>Build, learn, and move through the degrader design ecosystem</span>
     </div>
 
     <button
@@ -129,14 +158,33 @@
 
   <nav class="protac-mobile-drawer__nav" aria-label="Mobile primary navigation">
     <ul class="protac-mobile-drawer__list">
-      {% for item in primary_nav_items %}
-        {{ render_nav_link(item, mobile=True) }}
-      {% endfor %}
-
-      <li class="protac-mobile-drawer__section">Discovery Suite</li>
-
-      {% for item in discovery_nav_items %}
-        {{ render_nav_link(item, mobile=True) }}
+      <li class="protac-mobile-drawer__item">
+        <a href="{{ url_for('ui.home') }}" class="protac-mobile-drawer__link{% if request.endpoint == 'ui.home' %} is-active{% endif %}">
+          <span class="protac-nav-link__icon" aria-hidden="true">🏠</span>
+          <span class="protac-nav-link__label">Home</span>
+        </a>
+      </li>
+      {% for group in nav_groups %}
+      <li class="protac-mobile-drawer__accordion">
+        <details>
+          <summary>
+            <span class="protac-nav-link__icon" aria-hidden="true">{{ group.icon }}</span>
+            <span class="protac-nav-link__label">{{ group.label }}</span>
+          </summary>
+          <div class="protac-mobile-drawer__submenu">
+            {% for item in group["items"] %}
+            <a
+              href="{{ item.href }}"
+              class="protac-mobile-drawer__link{% if item.endpoint and request.endpoint == item.endpoint %} is-active{% endif %}"
+              {% if item.external %}target="_blank" rel="noopener noreferrer"{% endif %}
+            >
+              <span class="protac-nav-link__label">{{ item.label }}{% if item.external %} ↗{% endif %}</span>
+              <small>{{ item.description }}</small>
+            </a>
+            {% endfor %}
+          </div>
+        </details>
+      </li>
       {% endfor %}
     </ul>
   </nav>

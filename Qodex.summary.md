@@ -1,101 +1,138 @@
 # Qodex.summary
 
 ## Task
-Refine the `/builder` curated linker modal on mobile so pagination is removed in favor of scrolling, without changing desktop behavior.
+SEO, navigation, and cross-site ecosystem expansion for PROTAC Builder.
 
 ## Original Goal
-The user wants the mobile linker picker to stop showing the stray floating `Previous` button and stop relying on pagination. On phones, users should just scroll through linker cards. Desktop should keep its existing pagination and overall builder layout, and the ChemDoodle periodic-table layering fix should remain intact.
+Add clean, organized SEO pages and dropdown navigation for PROTAC Builder, covering educational PROTAC content, component discovery hubs, examples, computational/constraint-driven design, benchmarking, downstream tools, API/tool discovery, sitemap/robots/llms, related scientific context, and cross-site links to Warhead Hunter, E3 Ligandalyzer, and V-LISEMOD.
 
 ## Assumptions
-- Desktop builder layout and desktop curated-linker modal behavior should remain unchanged.
-- Mobile-only curated-linker modal adjustments should stay scoped to `body[data-page="builder"]` and phone widths at `max-width: 768px`.
-- Existing curated-linker data loading and selection logic in `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js` should remain the main source of truth.
-- The backend linker API already returns paged results of 100 items, so phone scrolling can be implemented as append-on-scroll rather than changing the API.
-- The periodic-table/dialog z-index fix should not be touched unless the new modal behavior conflicts with it.
+- PROTAC Builder is a Flask app with Jinja templates and static assets, so the safest implementation path was server-rendered pages plus new Flask routes.
+- The current repo did not have an existing sitewide SEO helper or sitemap/robots/llms route surface, so those were added directly in Flask.
+- The project contains real structured data for curated linkers, ligase lists, recruiter-to-PDB mapping, and usage files, but not enough normalized local component metadata to justify programmatic detail pages with descriptors.
+- The uploaded perspective paper `Schulz_JCIM_Insilico_PROTAC_Perspective.docx` was not present in this repo or nearby sibling directories during inspection, so the science pages were written from the user-provided outline rather than direct document extraction.
+- Sister-site routes were chosen conservatively from inspected local source files:
+  - Warhead Hunter: `/examples` and site root are safe canonical targets.
+  - E3 Ligandalyzer: `/explorer`, `/scaffolds`, and site root are safe canonical targets.
+  - V-LiSEMOD: `/protacability_page` and site root are the safest context-oriented targets discovered locally.
 
 ## Files Inspected
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`
-- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
+- `/Users/jxs794/Documents/PROTAC_BUILDER/app.py`: app factory, public base URL config, error handling.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/routes.py`: existing UI route surface.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/api_routes.py`: public API endpoints for docs and OpenAPI coverage.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/base.html`: shared head/body layout and asset loading.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_nav.html`: existing top navigation implementation.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_footer.html`: existing footer links.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/about.html`: existing informational page style and product framing.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/api_docs.html`: existing API docs route and documentation style.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-nav.js`: existing nav/mobile drawer behavior.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-nav.css`: existing nav styling.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/data/API_Linkers.csv`: confirmed real curated linker template data.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/data/ligases.json`: confirmed real ligase list data.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/data/recruiter_pdb_map.json`: confirmed recruiter/PDB mapping data.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/robots.txt`: existing crawler file.
+
+## Sibling Directories Inspected
+- `/Users/jxs794/Documents/warhead-hunter`
+  - Flask app with routes including `/`, `/hunter`, `/how-to-use`, `/science`, `/use-cases`, `/examples`, `/examples/<job_id>`, `/docs`, `/api-docs`, and `/ecosystem`.
+  - Best PROTAC Builder-facing canonical targets discovered: `https://warheadhunter.com/examples` and `https://warheadhunter.com`.
+- `/Users/jxs794/Documents/E3Recruiter_Ligandalyzer`
+  - Flask app in `Ligase_app.py` with routes including `/`, `/explorer`, `/scaffolds`, `/ligases`, `/ligand/<code>`, `/docs`, `/methods`, `/schema`, `/download-manifest`, `/api-reference`, `/release`, `/faq`, `/case-studies`.
+  - Best canonical targets discovered: `https://e3ligandalyzer.com/explorer`, `https://e3ligandalyzer.com/scaffolds`, and `https://e3ligandalyzer.com`.
+  - Also confirmed a real PROTAC Builder session handoff pattern back to `/builder?session=...`.
+- `/Users/jxs794/Documents/VLISEMOD`
+  - Flask app with routes including `/`, `/about`, `/use-cases`, `/viral-protac-design`, `/in-silico-virology-tools`, `/methods`, `/faq`, and `/protacability_page`.
+  - Best canonical targets discovered for cautious cross-linking: `https://vlisemod.com/protacability_page` and `https://vlisemod.com`.
 
 ## Files Changed
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-builder-mobile.css`
-  Strengthened the phone-only linker-modal override so `#pagination-controls`, `#prev-page`, and `#next-page` are hidden on mobile.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`
-  Added mobile-only append-on-scroll support for curated linkers, including paging state, loading guards, and a modal-body scroll trigger that fetches the next page and appends cards instead of replacing them.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js`
-  Added a small mobile visibility sync so pagination controls are forced hidden on phones and restored automatically off-phone, while keeping the existing filter-collapse helper behavior.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`
-  Updated the summary for this mobile pagination removal pass.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/routes.py`: added new SEO page routes, legacy hub redirects, `robots.txt`, `sitemap.xml`, `llms.txt`, `openapi.json`, and `openapi.yaml`.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/base.html`: added shared meta description, canonical URL, and Open Graph support plus shared content CSS.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_nav.html`: replaced flat nav with grouped Builder, Discovery, Science, Resources, Ecosystem, and Developer dropdown menus plus mobile accordion groups.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_footer.html`: added richer internal discovery links and cleaner ecosystem link grouping.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-nav.css`: added desktop dropdown and mobile accordion styling.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-nav.js`: added desktop dropdown open/close behavior while preserving mobile drawer behavior.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/robots.txt`: updated file copy to allow crawling and point at the sitemap.
 
 ## Files Created
-- None.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/site_content.py`: centralized page content, sitemap paths, OpenAPI spec, and llms text generation.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/seo_page.html`: reusable SEO content template with JSON-LD support.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-content.css`: shared styling for the new educational and discovery pages.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`: implementation record and validation summary.
 
 ## Implementation Summary
-The remaining mobile modal issue was that the phone experience was still tied to desktop pagination. Even though the modal itself had been made more scrollable, the `Previous` and `Next` controls could still surface awkwardly on phones, which led to the floating `Previous` button the user captured.
+The app now has a server-rendered SEO homepage at `/` while preserving the interactive builder at `/builder`. I added educational pages for foundational PROTAC concepts, a step-by-step build guide, example workflows, component discovery hubs, science and benchmarking pages, and a dedicated ecosystem page. I also added developer discovery files and public route exposure for `robots.txt`, `sitemap.xml`, `llms.txt`, and a route-backed OpenAPI spec in JSON and YAML.
 
-I fixed that in two layers. First, the builder mobile stylesheet now hides the pagination wrapper and both individual buttons at phone widths so the desktop pager cannot visually leak into the mobile card stack. Second, the curated-linker fetch logic now supports a mobile append mode: when the phone user scrolls near the bottom of the modal body, the next backend page is fetched and appended into `#linkers-list`. That gives mobile a continuous scrolling picker while leaving desktop pagination intact.
+Navigation was reorganized into grouped dropdown menus for desktop and grouped accordions for mobile. Cross-site links were woven into relevant pages without claiming that PROTAC Builder itself contains complete standalone warhead, recruiter, or context libraries.
 
 ## Key Decisions
-- Kept the change builder-scoped and mobile-only instead of changing shared modal behavior.
-- Left desktop pagination in place and only hid it at phone widths.
-- Moved the mobile append-on-scroll behavior into `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`, where the curated-linker paging state already exists, instead of relying on an external helper object.
-- Added JS visibility syncing in `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-builder-mobile.js` as a second safeguard in case cached CSS or modal state temporarily exposes the pager on phones.
-- Preserved the existing periodic-table/dialog layering fix by not touching the z-index rules.
+- Navigation grouping: used grouped dropdowns for `Builder`, `Discovery`, `Science`, `Resources`, `Ecosystem`, and `Developer` instead of adding dozens of flat top-level links.
+- “Libraries” wording: kept SEO-relevant alias routes like `/protac-warhead-library` only as redirects to more cautious hub pages such as `/warheads`, `/linkers`, and `/e3-ligase-recruiters`.
+- Programmatic detail pages: deferred. The current repo has real linker and ligase/recruiter source files, but not enough normalized per-component metadata to safely generate descriptor-rich detail pages without overclaiming.
+- OpenAPI: added a real, conservative route-backed spec describing the public Flask endpoints that are visible in the repo today.
+- Sitemap/robots/llms: implemented as route-backed discovery assets and updated the root `robots.txt` file copy for consistency.
+- Cross-site links: chose exact routes only where they were clearly present in inspected sibling source. Otherwise used safe canonical top-level routes.
+- Scientific claims: kept all content focused on assembly, feasibility, workflow staging, and downstream validation rather than implying guaranteed degradation or complete molecular libraries.
 
 ## Commands Run
 - `pwd`
-  Confirmed the project root.
-- `git status --short`
-  Confirmed the edited files in the current worktree.
-- `git diff -- static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js static/js/COPYscripts.js Qodex.summary.md`
-  Reviewed the current changes before and after patching.
-- `rg -n "curatedLinkersModal|pagination-controls|prev-page|next-page|toggle-filters|linkers-list|linker-item" templates/builder.html static/css/protac-builder-mobile.css static/js/protac-builder-mobile.js static/js/COPYscripts.js`
-  Located all modal pagination and linker list touchpoints.
-- `sed -n '1170,1310p' templates/builder.html`
-  Reviewed the modal-related inline CSS in the builder template.
-- `sed -n '540,720p' static/js/COPYscripts.js`
-  Reviewed the curated-linker fetch and paging logic before patching.
-- `sed -n '360,470p' static/css/protac-builder-mobile.css`
-  Reviewed the builder-scoped mobile modal CSS before patching.
-- `sed -n '1,320p' static/js/protac-builder-mobile.js`
-  Reviewed the existing builder-only mobile helper logic before patching.
-- `python app.py`
-  Confirmed port `5069` was already in use by the running local app instance.
-- `node --check static/js/COPYscripts.js`
-  Passed.
-- `node --check static/js/protac-builder-mobile.js`
-  Passed.
-- `python -m py_compile app.py`
-  Passed.
-- `python -m py_compile protac_builder/routes.py`
-  Passed.
-- Browser-plugin setup attempts against the local builder page
-  Connected to the in-app browser runtime, but the available tab session stayed on `about:blank`, so I could not complete a fresh screenshot-based verification from this environment.
+- `rg --files ...`
+- `rg -n "nav|navbar|dropdown|sitemap|robots|openapi|llms|api docs|api-docs|builder|ligandalyzer|examples|about|resources" templates protac_builder app.py`
+- `sed -n ...` across app, routes, templates, CSS, JS, and sibling repo files
+- `find /Users/jxs794/Documents/warhead-hunter ...`
+- `find /Users/jxs794/Documents/E3Recruiter_Ligandalyzer ...`
+- `find /Users/jxs794/Documents/VLISEMOD ...`
+- `python -m compileall app.py protac_builder`
+- Flask test-client route smoke scripts for all new and existing high-value routes
+- Browser verification on `http://127.0.0.1:5069/` for homepage and desktop dropdown interaction
 
 ## Validation Results
-- Desktop protection:
-  The desktop pagination code path remains in `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/COPYscripts.js`, and the mobile hide rules are scoped to phone widths only.
-- Mobile behavior:
-  On phone widths, the CSS now hides `#pagination-controls`, `#prev-page`, and `#next-page`, and the JS adds append-on-scroll loading through the curated-linker modal body rather than page buttons.
-- Syntax validation:
-  `node --check` passed for both edited JS files, and `python -m py_compile` passed for the checked Python files.
-- Visual validation:
-  I confirmed the local app was running, but I was not able to complete a fresh browser screenshot/interaction capture from the in-app browser because the available automation tab session would not navigate off `about:blank`. This means the code path is validated by inspection and syntax checks, but not by a new captured mobile screenshot in this environment.
+- `python -m compileall app.py protac_builder`: passed.
+- Flask test-client route smoke check for homepage, builder, docs, all new SEO pages, `robots.txt`, `llms.txt`, `sitemap.xml`, `openapi.json`, and `openapi.yaml`: passed with HTTP 200 responses.
+- Legacy alias redirects:
+  - `/protac-warhead-library` -> `/warheads` returned 301.
+  - `/protac-linker-library` -> `/linkers` returned 301.
+  - `/e3-recruiter-library` -> `/e3-ligase-recruiters` returned 301.
+- Browser verification:
+  - Homepage rendered correctly in the in-app browser.
+  - Desktop dropdown navigation opened and displayed the new grouped discovery links.
+- No Python test suite, lint command, or dedicated build command was present in the repo, so those validations were not run.
 
 ## Known Issues
-- I was not able to complete a fresh browser-captured visual verification pass from this environment, so a quick manual phone-width check in the app/browser is still recommended before shipping.
-- The mobile infinite-scroll path assumes the curated-linker API continues returning stable paged results; if the API semantics change, the append logic should be revisited.
-- I did not change any of the legacy inline modal CSS in `/Users/jxs794/Documents/PROTAC_BUILDER/templates/builder.html`; this pass stayed focused on the mobile pager removal.
+- No local perspective paper file was found, so the science copy is based on the user-provided summary rather than direct document extraction.
+- Programmatic component detail pages were intentionally deferred pending normalized local datasets with trustworthy per-component metadata and descriptor fields.
+- V-LiSEMOD appears domain-specific in places, so cross-links were kept conservative around context/triage positioning.
+- Mobile drawer behavior follows the existing responsive navigation pattern and was implemented carefully, but only desktop dropdown interaction received direct browser verification in this pass.
+- The route-backed OpenAPI spec is conservative and intentionally descriptive rather than schema-complete for every payload shape.
 
 ## Manual Verification
-1. Run the app from `/Users/jxs794/Documents/PROTAC_BUILDER` and open `http://127.0.0.1:5069/builder`.
-2. At `1280px` or wider, open the curated-linker modal and confirm `Previous` / `Next` still appear and desktop behavior looks unchanged.
-3. At `390px` or `430px`, open the curated-linker modal and confirm no floating `Previous` button appears anywhere in the linker card stack.
-4. Scroll downward in the mobile modal and confirm more linker cards load without exposing the pager.
-5. Confirm filters still show/hide correctly, card selection still enables `Select Linker`, and the periodic-table popup elsewhere in the builder still appears above editor containers.
+1. Open the homepage at `http://127.0.0.1:5069/` or the deployed `/` route.
+2. Open the new top-nav dropdowns and confirm the grouped Builder, Discovery, Science, Resources, Ecosystem, and Developer menus appear.
+3. Visit the new SEO pages:
+   - `/what-is-a-protac`
+   - `/how-to-build-a-protac`
+   - `/examples`
+   - `/constraint-driven-protac-design`
+   - `/in-silico-protac-modeling`
+   - `/benchmarking`
+   - `/downstream-modeling-tools`
+   - `/ecosystem`
+4. Visit the component discovery hub pages and confirm they do not overclaim complete standalone libraries:
+   - `/component-hubs`
+   - `/warheads`
+   - `/linkers`
+   - `/e3-ligase-recruiters`
+5. Confirm ecosystem links to Warhead Hunter, E3 Ligandalyzer, and V-LiSEMOD point to sensible canonical destinations.
+6. Confirm existing routes still work:
+   - `/builder`
+   - `/api-builder`
+   - `/api-docs`
+   - `/ligase-ligandalyzer`
+7. Check discovery assets:
+   - `/sitemap.xml`
+   - `/robots.txt`
+   - `/llms.txt`
+   - `/openapi.json`
+   - `/openapi.yaml`
 
 ## Suggested Next Prompt
-Add a small mobile “Loading more linkers…” sentinel and an end-of-results message in the curated linker modal so users get clearer feedback while infinite scrolling.
+Add reciprocal ecosystem pages and handoff links in `/Users/jxs794/Documents/warhead-hunter`, `/Users/jxs794/Documents/E3Recruiter_Ligandalyzer`, and `/Users/jxs794/Documents/VLISEMOD` so the cross-site journey is symmetrical and uses the same cautious component-hub language.

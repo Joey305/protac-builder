@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block body_class %}protac-page protac-content-page{% endblock %}
+{% block body_attrs %}data-page="{{ page.slug or 'home' }}"{% endblock %}
+
+{% block extra_head %}
+  {% if page.software_app_schema %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "PROTAC Builder",
+      "applicationCategory": "ScientificApplication",
+      "operatingSystem": "Web",
+      "url": "{{ public_base_url }}/builder",
+      "description": "{{ page.meta_description|e }}",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
+  {% endif %}
+  {% if page.article_schema %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "{{ page.h1|e }}",
+      "description": "{{ page.meta_description|e }}",
+      "url": "{{ page.canonical_url }}",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Schurer Lab"
+      }
+    }
+  </script>
+  {% endif %}
+  {% if page.faq %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {% for item in page.faq %}
+        {
+          "@type": "Question",
+          "name": "{{ item.question|e }}",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "{{ item.answer|e }}"
+          }
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+  </script>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="protac-content-shell">
+  <section class="protac-hero-card">
+    <span class="protac-page-kicker">{{ page.kicker }}</span>
+    <h1>{{ page.h1 }}</h1>
+    {% for paragraph in page.intro %}
+      <p class="protac-hero-copy">{{ paragraph }}</p>
+    {% endfor %}
+
+    {% if page.hero_pills %}
+    <div class="protac-pill-row" aria-label="Page highlights">
+      {% for pill in page.hero_pills %}
+      <span class="protac-pill">{{ pill }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if page.hero_actions %}
+    <div class="protac-action-row">
+      {% for action in page.hero_actions %}
+      <a
+        href="{{ action.href }}"
+        class="protac-action-button {% if loop.first %}is-primary{% else %}is-secondary{% endif %}"
+        {% if action.external %}target="_blank" rel="noopener noreferrer"{% endif %}
+      >
+        {{ action.label }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  {% for section in page.sections %}
+  <section class="protac-section-card" {% if section.id %}id="{{ section.id }}"{% endif %}>
+    <div class="protac-section-head">
+      <h2>{{ section.title }}</h2>
+    </div>
+
+    {% for paragraph in section.paragraphs or [] %}
+    <p class="protac-section-copy">{{ paragraph }}</p>
+    {% endfor %}
+
+    {% if section.bullets %}
+    <ul class="protac-bullet-list">
+      {% for bullet in section.bullets %}
+      <li>{{ bullet }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if section.cards %}
+    <div class="protac-card-grid">
+      {% for card in section.cards %}
+      <article class="protac-info-card">
+        {% if card.kicker %}
+        <span class="protac-card-kicker">{{ card.kicker }}</span>
+        {% endif %}
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.body }}</p>
+        <a
+          href="{{ card.href }}"
+          class="protac-inline-link"
+          {% if card.external %}target="_blank" rel="noopener noreferrer"{% endif %}
+        >
+          {{ card.cta }}{% if card.external %} ↗{% endif %}
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+  {% endfor %}
+
+  {% if page.faq %}
+  <section class="protac-section-card" id="faq">
+    <div class="protac-section-head">
+      <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="protac-faq-list">
+      {% for item in page.faq %}
+      <article class="protac-faq-item">
+        <h3>{{ item.question }}</h3>
+        <p>{{ item.answer }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

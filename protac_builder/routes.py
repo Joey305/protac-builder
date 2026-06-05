@@ -1,11 +1,11 @@
 from __future__ import annotations
-
 from pathlib import Path
 
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, Response, current_app, jsonify, redirect, render_template, request, url_for
 
 from . import route_impl as impl
 from .io_utils import apply_cors_headers
+from .site_content import ALIAS_TO_PAGE, OPENAPI_SPEC, SITEMAP_PATHS, get_page, llms_text, yaml_dump
 
 
 ui_bp = Blueprint("ui", __name__)
@@ -20,7 +20,16 @@ def add_cors_headers(response):
     return apply_cors_headers(request, response)
 
 
+def _render_content_page(page_key: str):
+    page = get_page(page_key)
+    return render_template("seo_page.html", page=page)
+
+
 @ui_bp.get("/")
+def home():
+    return _render_content_page(ALIAS_TO_PAGE["home"])
+
+
 @ui_bp.get("/builder")
 def builder():
     try:
@@ -54,6 +63,126 @@ def about():
     return render_template("about.html")
 
 
+@ui_bp.get("/what-is-a-protac")
+def what_is_a_protac():
+    return _render_content_page(ALIAS_TO_PAGE["what-is-a-protac"])
+
+
+@ui_bp.get("/how-to-build-a-protac")
+def how_to_build_a_protac():
+    return _render_content_page(ALIAS_TO_PAGE["how-to-build-a-protac"])
+
+
+@ui_bp.get("/examples")
+def examples():
+    return _render_content_page(ALIAS_TO_PAGE["examples"])
+
+
+@ui_bp.get("/component-hubs")
+def component_hubs():
+    return _render_content_page(ALIAS_TO_PAGE["component-hubs"])
+
+
+@ui_bp.get("/warheads")
+def warheads():
+    return _render_content_page(ALIAS_TO_PAGE["warheads"])
+
+
+@ui_bp.get("/protac-warhead-library")
+def protac_warhead_library():
+    return redirect(url_for("ui.warheads"), code=301)
+
+
+@ui_bp.get("/linkers")
+def linkers():
+    return _render_content_page(ALIAS_TO_PAGE["linkers"])
+
+
+@ui_bp.get("/protac-linker-library")
+def protac_linker_library():
+    return redirect(url_for("ui.linkers"), code=301)
+
+
+@ui_bp.get("/e3-ligase-recruiters")
+def e3_ligase_recruiters():
+    return _render_content_page(ALIAS_TO_PAGE["e3-ligase-recruiters"])
+
+
+@ui_bp.get("/e3-recruiter-library")
+def e3_recruiter_library():
+    return redirect(url_for("ui.e3_ligase_recruiters"), code=301)
+
+
+@ui_bp.get("/constraint-driven-protac-design")
+def constraint_driven_protac_design():
+    return _render_content_page(ALIAS_TO_PAGE["constraint-driven-protac-design"])
+
+
+@ui_bp.get("/in-silico-protac-modeling")
+def in_silico_protac_modeling():
+    return _render_content_page(ALIAS_TO_PAGE["in-silico-protac-modeling"])
+
+
+@ui_bp.get("/benchmarking")
+def benchmarking():
+    return _render_content_page(ALIAS_TO_PAGE["benchmarking"])
+
+
+@ui_bp.get("/downstream-modeling-tools")
+def downstream_modeling_tools():
+    return _render_content_page(ALIAS_TO_PAGE["downstream-modeling-tools"])
+
+
+@ui_bp.get("/ecosystem")
+def ecosystem():
+    return _render_content_page(ALIAS_TO_PAGE["ecosystem"])
+
+
+@ui_bp.get("/faq")
+def faq():
+    return _render_content_page(ALIAS_TO_PAGE["faq"])
+
+
+@ui_bp.get("/methods")
+def methods():
+    return _render_content_page(ALIAS_TO_PAGE["methods"])
+
+
+@ui_bp.get("/database-schema")
+def database_schema():
+    return _render_content_page(ALIAS_TO_PAGE["database-schema"])
+
+
+@ui_bp.get("/release-notes")
+def release_notes():
+    return _render_content_page(ALIAS_TO_PAGE["release-notes"])
+
+
+@ui_bp.get("/download-manifest")
+def download_manifest():
+    return _render_content_page(ALIAS_TO_PAGE["download-manifest"])
+
+
+@ui_bp.get("/case-studies")
+def case_studies():
+    return _render_content_page(ALIAS_TO_PAGE["case-studies"])
+
+
+@ui_bp.get("/submit-data")
+def submit_data():
+    return _render_content_page(ALIAS_TO_PAGE["submit-data"])
+
+
+@ui_bp.get("/api-examples")
+def api_examples():
+    return _render_content_page(ALIAS_TO_PAGE["api-examples"])
+
+
+@ui_bp.get("/batch-workflows")
+def batch_workflows():
+    return _render_content_page(ALIAS_TO_PAGE["batch-workflows"])
+
+
 @ui_bp.get("/ligand-editor")
 def ligand_editor():
     return impl.ligand_editor()
@@ -67,6 +196,59 @@ def ligase_ligandalyzer():
 @ui_bp.get("/view-ligase")
 def view_ligase():
     return impl.view_ligase()
+
+
+@ui_bp.get("/robots.txt")
+def robots_txt():
+    base_url = current_app.config["PROTAC_PUBLIC_BASE_URL"]
+    body = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        f"Sitemap: {base_url}/sitemap.xml\n"
+    )
+    return Response(body, mimetype="text/plain")
+
+
+@ui_bp.get("/llms.txt")
+def llms_txt():
+    return Response(
+        llms_text(current_app.config["PROTAC_PUBLIC_BASE_URL"]),
+        mimetype="text/plain",
+    )
+
+
+@ui_bp.get("/sitemap.xml")
+def sitemap_xml():
+    base_url = current_app.config["PROTAC_PUBLIC_BASE_URL"]
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for path in SITEMAP_PATHS:
+        loc = f"{base_url}{path}" if path != "/" else base_url
+        lines.extend(
+            [
+                "  <url>",
+                f"    <loc>{loc}</loc>",
+                "  </url>",
+            ]
+        )
+    lines.append("</urlset>")
+    return Response("\n".join(lines), mimetype="application/xml")
+
+
+@ui_bp.get("/openapi.json")
+def openapi_json():
+    spec = dict(OPENAPI_SPEC)
+    spec["servers"] = [{"url": current_app.config["PROTAC_PUBLIC_BASE_URL"]}]
+    return jsonify(spec)
+
+
+@ui_bp.get("/openapi.yaml")
+def openapi_yaml():
+    spec = dict(OPENAPI_SPEC)
+    spec["servers"] = [{"url": current_app.config["PROTAC_PUBLIC_BASE_URL"]}]
+    return Response(yaml_dump(spec) + "\n", mimetype="application/yaml")
 
 
 @ui_bp.get("/healthz")
