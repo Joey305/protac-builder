@@ -5,7 +5,7 @@ from flask import Blueprint, Response, current_app, jsonify, redirect, render_te
 
 from . import route_impl as impl
 from .io_utils import apply_cors_headers
-from .site_content import ALIAS_TO_PAGE, OPENAPI_SPEC, SITEMAP_PATHS, get_page, llms_text, yaml_dump
+from .site_content import OPENAPI_SPEC, SITEMAP_PATHS, get_page_meta, llms_text, yaml_dump
 
 
 ui_bp = Blueprint("ui", __name__)
@@ -20,14 +20,14 @@ def add_cors_headers(response):
     return apply_cors_headers(request, response)
 
 
-def _render_content_page(page_key: str):
-    page = get_page(page_key)
-    return render_template("seo_page.html", page=page)
+def _render_page(page_key: str):
+    page = get_page_meta(page_key)
+    return render_template(page["template"], page=page)
 
 
 @ui_bp.get("/")
 def home():
-    return _render_content_page(ALIAS_TO_PAGE["home"])
+    return _render_page("home")
 
 
 @ui_bp.get("/builder")
@@ -65,27 +65,27 @@ def about():
 
 @ui_bp.get("/what-is-a-protac")
 def what_is_a_protac():
-    return _render_content_page(ALIAS_TO_PAGE["what-is-a-protac"])
+    return _render_page("what_is_a_protac")
 
 
 @ui_bp.get("/how-to-build-a-protac")
 def how_to_build_a_protac():
-    return _render_content_page(ALIAS_TO_PAGE["how-to-build-a-protac"])
+    return _render_page("how_to_build_a_protac")
 
 
 @ui_bp.get("/examples")
 def examples():
-    return _render_content_page(ALIAS_TO_PAGE["examples"])
+    return _render_page("examples")
 
 
 @ui_bp.get("/component-hubs")
 def component_hubs():
-    return _render_content_page(ALIAS_TO_PAGE["component-hubs"])
+    return _render_page("component_hubs")
 
 
 @ui_bp.get("/warheads")
 def warheads():
-    return _render_content_page(ALIAS_TO_PAGE["warheads"])
+    return _render_page("warheads")
 
 
 @ui_bp.get("/protac-warhead-library")
@@ -95,7 +95,7 @@ def protac_warhead_library():
 
 @ui_bp.get("/linkers")
 def linkers():
-    return _render_content_page(ALIAS_TO_PAGE["linkers"])
+    return _render_page("linkers")
 
 
 @ui_bp.get("/protac-linker-library")
@@ -105,7 +105,7 @@ def protac_linker_library():
 
 @ui_bp.get("/e3-ligase-recruiters")
 def e3_ligase_recruiters():
-    return _render_content_page(ALIAS_TO_PAGE["e3-ligase-recruiters"])
+    return _render_page("e3_ligase_recruiters")
 
 
 @ui_bp.get("/e3-recruiter-library")
@@ -115,72 +115,72 @@ def e3_recruiter_library():
 
 @ui_bp.get("/constraint-driven-protac-design")
 def constraint_driven_protac_design():
-    return _render_content_page(ALIAS_TO_PAGE["constraint-driven-protac-design"])
+    return _render_page("constraint_driven_protac_design")
 
 
 @ui_bp.get("/in-silico-protac-modeling")
 def in_silico_protac_modeling():
-    return _render_content_page(ALIAS_TO_PAGE["in-silico-protac-modeling"])
+    return _render_page("in_silico_protac_modeling")
 
 
 @ui_bp.get("/benchmarking")
 def benchmarking():
-    return _render_content_page(ALIAS_TO_PAGE["benchmarking"])
+    return _render_page("benchmarking")
 
 
 @ui_bp.get("/downstream-modeling-tools")
 def downstream_modeling_tools():
-    return _render_content_page(ALIAS_TO_PAGE["downstream-modeling-tools"])
+    return _render_page("downstream_modeling_tools")
 
 
 @ui_bp.get("/ecosystem")
 def ecosystem():
-    return _render_content_page(ALIAS_TO_PAGE["ecosystem"])
+    return _render_page("ecosystem")
 
 
 @ui_bp.get("/faq")
 def faq():
-    return _render_content_page(ALIAS_TO_PAGE["faq"])
+    return _render_page("faq")
 
 
 @ui_bp.get("/methods")
 def methods():
-    return _render_content_page(ALIAS_TO_PAGE["methods"])
+    return _render_page("methods")
 
 
 @ui_bp.get("/database-schema")
 def database_schema():
-    return _render_content_page(ALIAS_TO_PAGE["database-schema"])
+    return _render_page("database_schema")
 
 
 @ui_bp.get("/release-notes")
 def release_notes():
-    return _render_content_page(ALIAS_TO_PAGE["release-notes"])
+    return _render_page("release_notes")
 
 
 @ui_bp.get("/download-manifest")
 def download_manifest():
-    return _render_content_page(ALIAS_TO_PAGE["download-manifest"])
+    return _render_page("download_manifest")
 
 
 @ui_bp.get("/case-studies")
 def case_studies():
-    return _render_content_page(ALIAS_TO_PAGE["case-studies"])
+    return _render_page("case_studies")
 
 
 @ui_bp.get("/submit-data")
 def submit_data():
-    return _render_content_page(ALIAS_TO_PAGE["submit-data"])
+    return _render_page("submit_data")
 
 
 @ui_bp.get("/api-examples")
 def api_examples():
-    return _render_content_page(ALIAS_TO_PAGE["api-examples"])
+    return _render_page("api_examples")
 
 
 @ui_bp.get("/batch-workflows")
 def batch_workflows():
-    return _render_content_page(ALIAS_TO_PAGE["batch-workflows"])
+    return _render_page("batch_workflows")
 
 
 @ui_bp.get("/ligand-editor")

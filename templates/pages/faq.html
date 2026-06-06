@@ -1,0 +1,74 @@
+{% extends "pages/_page_base.html" %}
+
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does PROTAC Builder guarantee that a generated molecule will degrade the target?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. The builder standardizes components and assembles candidate degraders, but degradation still depends on broader structural, biophysical, cellular, and experimental factors."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this site a complete library of all warheads, linkers, or recruiters?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. The site provides component hubs and assembly workflows, while deeper component-specific exploration may live in Warhead Hunter, E3 Ligandalyzer, or other connected resources."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "When should I use Warhead Hunter or E3 Ligandalyzer first?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use Warhead Hunter when the target-binding ligand is still under exploration, and use E3 Ligandalyzer when recruiter, scaffold, or ligase-side attachment context is still under exploration."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use PROTAC Builder in scripted or batch workflows?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The site exposes API-oriented routes and an API Builder page to help with notebook, server, and batch workflows."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Resources</span>
+  <h1>PROTAC Builder FAQ</h1>
+  <p class="protac-hero-copy">These answers focus on scope, workflow fit, and careful interpretation of generated outputs.</p>
+</section>
+
+<section class="protac-section-card" id="faq">
+  <div class="protac-section-head"><h2>Frequently Asked Questions</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>Does PROTAC Builder guarantee that a generated molecule will degrade the target?</h3>
+      <p>No. The builder standardizes components and assembles candidate degraders, but degradation still depends on broader structural, biophysical, cellular, and experimental factors.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Is this site a complete library of all warheads, linkers, or recruiters?</h3>
+      <p>No. The site provides component hubs and assembly workflows, while deeper component-specific exploration may live in Warhead Hunter, E3 Ligandalyzer, or other connected resources.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>When should I use Warhead Hunter or E3 Ligandalyzer first?</h3>
+      <p>Use Warhead Hunter when the target-binding ligand is still under exploration, and use E3 Ligandalyzer when recruiter, scaffold, or ligase-side attachment context is still under exploration.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can I use PROTAC Builder in scripted or batch workflows?</h3>
+      <p>Yes. The site exposes API-oriented routes and an API Builder page to help with notebook, server, and batch workflows.</p>
+    </article>
+  </div>
+</section>
+{% endblock %}

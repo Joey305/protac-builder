@@ -1,0 +1,41 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Practical Guide</span>
+  <h1>How to Build a PROTAC</h1>
+  <p class="protac-hero-copy">A practical PROTAC workflow starts by clarifying the target-binding warhead and the E3 recruiter before worrying about linker enumeration.</p>
+  <p class="protac-hero-copy">The goal is not to claim guaranteed degradation, but to standardize components, choose sensible anchor points, and prepare structures for additional computational and experimental validation.</p>
+  <div class="protac-action-row">
+    {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+    {{ action_link('/examples', 'Open examples') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="steps">
+  <div class="protac-section-head"><h2>Recommended staged workflow</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Choose a target-binding warhead and confirm the intended protein-of-interest context.</li>
+    <li>Use Warhead Hunter when you need deeper warhead discovery or target-binding exploration.</li>
+    <li>Choose an E3 ligase recruiter and inspect recruiter/scaffold context in E3 Ligandalyzer when helpful.</li>
+    <li>Use V-LiSEMOD when the target is viral and you need bound-ligand or solvent-exposed moiety evidence to guide warhead selection.</li>
+    <li>Choose a linker with realistic length, polarity, flexibility, and attachment geometry.</li>
+    <li>Define attachment atoms or anchor points on both ends before assembly.</li>
+    <li>Generate or load SMILES, MOL, or SDF representations where supported.</li>
+    <li>Run descriptor, ADMET, or DeepPK-related workflows where those outputs help downstream prioritization.</li>
+    <li>Export candidates into restrained ternary modeling, docking, or batch workflows.</li>
+    <li>Use API and batch tooling when screening larger enumerations.</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="tools">
+  <div class="protac-section-head"><h2>Recommended tools for each stage</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead Hunter', 'Deeper warhead and target-context discovery before degrader assembly.', 'https://warheadhunter.com/examples', kicker='Upstream', cta='Use Warhead Hunter', external=True) }}
+    {{ info_card('E3 Ligandalyzer', 'Recruiter, scaffold, attachment-vector, and ligase-oriented exploration.', 'https://e3ligandalyzer.com/explorer', kicker='Upstream', cta='Use E3 Ligandalyzer', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Viral protein-ligand structures and solvent-exposed moieties for viral-target warhead discovery.', 'https://vlisemod.com', kicker='Upstream', cta='Use V-LiSEMOD', external=True) }}
+    {{ info_card('API Builder', 'Generate batch-friendly payloads for larger screens and scripted workflows.', '/api-builder', kicker='Operationalize', cta='Open API Builder') }}
+  </div>
+</section>
+{% endblock %}

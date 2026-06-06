@@ -1,0 +1,26 @@
+{% macro action_link(href, label, primary=False, external=False) -%}
+<a
+  href="{{ href }}"
+  class="protac-action-button {{ 'is-primary' if primary else 'is-secondary' }}"
+  {% if external %}target="_blank" rel="noopener noreferrer"{% endif %}
+>
+  {{ label }}{% if external %} ↗{% endif %}
+</a>
+{%- endmacro %}
+
+{% macro info_card(title, body, href, kicker=None, cta='Visit page', external=False) -%}
+<article class="protac-info-card">
+  {% if kicker %}
+  <span class="protac-card-kicker">{{ kicker }}</span>
+  {% endif %}
+  <h3>{{ title }}</h3>
+  <p>{{ body }}</p>
+  <a
+    href="{{ href }}"
+    class="protac-inline-link"
+    {% if external %}target="_blank" rel="noopener noreferrer"{% endif %}
+  >
+    {{ cta }}{% if external %} ↗{% endif %}
+  </a>
+</article>
+{%- endmacro %}

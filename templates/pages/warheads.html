@@ -1,0 +1,29 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Warhead Discovery</span>
+  <h1>PROTAC Warhead Discovery Hub</h1>
+  <p class="protac-hero-copy">A warhead is the target-binding part of a PROTAC. It determines the protein-of-interest context, possible attachment vectors, and much of the downstream feasibility of ternary complex formation.</p>
+  <p class="protac-hero-copy">This page is a discovery hub rather than a claim of a complete standalone warhead library inside PROTAC Builder.</p>
+</section>
+
+<section class="protac-section-card" id="role">
+  <div class="protac-section-head"><h2>Why warhead context matters</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Warhead pose and solvent exposure shape where a linker can be attached.</li>
+    <li>Attachment atom choice influences exit vector, steric burden, and bridgeability.</li>
+    <li>Target-specific warhead chemistry often needs more context than an assembly tool alone can provide.</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="handoff">
+  <div class="protac-section-head"><h2>Recommended workflow</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Explore warheads in Warhead Hunter', 'Use warhead-first discovery and examples before degrader assembly.', 'https://warheadhunter.com/examples', kicker='External', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('Assemble in PROTAC Builder', 'Bring the chosen target-binding ligand back into the builder.', '/builder', kicker='Assembly', cta='Return to builder') }}
+    {{ info_card('See examples', 'Review cross-site and component-aware example workflows.', '/examples', kicker='Examples', cta='Open examples') }}
+  </div>
+</section>
+{% endblock %}

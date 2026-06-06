@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.meta_title }}{% endblock %}
+{% block meta_description %}{{ page.meta_description }}{% endblock %}
+{% block body_class %}protac-page protac-content-page{% endblock %}
+{% block body_attrs %}data-page="{{ page.slug or 'home' }}"{% endblock %}
+
+{% block extra_head %}
+  {% if page.software_app_schema %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "PROTAC Builder",
+      "applicationCategory": "ScientificApplication",
+      "operatingSystem": "Web",
+      "url": "{{ public_base_url }}/builder",
+      "description": "{{ page.meta_description|e }}",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
+  {% endif %}
+  {% if page.article_schema %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "{{ page.meta_title|e }}",
+      "description": "{{ page.meta_description|e }}",
+      "url": "{{ page.canonical_url }}",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Schurer Lab"
+      }
+    }
+  </script>
+  {% endif %}
+  {% block structured_data %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="protac-content-shell">
+  {% block page_content %}{% endblock %}
+</div>
+{% endblock %}

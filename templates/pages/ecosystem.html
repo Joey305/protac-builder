@@ -1,0 +1,32 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Connected Tools</span>
+  <h1>Schurer Lab PROTAC Design Ecosystem</h1>
+  <p class="protac-hero-copy">The degrader design workflow spans multiple questions, so the ecosystem is intentionally distributed across tools instead of forcing every function into one interface.</p>
+  <p class="protac-hero-copy">PROTAC Builder is the assembly layer that connects upstream warhead, recruiter, and viral-target discovery work to downstream modeling handoff.</p>
+</section>
+
+<section class="protac-section-card" id="tools">
+  <div class="protac-section-head"><h2>Tool roles</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('PROTAC Builder', 'Assemble warhead, linker, and E3 recruiter components into candidate degraders.', '/builder', kicker='Assembly', cta='Open PROTAC Builder') }}
+    {{ info_card('Warhead Hunter', 'Explore target-binding warheads and warhead-focused discovery context.', 'https://warheadhunter.com', kicker='Discovery', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('E3 Ligandalyzer', 'Inspect E3 recruiters, ligase scaffolds, ligand pages, and attachment context.', 'https://e3ligandalyzer.com/explorer', kicker='Recruiters', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Viral-Ligand Solvent Exposed Moiety Database for viral protein structures, bound ligands, and solvent-exposed warhead starting points.', 'https://vlisemod.com', kicker='Viral Targets', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('API Builder And Docs', 'Move from interactive design into scripted, notebook, or batch-oriented workflows.', '/api-builder', kicker='Developer', cta='Open API Builder') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="journey">
+  <div class="protac-section-head"><h2>Typical user journey</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Explore target-binding chemistry in Warhead Hunter when the warhead decision is still open.</li>
+    <li>Inspect recruiter or scaffold context in E3 Ligandalyzer when the recruiter choice is still open.</li>
+    <li>Use V-LiSEMOD when the target is viral and you need target-bound ligand or solvent-exposed moiety evidence to guide warhead selection.</li>
+    <li>Return to PROTAC Builder to assemble the degrader and prepare outputs for downstream modeling or batch workflows.</li>
+  </ul>
+</section>
+{% endblock %}

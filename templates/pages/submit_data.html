@@ -1,0 +1,23 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Community</span>
+  <h1>Submit Data Or Contribute</h1>
+  <p class="protac-hero-copy">The safest current contribution paths are through the public repository, issue reporting, and coordinated updates across the related Schurer Lab tools.</p>
+</section>
+
+<section class="protac-section-card" id="paths">
+  <div class="protac-section-head"><h2>Contribution paths</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Open issues or discussion threads in the public GitHub repository when relevant.</li>
+    <li>Request new examples, documentation improvements, or workflow clarifications.</li>
+    <li>Coordinate cross-tool updates when a feature spans PROTAC Builder, Warhead Hunter, E3 Ligandalyzer, or V-LiSEMOD.</li>
+  </ul>
+  <div class="protac-card-grid">
+    {{ info_card('GitHub repository', 'Review the public project repository and documentation.', 'https://github.com/schurerlab/protacbuilder', kicker='External', cta='Open GitHub', external=True) }}
+    {{ info_card('About page', 'Review the project background and scientific framing.', '/about', kicker='Local', cta='Open About') }}
+  </div>
+</section>
+{% endblock %}

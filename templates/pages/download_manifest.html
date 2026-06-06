@@ -1,0 +1,22 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Developer Resources</span>
+  <h1>Download Manifest</h1>
+  <p class="protac-hero-copy">This manifest lists the public resources that can be downloaded or indexed directly from the current site.</p>
+</section>
+
+<section class="protac-section-card" id="manifest">
+  <div class="protac-section-head"><h2>Public resources</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Template linkers CSV', 'Download the curated linker template used for batch builder workflows.', '/api/protac/builder/template/linkers', kicker='Download', cta='Download CSV') }}
+    {{ info_card('API docs', 'Human-readable documentation for public API routes.', '/api-docs', kicker='Docs') }}
+    {{ info_card('OpenAPI JSON', 'Machine-readable API description generated from current routes.', '/openapi.json', kicker='Machine Readable', cta='Open JSON') }}
+    {{ info_card('OpenAPI YAML', 'YAML version of the public API description.', '/openapi.yaml', kicker='Machine Readable', cta='Open YAML') }}
+    {{ info_card('llms.txt', 'Plain-text discovery guide for agents and automated readers.', '/llms.txt', kicker='Discovery', cta='Open llms.txt') }}
+    {{ info_card('Sitemap', 'XML sitemap for public pages.', '/sitemap.xml', kicker='Discovery', cta='Open sitemap') }}
+  </div>
+</section>
+{% endblock %}

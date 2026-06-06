@@ -1,0 +1,30 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Discovery Hubs</span>
+  <h1>PROTAC Component Hubs</h1>
+  <p class="protac-hero-copy">PROTAC Builder connects the three core component classes used in degrader design, but deeper component-specific exploration often lives in sister tools.</p>
+  <p class="protac-hero-copy">These pages are discovery hubs and guides, not blanket claims of complete molecular libraries.</p>
+</section>
+
+<section class="protac-section-card" id="components">
+  <div class="protac-section-head"><h2>Three component areas</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead discovery', 'Target-binding chemistry, attachment-aware design, and target context.', '/warheads', kicker='Hub', cta='Explore warheads') }}
+    {{ info_card('Linker design', 'Geometry, bridgeability, polarity, and feasibility considerations.', '/linkers', kicker='Hub', cta='Explore linkers') }}
+    {{ info_card('E3 recruiter discovery', 'Recruiter classes, scaffolds, attachment vectors, and recruiter-side fit.', '/e3-ligase-recruiters', kicker='Hub', cta='Explore recruiters') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="ecosystem">
+  <div class="protac-section-head"><h2>Related component resources</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead Hunter', 'Explore target-binding warheads, example jobs, and warhead-focused discovery workflows.', 'https://warheadhunter.com/examples', kicker='External', cta='Explore warheads in Warhead Hunter', external=True) }}
+    {{ info_card('E3 Ligandalyzer', 'Browse recruiter chemotypes and scaffold-level organization.', 'https://e3ligandalyzer.com/scaffolds', kicker='External', cta='Inspect E3 recruiters in Ligandalyzer', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Explore viral protein-ligand structures and solvent-exposed moieties for viral-target warhead discovery.', 'https://vlisemod.com', kicker='External', cta='Explore viral warhead leads in V-LiSEMOD', external=True) }}
+    {{ info_card('PROTAC Builder', 'Return here to assemble chosen components into candidate degraders.', '/builder', kicker='Assembly', cta='Open builder') }}
+  </div>
+</section>
+{% endblock %}

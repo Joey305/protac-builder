@@ -1,138 +1,132 @@
 # Qodex.summary
 
 ## Task
-SEO, navigation, and cross-site ecosystem expansion for PROTAC Builder.
+Correct V-LiSEMOD scientific framing across PROTAC Builder pages.
 
 ## Original Goal
-Add clean, organized SEO pages and dropdown navigation for PROTAC Builder, covering educational PROTAC content, component discovery hubs, examples, computational/constraint-driven design, benchmarking, downstream tools, API/tool discovery, sitemap/robots/llms, related scientific context, and cross-site links to Warhead Hunter, E3 Ligandalyzer, and V-LISEMOD.
+The user confirmed the page/template organization is now correct, but V-LiSEMOD is being described incorrectly on some pages. Correct V-LiSEMOD references so it is described as the Viral-Ligand Solvent Exposed Moiety Database for viral protein-ligand structures, solvent-exposed moieties, viral target discovery, and viral warhead development.
 
 ## Assumptions
-- PROTAC Builder is a Flask app with Jinja templates and static assets, so the safest implementation path was server-rendered pages plus new Flask routes.
-- The current repo did not have an existing sitewide SEO helper or sitemap/robots/llms route surface, so those were added directly in Flask.
-- The project contains real structured data for curated linkers, ligase lists, recruiter-to-PDB mapping, and usage files, but not enough normalized local component metadata to justify programmatic detail pages with descriptors.
-- The uploaded perspective paper `Schulz_JCIM_Insilico_PROTAC_Perspective.docx` was not present in this repo or nearby sibling directories during inspection, so the science pages were written from the user-provided outline rather than direct document extraction.
-- Sister-site routes were chosen conservatively from inspected local source files:
-  - Warhead Hunter: `/examples` and site root are safe canonical targets.
-  - E3 Ligandalyzer: `/explorer`, `/scaffolds`, and site root are safe canonical targets.
-  - V-LiSEMOD: `/protacability_page` and site root are the safest context-oriented targets discovered locally.
+- The app remains a Flask/Jinja project with editable content pages in `templates/pages/`, so this task should be a targeted wording correction rather than another architectural refactor.
+- The sibling repository `/Users/jxs794/Documents/VLISEMOD` was available for read-only inspection and provided enough evidence to confirm the scientific framing.
+- `https://vlisemod.com` is the safest canonical link to use from PROTAC Builder because it is the stable public landing page and avoids overcommitting to a single internal route.
+- Existing builder-specific V-LiSEMOD UI references in legacy templates were left alone unless they were scientifically inaccurate, because this task focused on correcting ecosystem framing rather than changing working tool integrations.
 
 ## Files Inspected
-- `/Users/jxs794/Documents/PROTAC_BUILDER/app.py`: app factory, public base URL config, error handling.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/routes.py`: existing UI route surface.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/api_routes.py`: public API endpoints for docs and OpenAPI coverage.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/base.html`: shared head/body layout and asset loading.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_nav.html`: existing top navigation implementation.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_footer.html`: existing footer links.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/about.html`: existing informational page style and product framing.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/api_docs.html`: existing API docs route and documentation style.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-nav.js`: existing nav/mobile drawer behavior.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-nav.css`: existing nav styling.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/data/API_Linkers.csv`: confirmed real curated linker template data.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/data/ligases.json`: confirmed real ligase list data.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/data/recruiter_pdb_map.json`: confirmed recruiter/PDB mapping data.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/robots.txt`: existing crawler file.
-
-## Sibling Directories Inspected
-- `/Users/jxs794/Documents/warhead-hunter`
-  - Flask app with routes including `/`, `/hunter`, `/how-to-use`, `/science`, `/use-cases`, `/examples`, `/examples/<job_id>`, `/docs`, `/api-docs`, and `/ecosystem`.
-  - Best PROTAC Builder-facing canonical targets discovered: `https://warheadhunter.com/examples` and `https://warheadhunter.com`.
-- `/Users/jxs794/Documents/E3Recruiter_Ligandalyzer`
-  - Flask app in `Ligase_app.py` with routes including `/`, `/explorer`, `/scaffolds`, `/ligases`, `/ligand/<code>`, `/docs`, `/methods`, `/schema`, `/download-manifest`, `/api-reference`, `/release`, `/faq`, `/case-studies`.
-  - Best canonical targets discovered: `https://e3ligandalyzer.com/explorer`, `https://e3ligandalyzer.com/scaffolds`, and `https://e3ligandalyzer.com`.
-  - Also confirmed a real PROTAC Builder session handoff pattern back to `/builder?session=...`.
-- `/Users/jxs794/Documents/VLISEMOD`
-  - Flask app with routes including `/`, `/about`, `/use-cases`, `/viral-protac-design`, `/in-silico-virology-tools`, `/methods`, `/faq`, and `/protacability_page`.
-  - Best canonical targets discovered for cautious cross-linking: `https://vlisemod.com/protacability_page` and `https://vlisemod.com`.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`: reviewed the previous summary before replacing it with the current task summary.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/`: inspected the editable SEO page templates for incorrect V-LiSEMOD framing.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_nav.html`: checked dropdown labels and descriptions.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_footer.html`: checked connected-tool links.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/site_content.py`: checked ecosystem metadata, page metadata, and `llms.txt` generation.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/routes.py`: reviewed route structure to confirm no route changes were required.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/about.html`: checked public ecosystem copy outside the new page-template folder.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/copy_about.html`: checked archived copy for stale wording that could confuse future edits.
+- `/Users/jxs794/Documents/VLISEMOD/app.py`: confirmed public route names in the sibling V-LiSEMOD app.
+- `/Users/jxs794/Documents/VLISEMOD/templates/index.html`: confirmed homepage framing around viral protein-ligand structures and solvent-exposed moieties.
+- `/Users/jxs794/Documents/VLISEMOD/templates/about.html`: confirmed V-LiSEMOD’s scientific positioning.
+- `/Users/jxs794/Documents/VLISEMOD/templates/viral_protac_design.html`: confirmed its viral PROTAC and antiviral degrader positioning.
+- `/Users/jxs794/Documents/VLISEMOD/templates/protacability_assessment.html`: confirmed the app’s “protacability” language is still about viral-target structure-guided assessment, not E3 ligase or tissue selection.
 
 ## Files Changed
-- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/routes.py`: added new SEO page routes, legacy hub redirects, `robots.txt`, `sitemap.xml`, `llms.txt`, `openapi.json`, and `openapi.yaml`.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/base.html`: added shared meta description, canonical URL, and Open Graph support plus shared content CSS.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_nav.html`: replaced flat nav with grouped Builder, Discovery, Science, Resources, Ecosystem, and Developer dropdown menus plus mobile accordion groups.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_footer.html`: added richer internal discovery links and cleaner ecosystem link grouping.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-nav.css`: added desktop dropdown and mobile accordion styling.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/js/protac-nav.js`: added desktop dropdown open/close behavior while preserving mobile drawer behavior.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/robots.txt`: updated file copy to allow crawling and point at the sitemap.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_nav.html`: replaced the misleading V-LiSEMOD discovery entry with a viral warhead discovery label and corrected the ecosystem description.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/partials/_footer.html`: changed the V-LiSEMOD footer link to the safer canonical homepage URL.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/site_content.py`: corrected V-LiSEMOD ecosystem descriptions, switched the main V-LiSEMOD link to `https://vlisemod.com`, removed V-LiSEMOD from E3 recruiter metadata where it implied recruiter selection relevance, and updated `llms.txt` output.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/home.html`: reframed V-LiSEMOD as a viral protein-ligand and solvent-exposed moiety discovery resource.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/what_is_a_protac.html`: replaced the incorrect ligase-context V-LiSEMOD card with a viral-target warhead discovery card.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/how_to_build_a_protac.html`: corrected the workflow bullet and tool card so V-LiSEMOD is used for viral target warhead discovery, not ligase/context triage.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/examples.html`: replaced the inaccurate “before choosing an E3 ligase” example with a viral-target warhead discovery example.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/component_hubs.html`: corrected the V-LiSEMOD component-resource card.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/e3_ligase_recruiters.html`: removed the inaccurate recruiter-selection framing and repositioned V-LiSEMOD as an upstream viral warhead resource.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/ecosystem.html`: updated the V-LiSEMOD card and journey text to match its actual scientific role.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/pages/case_studies.html`: renamed the V-LiSEMOD workflow example from a generic context-first flow to a viral target workflow.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/about.html`: expanded the V-LiSEMOD subtitle to its full name.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/copy_about.html`: expanded the archived V-LiSEMOD subtitle to its full name.
+- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`: replaced the prior summary with this task-specific summary.
 
 ## Files Created
-- `/Users/jxs794/Documents/PROTAC_BUILDER/protac_builder/site_content.py`: centralized page content, sitemap paths, OpenAPI spec, and llms text generation.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/templates/seo_page.html`: reusable SEO content template with JSON-LD support.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/static/css/protac-content.css`: shared styling for the new educational and discovery pages.
-- `/Users/jxs794/Documents/PROTAC_BUILDER/Qodex.summary.md`: implementation record and validation summary.
+- None.
 
 ## Implementation Summary
-The app now has a server-rendered SEO homepage at `/` while preserving the interactive builder at `/builder`. I added educational pages for foundational PROTAC concepts, a step-by-step build guide, example workflows, component discovery hubs, science and benchmarking pages, and a dedicated ecosystem page. I also added developer discovery files and public route exposure for `robots.txt`, `sitemap.xml`, `llms.txt`, and a route-backed OpenAPI spec in JSON and YAML.
+I corrected the scientific framing of V-LiSEMOD everywhere it appeared as part of the PROTAC Builder ecosystem copy. It is now consistently described as the Viral-Ligand Solvent Exposed Moiety Database for viral protein-ligand structures, solvent-exposed moieties, viral target discovery, and viral-target warhead development.
 
-Navigation was reorganized into grouped dropdown menus for desktop and grouped accordions for mobile. Cross-site links were woven into relevant pages without claiming that PROTAC Builder itself contains complete standalone warhead, recruiter, or context libraries.
+The updates preserve the editable Jinja page architecture, shared navigation, footer, metadata helpers, and discovery outputs. V-LiSEMOD now appears as an upstream viral-target warhead discovery resource rather than a recruiter-selection or context-scoring platform.
 
 ## Key Decisions
-- Navigation grouping: used grouped dropdowns for `Builder`, `Discovery`, `Science`, `Resources`, `Ecosystem`, and `Developer` instead of adding dozens of flat top-level links.
-- “Libraries” wording: kept SEO-relevant alias routes like `/protac-warhead-library` only as redirects to more cautious hub pages such as `/warheads`, `/linkers`, and `/e3-ligase-recruiters`.
-- Programmatic detail pages: deferred. The current repo has real linker and ligase/recruiter source files, but not enough normalized per-component metadata to safely generate descriptor-rich detail pages without overclaiming.
-- OpenAPI: added a real, conservative route-backed spec describing the public Flask endpoints that are visible in the repo today.
-- Sitemap/robots/llms: implemented as route-backed discovery assets and updated the root `robots.txt` file copy for consistency.
-- Cross-site links: chose exact routes only where they were clearly present in inspected sibling source. Otherwise used safe canonical top-level routes.
-- Scientific claims: kept all content focused on assembly, feasibility, workflow staging, and downstream validation rather than implying guaranteed degradation or complete molecular libraries.
+- V-LiSEMOD is now described as a viral protein-ligand and solvent-exposed moiety database that supports viral target warhead discovery.
+- In navigation, V-LiSEMOD now appears under `Discovery` as `Viral Warhead Discovery` and under `Ecosystem` with a warhead-discovery description.
+- In the footer and metadata, the chosen URL is `https://vlisemod.com`.
+- Inaccurate context-scoring and recruiter-selection wording tied to V-LiSEMOD was removed from page copy, nav labels, metadata, and `llms.txt`.
+- Warhead Hunter, E3 Ligandalyzer, and V-LiSEMOD are now differentiated clearly:
+  - Warhead Hunter: general warhead and target-binding discovery
+  - E3 Ligandalyzer: E3 recruiter, scaffold, and attachment-vector discovery
+  - V-LiSEMOD: viral target protein-ligand and solvent-exposed moiety discovery for viral warhead starting points
+  - PROTAC Builder: assembly layer for warhead + linker + E3 recruiter workflows
 
 ## Commands Run
 - `pwd`
-- `rg --files ...`
-- `rg -n "nav|navbar|dropdown|sitemap|robots|openapi|llms|api docs|api-docs|builder|ligandalyzer|examples|about|resources" templates protac_builder app.py`
-- `sed -n ...` across app, routes, templates, CSS, JS, and sibling repo files
-- `find /Users/jxs794/Documents/warhead-hunter ...`
-- `find /Users/jxs794/Documents/E3Recruiter_Ligandalyzer ...`
-- `find /Users/jxs794/Documents/VLISEMOD ...`
+- `rg -n "V-LiSEMOD|VLISEMOD|vlisemod|protacability_page|viral target|solvent exposed|moiety" templates protac_builder Qodex.summary.md`
+- `sed -n ...` on:
+  - `templates/partials/_nav.html`
+  - `templates/partials/_footer.html`
+  - `protac_builder/site_content.py`
+  - `templates/pages/home.html`
+  - `templates/pages/what_is_a_protac.html`
+  - `templates/pages/how_to_build_a_protac.html`
+  - `templates/pages/examples.html`
+  - `templates/pages/component_hubs.html`
+  - `templates/pages/e3_ligase_recruiters.html`
+  - `templates/pages/ecosystem.html`
+  - `templates/pages/case_studies.html`
+  - `templates/about.html`
+  - `templates/copy_about.html`
+- `sed -n ...` on:
+  - `/Users/jxs794/Documents/VLISEMOD/app.py`
+  - `/Users/jxs794/Documents/VLISEMOD/templates/index.html`
+  - `/Users/jxs794/Documents/VLISEMOD/templates/about.html`
+  - `/Users/jxs794/Documents/VLISEMOD/templates/viral_protac_design.html`
+  - `/Users/jxs794/Documents/VLISEMOD/templates/protacability_assessment.html`
 - `python -m compileall app.py protac_builder`
-- Flask test-client route smoke scripts for all new and existing high-value routes
-- Browser verification on `http://127.0.0.1:5069/` for homepage and desktop dropdown interaction
+- Python Flask test-client smoke checks for the requested pages and redirects
+- `rg -n "<legacy incorrect V-LiSEMOD phrases>" templates protac_builder Qodex.summary.md`
+- `rg -n "V-LiSEMOD|Viral-Ligand|solvent-exposed|viral target|viral protein" templates protac_builder Qodex.summary.md`
+- Python Flask test-client content checks for `/`, `/ecosystem`, `/how-to-build-a-protac`, and `/llms.txt`
 
 ## Validation Results
 - `python -m compileall app.py protac_builder`: passed.
-- Flask test-client route smoke check for homepage, builder, docs, all new SEO pages, `robots.txt`, `llms.txt`, `sitemap.xml`, `openapi.json`, and `openapi.yaml`: passed with HTTP 200 responses.
-- Legacy alias redirects:
-  - `/protac-warhead-library` -> `/warheads` returned 301.
-  - `/protac-linker-library` -> `/linkers` returned 301.
-  - `/e3-recruiter-library` -> `/e3-ligase-recruiters` returned 301.
-- Browser verification:
-  - Homepage rendered correctly in the in-app browser.
-  - Desktop dropdown navigation opened and displayed the new grouped discovery links.
-- No Python test suite, lint command, or dedicated build command was present in the repo, so those validations were not run.
+- Flask test-client smoke checks passed for:
+  - `/`
+  - `/what-is-a-protac`
+  - `/how-to-build-a-protac`
+  - `/examples`
+  - `/component-hubs`
+  - `/warheads`
+  - `/linkers`
+  - `/e3-ligase-recruiters`
+  - `/downstream-modeling-tools`
+  - `/ecosystem`
+  - `/faq`
+  - `/llms.txt`
+  - `/sitemap.xml`
+  - `/healthz`
+- Redirect checks passed:
+  - `/protac-warhead-library` -> `/warheads`
+  - `/protac-linker-library` -> `/linkers`
+  - `/e3-recruiter-library` -> `/e3-ligase-recruiters`
+- Negative text search for inaccurate V-LiSEMOD wording returned no matches.
+- Positive text search confirmed the corrected `V-LiSEMOD`, `Viral-Ligand`, `solvent-exposed`, `viral target`, and `viral protein` framing across the edited templates and discovery metadata.
+- Rendered content checks passed for `/`, `/ecosystem`, `/how-to-build-a-protac`, and `/llms.txt`, confirming the corrected V-LiSEMOD phrasing appears in output.
 
 ## Known Issues
-- No local perspective paper file was found, so the science copy is based on the user-provided summary rather than direct document extraction.
-- Programmatic component detail pages were intentionally deferred pending normalized local datasets with trustworthy per-component metadata and descriptor fields.
-- V-LiSEMOD appears domain-specific in places, so cross-links were kept conservative around context/triage positioning.
-- Mobile drawer behavior follows the existing responsive navigation pattern and was implemented carefully, but only desktop dropdown interaction received direct browser verification in this pass.
-- The route-backed OpenAPI spec is conservative and intentionally descriptive rather than schema-complete for every payload shape.
+- Legacy template copies such as `templates/COPYindex.html` and `templates/COPYbuilder.html` still contain generic V-LiSEMOD references, but they do not contain the incorrect ecosystem framing addressed by this task.
+- Some live builder integration links still point at deeper V-LiSEMOD routes such as `compare_ligands`; they were not changed here because this task focused on scientific framing rather than integration-route redesign.
 
 ## Manual Verification
-1. Open the homepage at `http://127.0.0.1:5069/` or the deployed `/` route.
-2. Open the new top-nav dropdowns and confirm the grouped Builder, Discovery, Science, Resources, Ecosystem, and Developer menus appear.
-3. Visit the new SEO pages:
-   - `/what-is-a-protac`
-   - `/how-to-build-a-protac`
-   - `/examples`
-   - `/constraint-driven-protac-design`
-   - `/in-silico-protac-modeling`
-   - `/benchmarking`
-   - `/downstream-modeling-tools`
-   - `/ecosystem`
-4. Visit the component discovery hub pages and confirm they do not overclaim complete standalone libraries:
-   - `/component-hubs`
-   - `/warheads`
-   - `/linkers`
-   - `/e3-ligase-recruiters`
-5. Confirm ecosystem links to Warhead Hunter, E3 Ligandalyzer, and V-LiSEMOD point to sensible canonical destinations.
-6. Confirm existing routes still work:
-   - `/builder`
-   - `/api-builder`
-   - `/api-docs`
-   - `/ligase-ligandalyzer`
-7. Check discovery assets:
-   - `/sitemap.xml`
-   - `/robots.txt`
-   - `/llms.txt`
-   - `/openapi.json`
-   - `/openapi.yaml`
+1. Open the nav and check the V-LiSEMOD label and description.
+2. Open `/ecosystem`.
+3. Open `/warheads`.
+4. Open `/how-to-build-a-protac`.
+5. Open `/llms.txt`.
+6. Confirm V-LiSEMOD is described as a viral protein-ligand solvent-exposed moiety database for viral target warhead discovery.
 
 ## Suggested Next Prompt
-Add reciprocal ecosystem pages and handoff links in `/Users/jxs794/Documents/warhead-hunter`, `/Users/jxs794/Documents/E3Recruiter_Ligandalyzer`, and `/Users/jxs794/Documents/VLISEMOD` so the cross-site journey is symmetrical and uses the same cautious component-hub language.
+Add a dedicated “Viral Target Warhead Discovery” example page that shows how V-LiSEMOD can feed viral warhead ideas into PROTAC Builder without overstating the downstream degrader-design claims.

@@ -1,0 +1,31 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Linker Design</span>
+  <h1>PROTAC Linker Design Hub</h1>
+  <p class="protac-hero-copy">Linkers do more than connect two fragments. In PROTAC design they influence whether the target and E3 ligase can adopt a productive ternary arrangement.</p>
+  <p class="protac-hero-copy">This hub focuses on linker geometry and feasibility rather than claiming a complete linker library.</p>
+</section>
+
+<section class="protac-section-card" id="properties">
+  <div class="protac-section-head"><h2>Design dimensions to watch</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Length and end-to-end reach</li>
+    <li>Polarity and physicochemical burden</li>
+    <li>Flexibility versus conformational bias</li>
+    <li>Attachment geometry and vector alignment</li>
+    <li>Constraint-driven bridgeability between anchors</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="next">
+  <div class="protac-section-head"><h2>Where to go next</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Open the builder', 'Use curated linker templates and molecule assembly workflows.', '/builder', kicker='Assembly', cta='Open builder') }}
+    {{ info_card('How to build a PROTAC', 'Follow the staged workflow for selecting anchors and linkers.', '/how-to-build-a-protac', kicker='Guide', cta='Read the guide') }}
+    {{ info_card('Downstream modeling tools', 'See how linker choices feed into restrained ternary modeling and refinement.', '/downstream-modeling-tools', kicker='Modeling', cta='View downstream tools') }}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "pages/_page_base.html" %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Developer Resources</span>
+  <h1>Data And Schema Notes</h1>
+  <p class="protac-hero-copy">The public-facing app uses a small set of structured files and API responses rather than exposing a single downloadable relational database schema.</p>
+  <p class="protac-hero-copy">This page summarizes the current public surface so developers can understand what is actually available.</p>
+</section>
+
+<section class="protac-section-card" id="files">
+  <div class="protac-section-head"><h2>Current structured resources</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Curated linker template CSV</li>
+    <li>Ligase list JSON</li>
+    <li>Recruiter-to-PDB mapping JSON</li>
+    <li>Generated PROTAC log CSV</li>
+    <li>API templates and usage summaries</li>
+  </ul>
+</section>
+{% endblock %}

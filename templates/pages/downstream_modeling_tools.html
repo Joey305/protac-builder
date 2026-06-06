@@ -1,0 +1,30 @@
+{% extends "pages/_page_base.html" %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Workflow Integration</span>
+  <h1>Downstream Modeling Tools</h1>
+  <p class="protac-hero-copy">Builder outputs are best treated as inputs for deeper modeling, filtering, and experimental design rather than as final answers.</p>
+  <p class="protac-hero-copy">The strongest workflows combine clean component representation with follow-on scoring, structural validation, and domain-aware interpretation.</p>
+</section>
+
+<section class="protac-section-card" id="categories">
+  <div class="protac-section-head"><h2>Common downstream categories</h2></div>
+  <ul class="protac-bullet-list">
+    <li>PRosettaC-style restrained ternary modeling</li>
+    <li>Docking and ternary pose construction workflows</li>
+    <li>Molecular dynamics refinement</li>
+    <li>DockQ and interface metric analysis</li>
+    <li>Linker geometry and bridgeability checks</li>
+    <li>RDKit descriptor workflows</li>
+    <li>ADMET or DeepPK-adjacent screening where supported</li>
+    <li>Notebook, server, and batch-generation pipelines</li>
+    <li>Machine-learning reranking and generative design systems</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="caveat">
+  <div class="protac-section-head"><h2>Important caveat</h2></div>
+  <p class="protac-section-copy">Exported structures, descriptors, and generated candidates remain hypotheses. They should be interpreted alongside assay design, structure review, and experimental validation rather than as claims of guaranteed degradation.</p>
+</section>
+{% endblock %}

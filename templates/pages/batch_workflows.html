@@ -1,0 +1,26 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Developer</span>
+  <h1>Batch Workflows</h1>
+  <p class="protac-hero-copy">Batch workflows help move from one-off interactive assembly to reproducible screening and scripted enumeration.</p>
+</section>
+
+<section class="protac-section-card" id="batch">
+  <div class="protac-section-head"><h2>Suggested batch workflow</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Download the template linker CSV.</li>
+    <li>Prepare warhead and recruiter inputs with consistent attachment notation.</li>
+    <li>Use the API Builder to shape requests.</li>
+    <li>Send batch-oriented requests through the documented builder routes.</li>
+    <li>Export results into descriptor, scoring, or downstream modeling pipelines.</li>
+  </ul>
+  <div class="protac-card-grid">
+    {{ info_card('API Builder', 'Build batch-friendly payloads from the UI.', '/api-builder', kicker='UI') }}
+    {{ info_card('API docs', 'Review the current public batch routes.', '/api-docs', kicker='Docs') }}
+    {{ info_card('Download manifest', 'See machine-readable discovery resources and downloads.', '/download-manifest', kicker='Resources') }}
+  </div>
+</section>
+{% endblock %}

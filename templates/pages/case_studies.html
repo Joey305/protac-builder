@@ -1,0 +1,20 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Resources</span>
+  <h1>Case Studies</h1>
+  <p class="protac-hero-copy">These case studies describe workflow patterns and tool fit. They are not claims of experimentally validated degradation outcomes by the web app alone.</p>
+</section>
+
+<section class="protac-section-card" id="cases">
+  <div class="protac-section-head"><h2>Case-study themes</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead-first workflow', 'Move from target-binding exploration in Warhead Hunter into component assembly.', 'https://warheadhunter.com/examples', kicker='Case Study', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('Recruiter-first workflow', 'Move from recruiter-side analysis in E3 Ligandalyzer into degrader assembly.', 'https://e3ligandalyzer.com/explorer', kicker='Case Study', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('Viral target workflow', 'Use V-LiSEMOD to inspect viral protein-ligand structures and solvent-exposed moieties before final assembly.', 'https://vlisemod.com', kicker='Case Study', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('Batch workflow', 'Use API Builder and API docs to move from interactive design to scripted generation.', '/api-builder', kicker='Case Study', cta='Open API Builder') }}
+  </div>
+</section>
+{% endblock %}

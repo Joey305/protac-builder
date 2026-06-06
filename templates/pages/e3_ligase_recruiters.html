@@ -1,0 +1,31 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Recruiter Discovery</span>
+  <h1>E3 Ligase Recruiter Discovery Hub</h1>
+  <p class="protac-hero-copy">E3 ligase recruiters anchor the degrader to a chosen ligase system and define a recruiter-side attachment vector.</p>
+  <p class="protac-hero-copy">The right recruiter choice depends on scaffold geometry, exposure, recruiter-side fit, and downstream feasibility, so this page points to deeper recruiter-specific resources where available.</p>
+</section>
+
+<section class="protac-section-card" id="concepts">
+  <div class="protac-section-head"><h2>What to evaluate</h2></div>
+  <p class="protac-section-copy">Examples like CRBN and VHL are common teaching cases, but the page avoids claiming a complete recruiter catalog unless that data is available locally.</p>
+  <ul class="protac-bullet-list">
+    <li>Recruiter scaffold and chemotype</li>
+    <li>Attachment-vector and exit-vector considerations</li>
+    <li>Available structural evidence for recruiter presentation</li>
+    <li>Compatibility with the chosen warhead and linker concept</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="tools">
+  <div class="protac-section-head"><h2>Connected tools for recruiter selection</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Inspect E3 recruiters in Ligandalyzer', 'Use the recruiter explorer, ligand detail pages, and scaffold views.', 'https://e3ligandalyzer.com/explorer', kicker='External', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('Explore viral warhead leads in V-LiSEMOD', 'When the target is viral, use bound-ligand structures and solvent-exposed moieties to inform warhead discovery before assembly.', 'https://vlisemod.com', kicker='External', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('Return to PROTAC Builder', 'Bring the chosen recruiter back into degrader assembly.', '/builder', kicker='Assembly', cta='Return to builder') }}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Educational Pillar</span>
+  <h1>What Is a PROTAC?</h1>
+  <p class="protac-hero-copy">A PROTAC, or proteolysis-targeting chimera, is a bifunctional small molecule that brings a protein of interest into proximity with an E3 ligase so the target can be ubiquitinated and degraded by the proteasome.</p>
+  <p class="protac-hero-copy">Most degrader concepts can be described through three structural parts: a target-binding warhead, a linker, and an E3 ligase recruiter.</p>
+  <div class="protac-action-row">
+    {{ action_link('/builder', 'Open the builder', primary=True) }}
+    {{ action_link('/how-to-build-a-protac', 'Read the build guide') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="anatomy">
+  <div class="protac-section-head"><h2>Anatomy of a proteolysis-targeting chimera</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Warhead: binds the protein of interest and defines the target-facing anchor.</li>
+    <li>Linker: connects both ends while shaping distance, flexibility, polarity, and projection.</li>
+    <li>E3 recruiter: binds an E3 ligase and defines the ligase-facing anchor and attachment vector.</li>
+  </ul>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead discovery', 'Review target-binding context and handoff into degrader assembly.', '/warheads', kicker='Component') }}
+    {{ info_card('Linker design', 'Understand why geometry and bridgeability matter in degrader design.', '/linkers', kicker='Component') }}
+    {{ info_card('E3 recruiter discovery', 'Explore recruiter classes and attachment-vector considerations.', '/e3-ligase-recruiters', kicker='Component') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="mechanism">
+  <div class="protac-section-head"><h2>How PROTACs recruit an E3 ligase</h2></div>
+  <p class="protac-section-copy">A degrader does not work by simple occupancy alone. Productive degradation depends on whether the molecule can support a compatible ternary complex between the protein of interest, the degrader, and the recruited E3 ligase.</p>
+  <p class="protac-section-copy">That is why attachment atoms, linker geometry, and protein-protein orientation matter so much in modern computational PROTAC workflows.</p>
+</section>
+
+<section class="protac-section-card" id="next-steps">
+  <div class="protac-section-head"><h2>Where the connected tools fit</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Explore warheads in Warhead Hunter', 'Use the sister site when you need deeper warhead discovery or target-context exploration.', 'https://warheadhunter.com/examples', kicker='External', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('Inspect E3 recruiters in Ligandalyzer', 'Use recruiter, scaffold, and ligase-oriented views before final assembly.', 'https://e3ligandalyzer.com/explorer', kicker='External', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('Explore viral warhead leads in V-LiSEMOD', 'Use viral protein-ligand structures and solvent-exposed moieties to guide warhead discovery for viral targets.', 'https://vlisemod.com', kicker='External', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('Assemble in PROTAC Builder', 'Return to the builder once you are ready to combine components.', '/builder', kicker='Assembly', cta='Return to builder') }}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "pages/_page_base.html" %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Benchmarking Hub</span>
+  <h1>PROTAC Modeling Benchmarking</h1>
+  <p class="protac-hero-copy">Benchmarking is a major bottleneck in computational PROTAC design because datasets, representations, scoring conventions, and domains of applicability are still fragmented.</p>
+  <p class="protac-hero-copy">This page focuses on what should be reported and compared, not on invented benchmark wins.</p>
+</section>
+
+<section class="protac-section-card" id="areas">
+  <div class="protac-section-head"><h2>Benchmarking areas</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Ternary structure prediction</li>
+    <li>Pose ranking and enrichment</li>
+    <li>Degradation outcome prediction</li>
+    <li>Generative design evaluation</li>
+    <li>Domain shift across new E3 ligases, targets, and linker chemotypes</li>
+    <li>Scoring robustness and calibration</li>
+    <li>Representation and conformer standardization</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="reporting">
+  <div class="protac-section-head"><h2>Recommended reporting elements</h2></div>
+  <ul class="protac-bullet-list">
+    <li>System definition and scope</li>
+    <li>PROTAC representation and attachment-point notation</li>
+    <li>Conformer and structure preparation details</li>
+    <li>Modeling protocol and scoring rules</li>
+    <li>Evaluation criteria and controls</li>
+    <li>Negative or challenging examples</li>
+    <li>Reproducibility assets and versioning</li>
+    <li>Domain of applicability</li>
+  </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "pages/_page_base.html" %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Science</span>
+  <h1>Constraint-Driven PROTAC Design</h1>
+  <p class="protac-hero-copy">Constraint-driven PROTAC design treats linker assembly as a geometry problem as well as a medicinal chemistry problem.</p>
+  <p class="protac-hero-copy">Rather than assuming any warhead-linker-recruiter combination is plausible, the workflow asks whether anchor atoms, distances, orientations, and bridgeability support a realistic ternary arrangement.</p>
+</section>
+
+<section class="protac-section-card" id="concepts">
+  <div class="protac-section-head"><h2>Core constraints</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Anchor atoms or attachment atoms on both component ends</li>
+    <li>Distance restraints between exit vectors</li>
+    <li>Linker bridgeability across candidate protein-protein orientations</li>
+    <li>Compatibility between linker flexibility and desired geometry</li>
+    <li>Selective export into downstream ternary complex modeling</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="workflow">
+  <div class="protac-section-head"><h2>Practical staged workflow</h2></div>
+  <p class="protac-section-copy">PROTAC Builder helps with representation, anchor editing, and candidate assembly. It does not guarantee degradation outcomes and should be treated as a preparation layer in a broader validation workflow.</p>
+  <ul class="protac-bullet-list">
+    <li>Define warhead and recruiter anchors.</li>
+    <li>Choose or enumerate linkers.</li>
+    <li>Check geometric feasibility and bridgeability.</li>
+    <li>Generate candidate PROTACs.</li>
+    <li>Export to downstream ternary modeling.</li>
+    <li>Rank and validate with structure-based or learned methods.</li>
+  </ul>
+</section>
+{% endblock %}

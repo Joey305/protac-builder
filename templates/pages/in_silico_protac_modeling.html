@@ -1,0 +1,34 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Science</span>
+  <h1>In Silico PROTAC Modeling</h1>
+  <p class="protac-hero-copy">Computational PROTAC design spans component selection, ternary complex construction, refinement, ranking, and downstream prioritization.</p>
+  <p class="protac-hero-copy">A strong workflow usually combines geometry-aware filters with structure-based and learned methods instead of relying on a single score.</p>
+</section>
+
+<section class="protac-section-card" id="methods">
+  <div class="protac-section-head"><h2>Method families</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Restrained or tethered docking for ternary construction</li>
+    <li>PRosettaC-style anchor and distance-constrained workflows</li>
+    <li>Molecular dynamics refinement and dynamic stability review</li>
+    <li>HAPOD-style or interface-focused scoring ideas</li>
+    <li>Energy landscape and solvation-aware analyses</li>
+    <li>Field-based or grid-based scoring methods</li>
+    <li>Data-driven ranking and generative design pipelines</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="hybrid">
+  <div class="protac-section-head"><h2>Hybrid staged workflow</h2></div>
+  <p class="protac-section-copy">A practical staged workflow often standardizes representation first, performs rapid geometric screening second, uses learned reranking where it adds value, and reserves expensive ensemble validation for a smaller prioritized set.</p>
+  <div class="protac-card-grid">
+    {{ info_card('Constraint-driven design', 'Start from anchor-aware feasibility before heavy modeling.', '/constraint-driven-protac-design', kicker='Upstream') }}
+    {{ info_card('Benchmarking', 'Review what should be reported when evaluating modeling pipelines.', '/benchmarking', kicker='Credibility') }}
+    {{ info_card('Downstream tools', 'See how builder outputs feed into ternary modeling and scoring workflows.', '/downstream-modeling-tools', kicker='Operational') }}
+  </div>
+</section>
+{% endblock %}

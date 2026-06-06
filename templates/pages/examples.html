@@ -1,0 +1,27 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card">
+  <span class="protac-page-kicker">Workflow Gallery</span>
+  <h1>PROTAC Builder Examples</h1>
+  <p class="protac-hero-copy">These examples are discovery-oriented workflow patterns rather than claims of validated degrader performance.</p>
+  <p class="protac-hero-copy">Use them to understand how PROTAC Builder fits into component selection, API automation, and downstream modeling handoff.</p>
+</section>
+
+<section class="protac-section-card" id="gallery">
+  <div class="protac-section-head"><h2>Example workflows</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Build a BRD4-oriented PROTAC', 'Start from a bromodomain warhead concept and move into component assembly.', '/how-to-build-a-protac', kicker='Medicinal Chemistry', cta='Review workflow') }}
+    {{ info_card('Build a CRBN-based PROTAC', 'Open the builder with CRBN preselected for recruiter-side exploration.', '/builder?ligase=CRBN', kicker='Open In Builder', cta='Open CRBN in Builder') }}
+    {{ info_card('Build a VHL-based PROTAC', 'Open the builder with VHL preselected for recruiter-side exploration.', '/builder?ligase=VHL', kicker='Open In Builder', cta='Open VHL in Builder') }}
+    {{ info_card('Use a custom warhead SMILES', 'Start from a user-defined warhead instead of a preset example.', '/builder', kicker='Custom Input', cta='Open builder') }}
+    {{ info_card('Move from Warhead Hunter to PROTAC Builder', 'Use warhead-first discovery before returning to degrader assembly.', 'https://warheadhunter.com/examples', kicker='Cross-site Handoff', cta='Explore Warhead Hunter', external=True) }}
+    {{ info_card('Move from E3 Ligandalyzer to PROTAC Builder', 'Inspect recruiter and scaffold context, then return with a session-aware handoff when available.', 'https://e3ligandalyzer.com/explorer', kicker='Cross-site Handoff', cta='Explore E3 Ligandalyzer', external=True) }}
+    {{ info_card('Use V-LiSEMOD for a viral target warhead concept', 'Review viral protein-ligand structures and solvent-exposed moieties before returning to PROTAC Builder for assembly.', 'https://vlisemod.com', kicker='Cross-site Handoff', cta='Explore V-LiSEMOD', external=True) }}
+    {{ info_card('Batch-generate PROTACs with the API', 'Prepare batch-oriented workflows from the API Builder and API docs.', '/api-builder', kicker='Automation', cta='Open API Builder') }}
+    {{ info_card('Export to downstream modeling workflows', 'Prepare componentized outputs for restrained ternary modeling and related evaluation.', '/downstream-modeling-tools', kicker='Modeling', cta='View downstream tools') }}
+    {{ info_card('Run descriptor and prediction workflows', 'Use documented ADMET and DeepPK-adjacent outputs when supported.', '/api-docs', kicker='Prediction', cta='Read API docs') }}
+  </div>
+</section>
+{% endblock %}
