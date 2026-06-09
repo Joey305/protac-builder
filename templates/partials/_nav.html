@@ -91,21 +91,27 @@
     }
 
     .protac-site-nav__desktop {
-      flex: 1 1 auto;
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex: 0 1 auto;
       min-width: 0;
     }
 
     .protac-site-nav__list {
       display: flex;
       align-items: center;
-      width: 100%;
+      justify-content: flex-end;
       gap: 0.45rem;
       margin: 0;
       padding: 0;
+      list-style: none;
+      width: auto;
     }
 
-    .protac-site-nav__item--ecosystem {
-      margin-left: auto;
+    .protac-site-nav__item {
+      flex: 0 0 auto;
     }
 
     .protac-site-nav__item--right .protac-nav-menu {
@@ -138,7 +144,7 @@
           {% endif %}
         {% endfor %}
 
-        <li class="protac-site-nav__item protac-site-nav__item--menu{% if group.label == 'Ecosystem' %} protac-site-nav__item--ecosystem protac-site-nav__item--right{% endif %}{% if group.label == 'Developer' %} protac-site-nav__item--right{% endif %}">
+        <li class="protac-site-nav__item protac-site-nav__item--menu{% if group.label in ['Ecosystem', 'Developer'] %} protac-site-nav__item--right{% endif %}">
           <button
             class="protac-site-nav__menu-trigger{% if active.value %} is-active{% endif %}"
             type="button"
