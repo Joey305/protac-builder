@@ -1,63 +1,167 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import action_link, info_card %}
+{% from "pages/_macros.html" import action_link %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Schurer Lab Degrader Design</span>
-  <h1>PROTAC Builder - Free In Silico Degrader Design Tool</h1>
-  <p class="protac-hero-copy">PROTAC Builder is a free, server-rendered web application for assembling warheads, linkers, and E3 ligase recruiters into candidate degraders.</p>
-  <p class="protac-hero-copy">The site is designed for medicinal chemists, chemical biologists, computational chemists, students, and workflow developers who need a practical starting point for in silico PROTAC design.</p>
-  <p class="protac-hero-copy">Within the broader Schurer Lab ecosystem, Warhead Hunter supports warhead discovery, E3 Ligandalyzer supports recruiter and scaffold exploration, V-LiSEMOD supports viral protein-ligand and solvent-exposed moiety discovery for viral-target warhead development, and PROTAC Builder brings those component choices together for degrader assembly.</p>
+<section class="protac-hero-card protac-linker-hero home-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Schurer Lab Degrader Design</span>
+    <h1>PROTAC Builder - Free In Silico Degrader Design Tool</h1>
+    <p class="protac-hero-copy">
+      PROTAC Builder is a free, server-rendered web application for assembling warheads, linkers, and E3 ligase
+      recruiters into candidate degraders.
+    </p>
+    <p class="protac-hero-copy">
+      Design starts with components. PROTAC Builder helps turn warheads, linkers, and E3 recruiters into structured
+      degrader hypotheses for downstream modeling, workflow handoff, and experimental planning.
+    </p>
+    <p class="protac-hero-copy">
+      Within the broader Schurer Lab ecosystem, Warhead Hunter supports warhead discovery, E3 Ligandalyzer supports
+      recruiter and scaffold exploration, V-LiSEMOD supports viral protein-ligand and solvent-exposed moiety discovery
+      for viral-target warhead development, and PROTAC Builder brings those component choices together for assembly.
+    </p>
 
-  <div class="protac-pill-row" aria-label="Page highlights">
-    <span class="protac-pill">Warhead + linker + E3 recruiter workflow</span>
-    <span class="protac-pill">Browser-based builder and API surface</span>
-    <span class="protac-pill">Downstream modeling handoff</span>
-    <span class="protac-pill">Cautious, validation-first scientific framing</span>
+    <div class="protac-pill-row" aria-label="Page highlights">
+      <span class="protac-pill">🧬 Warhead + linker + E3 workflow</span>
+      <span class="protac-pill">⚡ Browser-based assembly</span>
+      <span class="protac-pill">🛰️ API-ready handoff</span>
+      <span class="protac-pill">🧪 Validation-first design</span>
+    </div>
+
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+      {{ action_link('/api-builder', 'Open API Builder') }}
+      {{ action_link('/api-docs', 'Read API Docs') }}
+    </div>
   </div>
 
-  <div class="protac-action-row">
-    {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
-    {{ action_link('/api-builder', 'Open API Builder') }}
-    {{ action_link('/api-docs', 'Read API Docs') }}
-  </div>
+  <aside class="home-hero-visual" aria-label="PROTAC component overview">
+    <div class="home-hero-visual__orb home-hero-visual__orb--one"></div>
+    <div class="home-hero-visual__orb home-hero-visual__orb--two"></div>
+    <div class="home-hero-visual__grid"></div>
+    <div class="home-hero-stack">
+      <article class="home-hero-node home-hero-node--warhead">
+        <span class="home-hero-node__emoji">🎯</span>
+        <span class="home-hero-node__label">Warhead</span>
+        <p>Target-binding context and attachment-aware design.</p>
+      </article>
+      <article class="home-hero-node home-hero-node--linker">
+        <span class="home-hero-node__emoji">🔗</span>
+        <span class="home-hero-node__label">Linker</span>
+        <p>Bridgeability, geometry, polarity, and reach.</p>
+      </article>
+      <article class="home-hero-node home-hero-node--e3">
+        <span class="home-hero-node__emoji">⚙️</span>
+        <span class="home-hero-node__label">E3 Recruiter</span>
+        <p>Ligase-side anchor, scaffold context, and exit vector.</p>
+      </article>
+    </div>
+    <div class="home-hero-flow">
+      <span>Discover</span>
+      <span>Assemble</span>
+      <span>Model</span>
+    </div>
+  </aside>
 </section>
 
-<section class="protac-section-card" id="workflow">
+<section class="protac-section-card home-section home-section--workflow" id="workflow">
   <div class="protac-section-head">
     <h2>Three-part PROTAC design workflow</h2>
   </div>
-  <p class="protac-section-copy">A practical degrader design session starts with a target-binding warhead, an E3 ligase recruiter, and a linker that can bridge the two without forcing impossible geometry.</p>
-  <p class="protac-section-copy">PROTAC Builder focuses on the assembly step: standardizing components, editing attachment atoms, generating merged structures, and preparing outputs for additional scoring, filtering, or structural modeling.</p>
-  <div class="protac-card-grid">
-    {{ info_card('Warhead discovery', 'Start from target-binding chemistry and attachment-aware warhead exploration.', '/warheads', kicker='Component Hub', cta='Explore warheads') }}
-    {{ info_card('Linker design', 'Review linker length, polarity, flexibility, and bridgeability concepts before assembly.', '/linkers', kicker='Component Hub', cta='Explore linkers') }}
-    {{ info_card('E3 recruiter discovery', 'Compare recruiter classes, attachment vectors, and recruiter-side fit.', '/e3-ligase-recruiters', kicker='Component Hub', cta='Explore recruiters') }}
+  <p class="protac-section-copy">
+    A practical degrader design session starts with a target-binding warhead, an E3 ligase recruiter, and a linker
+    that can bridge the two without forcing impossible geometry.
+  </p>
+  <p class="protac-section-copy">
+    PROTAC Builder focuses on the assembly step: standardizing components, editing attachment atoms, generating merged
+    structures, and preparing outputs for additional scoring, filtering, or structural modeling.
+  </p>
+  <div class="protac-card-grid home-card-grid home-card-grid--components">
+    <article class="protac-info-card home-component-card home-component-card--warhead">
+      <span class="protac-card-kicker home-card-kicker">🎯 Warhead hub</span>
+      <h3>Warhead discovery</h3>
+      <p>Start from target-binding chemistry, protein-bound context, and attachment-aware warhead exploration before you commit to assembly.</p>
+      <a href="/warheads" class="protac-inline-link">Explore warheads</a>
+    </article>
+    <article class="protac-info-card home-component-card home-component-card--linker">
+      <span class="protac-card-kicker home-card-kicker">🔗 Linker hub</span>
+      <h3>Linker design</h3>
+      <p>Review linker length, polarity, flexibility, and bridgeability concepts before turning a component idea into a serious PROTAC hypothesis.</p>
+      <a href="/linkers" class="protac-inline-link">Explore linkers</a>
+    </article>
+    <article class="protac-info-card home-component-card home-component-card--e3">
+      <span class="protac-card-kicker home-card-kicker">⚙️ Recruiter hub</span>
+      <h3>E3 recruiter discovery</h3>
+      <p>Compare recruiter classes, attachment vectors, ligase-side geometry, and recruiter fit before pairing them with the target-facing warhead.</p>
+      <a href="/e3-ligase-recruiters" class="protac-inline-link">Explore recruiters</a>
+    </article>
   </div>
 </section>
 
-<section class="protac-section-card" id="ecosystem">
+<section class="protac-section-card home-section home-section--ecosystem" id="ecosystem">
   <div class="protac-section-head">
     <h2>Connected discovery ecosystem</h2>
   </div>
-  <p class="protac-section-copy">The site does not pretend to be a complete standalone library for every warhead, recruiter, or context dataset. Instead, it links cleanly into the sister tools that go deeper in each area.</p>
-  <div class="protac-card-grid">
-    {{ info_card('Warhead Hunter', 'Explore target-binding warheads, example jobs, and warhead-focused discovery workflows.', 'https://warheadhunter.com/examples', kicker='Upstream Discovery', cta='Explore warheads in Warhead Hunter', external=True) }}
-    {{ info_card('E3 Ligandalyzer', 'Inspect E3 recruiters, ligases, scaffolds, and recruiter attachment context.', 'https://e3ligandalyzer.com/explorer', kicker='Recruiter Discovery', cta='Inspect E3 recruiters in Ligandalyzer', external=True) }}
-    {{ info_card('V-LiSEMOD', 'Explore viral protein structures with bound ligands and solvent-exposed moieties that may support viral-target warhead discovery.', 'https://vlisemod.com', kicker='Viral Warheads', cta='Explore viral warhead leads in V-LiSEMOD', external=True) }}
-    {{ info_card('Return to PROTAC Builder', 'Bring chosen components back into the builder for degrader assembly and export.', '/builder', kicker='Assembly', cta='Return to PROTAC Builder') }}
+  <p class="protac-section-copy">
+    The site does not pretend to be a complete standalone library for every warhead, recruiter, or context dataset.
+    Instead, it links cleanly into the sister tools that go deeper in each area.
+  </p>
+  <div class="protac-card-grid home-card-grid home-card-grid--ecosystem">
+    <article class="protac-info-card home-ecosystem-card home-ecosystem-card--warheadhunter">
+      <span class="protac-card-kicker home-card-kicker">🎯 Upstream discovery</span>
+      <h3>Warhead Hunter</h3>
+      <p>Explore target-binding warheads, example jobs, and warhead-focused discovery workflows before bringing a candidate warhead back into assembly.</p>
+      <a href="https://warheadhunter.com/examples" class="protac-inline-link" target="_blank" rel="noopener noreferrer">Explore warheads in Warhead Hunter ↗</a>
+    </article>
+    <article class="protac-info-card home-ecosystem-card home-ecosystem-card--ligandalyzer">
+      <span class="protac-card-kicker home-card-kicker">🔷 Recruiter discovery</span>
+      <h3>E3 Ligandalyzer</h3>
+      <p>Inspect E3 recruiters, ligases, scaffolds, and recruiter attachment context before choosing the ligase-side anchor for a candidate degrader.</p>
+      <a href="https://e3ligandalyzer.com/explorer" class="protac-inline-link" target="_blank" rel="noopener noreferrer">Inspect E3 recruiters in Ligandalyzer ↗</a>
+    </article>
+    <article class="protac-info-card home-ecosystem-card home-ecosystem-card--vlisemod">
+      <span class="protac-card-kicker home-card-kicker">🦠 Viral warheads</span>
+      <h3>V-LiSEMOD</h3>
+      <p>Explore viral protein structures with bound ligands and solvent-exposed moieties that may support viral-target warhead discovery.</p>
+      <a href="https://vlisemod.com" class="protac-inline-link" target="_blank" rel="noopener noreferrer">Explore viral warhead leads in V-LiSEMOD ↗</a>
+    </article>
+    <article class="protac-info-card home-ecosystem-card home-ecosystem-card--builder">
+      <span class="protac-card-kicker home-card-kicker">🧪 Assembly core</span>
+      <h3>Return to PROTAC Builder</h3>
+      <p>Bring chosen components back into the builder for degrader assembly, workflow export, and downstream modeling handoff.</p>
+      <a href="/builder" class="protac-inline-link">Return to PROTAC Builder</a>
+    </article>
   </div>
 </section>
 
-<section class="protac-section-card" id="learn">
+<section class="protac-section-card home-section home-section--learn" id="learn">
   <div class="protac-section-head">
     <h2>Learn, benchmark, and operationalize</h2>
   </div>
-  <div class="protac-card-grid">
-    {{ info_card('What is a PROTAC?', 'Foundational explanation of targeted protein degradation and degrader anatomy.', '/what-is-a-protac', kicker='Educational') }}
-    {{ info_card('How to build a PROTAC', 'Step-by-step guide covering component selection, attachment points, and export.', '/how-to-build-a-protac', kicker='Practical Guide') }}
-    {{ info_card('In silico PROTAC modeling', 'Overview of restrained docking, refinement, scoring, and hybrid workflows.', '/in-silico-protac-modeling', kicker='Science') }}
-    {{ info_card('Examples', 'Browse example workflows for BRD4-, CRBN-, VHL-, API-, and handoff-oriented use cases.', '/examples', kicker='Examples') }}
+  <div class="protac-card-grid home-card-grid home-card-grid--learn">
+    <article class="protac-info-card home-learn-card home-learn-card--basics">
+      <span class="protac-card-kicker home-card-kicker">📘 Educational</span>
+      <h3>What is a PROTAC?</h3>
+      <p>Foundational explanation of targeted protein degradation, degrader anatomy, and what makes PROTACs different from simple inhibitors.</p>
+      <a href="/what-is-a-protac" class="protac-inline-link">Open explainer</a>
+    </article>
+    <article class="protac-info-card home-learn-card home-learn-card--build">
+      <span class="protac-card-kicker home-card-kicker">🛠️ Practical guide</span>
+      <h3>How to build a PROTAC</h3>
+      <p>Step-by-step guidance covering component selection, attachment points, linker choices, and downstream-ready export thinking.</p>
+      <a href="/how-to-build-a-protac" class="protac-inline-link">Read build guide</a>
+    </article>
+    <article class="protac-info-card home-learn-card home-learn-card--modeling">
+      <span class="protac-card-kicker home-card-kicker">🧠 Science</span>
+      <h3>In silico PROTAC modeling</h3>
+      <p>Overview of restrained docking, refinement, scoring, and hybrid workflows for evaluating assembled candidates more rigorously.</p>
+      <a href="/in-silico-protac-modeling" class="protac-inline-link">Explore modeling</a>
+    </article>
+    <article class="protac-info-card home-learn-card home-learn-card--examples">
+      <span class="protac-card-kicker home-card-kicker">🚀 Launchable workflows</span>
+      <h3>Examples</h3>
+      <p>Browse launchable examples for target-ligand, CRBN, VHL, custom SMILES, API, and handoff-oriented workflows.</p>
+      <a href="/examples" class="protac-inline-link">Open examples</a>
+    </article>
   </div>
 </section>
 {% endblock %}

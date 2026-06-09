@@ -1,135 +1,143 @@
 # Qodex.summary
 
 ## Task
-Refresh Release Notes and Submit Data pages.
+Improve PROTAC Builder home page visual design.
 
 ## Original Goal
-Make `/release-notes` and `/submit-data` more complete and visually polished. Release Notes should present Version 1 as released June 9, 2026. Submit Data should provide clear contribution and contact pathways, with the project email hidden behind a contact button rather than displayed as visible text.
+Make the home page more colorful, energetic, and polished. Give the three PROTAC components independent neon identities: warhead in reddish neon, linker in neon yellow, and E3 recruiter in electric Tron blue. Improve ecosystem-card hover designs and make the first page set the tone for the site.
 
 ## Assumptions
-- The canonical internal builder route is `/builder`.
-- The public GitHub repository URL used throughout the project is `https://github.com/schurerlab/protacbuilder`.
-- The public GitHub issues URL is `https://github.com/schurerlab/protacbuilder/issues`.
-- The site does not currently expose a dedicated contact page, so a `mailto:` contact button is the smallest safe implementation.
-- The configured contact email may appear in link targets, but not in visible page text.
-- The existing external ecosystem links should be preserved unless they are clearly replaced elsewhere in the repository.
+- The current home page content structure should be preserved even if the card markup becomes more customized.
+- The canonical internal routes remain:
+  - `/builder`
+  - `/api-builder`
+  - `/api-docs`
+  - `/warheads`
+  - `/linkers`
+  - `/e3-ligase-recruiters`
+  - `/what-is-a-protac`
+  - `/how-to-build-a-protac`
+  - `/in-silico-protac-modeling`
+  - `/examples`
+- The public external ecosystem routes remain:
+  - `https://warheadhunter.com/examples`
+  - `https://e3ligandalyzer.com/explorer`
+  - `https://vlisemod.com`
+- The site should keep its dark scientific look, so color upgrades should feel energetic without becoming playful or low-contrast.
 
 ## Files Inspected
-- `templates/pages/release_notes.html`
-  Reviewed the short existing Release Notes page before replacing it.
-- `templates/pages/submit_data.html`
-  Reviewed the short existing Submit Data / Contribute page before replacing it.
+- `templates/pages/home.html`
+  Reviewed the existing landing-page structure, CTAs, and section layout before redesigning it.
+- `templates/pages/_page_base.html`
+  Confirmed the page shell and `data-page` hooks available for home-specific styling.
 - `templates/pages/_macros.html`
-  Confirmed the reusable CTA and info-card macros used for buttons and resource cards.
-- `templates/pages/faq.html`
-  Used as a style reference for richer hero, section, card, and callout patterns.
-- `templates/pages/methods.html`
-  Used as a style and structure reference for polished resource-page layout.
-- `templates/pages/case_studies.html`
-  Used as a recent style reference for richer workflow-oriented sections and CTA rows.
-- `protac_builder/routes.py`
-  Confirmed the `/release-notes` and `/submit-data` routes and related internal routes used for links.
-- `protac_builder/site_content.py`
-  Reviewed and updated metadata for the two pages.
-- `app.py`
-  Confirmed the correct Flask app entrypoint and `create_app()` location for validation.
+  Confirmed the shared button and card macros and decided not to extend them for this task.
+- `static/css/protac-content.css`
+  Inspected the shared card, button, pill, hero, and responsive styles that drive the home page.
+- `templates/pages/component_hubs.html`
+  Used as a reference for richer content-page structure and section rhythm.
+- `templates/pages/examples.html`
+  Used to confirm the updated examples positioning and stale text replacement.
+- `templates/pages/what_is_a_protac.html`
+  Used as a style reference for the newer polished page tone.
 
 ## Files Changed
-- `templates/pages/release_notes.html`
-  Rebuilt the page into a polished Version 1 release page with hero, release badges, highlights, categorized changes, ecosystem cards, limitations, next steps, and feedback CTA.
-- `templates/pages/submit_data.html`
-  Rebuilt the page into a full contribution hub with contribution paths, submission checklists, caution notes, attribution expectations, contact panel, and connected resource cards.
-- `protac_builder/site_content.py`
-  Updated the SEO title and meta description for both pages.
+- `templates/pages/home.html`
+  Reworked the home page with a richer hero, a custom component visual, custom component cards, stronger ecosystem cards, and refreshed examples copy.
+- `static/css/protac-content.css`
+  Added scoped home-page styling for neon component identities, higher-energy buttons, stronger hover and focus states, section glow treatment, and reduced-motion handling.
 - `Qodex.summary.md`
-  Replaced the previous task summary with this release-notes and submit-data summary.
+  Replaced the previous task summary with this home-page redesign summary.
 
 ## Files Created
 - No new project files were created.
 
 ## Implementation Summary
-The old Release Notes page was just a short snapshot paragraph and a small bullet list. It is now a full Version 1 page that clearly presents the first public release as released June 9, 2026, explains what shipped, groups the changes by area, links users to the most important workflows and resources, states limitations honestly, and closes with a feedback CTA.
+The home page still follows the same overall structure: hero, component workflow, connected ecosystem, and learning/examples section. The difference is that it now feels much more like a flagship landing page instead of a generic content page.
 
-The old Submit Data page was only a short paragraph with two cards. It is now a complete contribution hub that explains how to report issues, suggest examples, improve documentation, propose component updates, coordinate ecosystem changes, and prepare higher-quality submissions. It also includes a dedicated contact button that uses the configured email in the link target without displaying it in visible page text.
+The hero now includes stronger visual hierarchy, more energetic highlight pills, and a custom right-side component visual that reinforces the “warhead + linker + E3 recruiter” workflow. The workflow section now uses custom home-only cards so each component has its own clear neon identity. The ecosystem cards now have stronger hover behavior and tool-specific accent colors, while the learning section has lighter accent differentiation and refreshed examples copy that reflects the newer launchable workflows.
 
 ## Key Decisions
-- The Release Notes metadata was updated to:
-  - Title: `PROTAC Builder Release Notes | Version 1`
-  - Description: `Read PROTAC Builder Version 1 release notes, including educational pages, component hubs, builder examples, API documentation, ecosystem links, and workflow resources released June 9, 2026.`
-- The Submit Data metadata was updated to:
-  - Title: `Submit Data or Contribute | PROTAC Builder`
-  - Description: `Contribute to PROTAC Builder by reporting issues, suggesting examples, improving documentation, proposing component updates, coordinating ecosystem links, or contacting the project team.`
-- I used `mailto:` buttons for contact because there is no dedicated internal contact route in the repository and the user explicitly allowed that pattern.
-- I used direct `<a>` buttons instead of the shared macro for contact links so I could add accessibility attributes while keeping visible text clean.
-- I kept all visible contact text generic, such as `Contact the project team`, so the configured email never appears in rendered page text.
-- The Release Notes page only describes features and routes that are actually present in the repository, including builder launch examples, OpenAPI routes, and public resource pages.
-- I verified the GitHub repository and issues URLs before using them in CTAs.
+- I did **not** extend `info_card` or `action_link` for this task.
+  - Instead, I created custom home-only cards in `templates/pages/home.html`.
+  - This kept the shared macros stable and avoided changing card behavior across the rest of the site.
+- The component color system was implemented as:
+  - Warhead: reddish neon / coral-pink
+  - Linker: neon yellow
+  - E3 recruiter: electric blue / Tron cyan
+- Ecosystem cards also received tool-specific accents:
+  - Warhead Hunter: red/pink
+  - E3 Ligandalyzer: electric blue
+  - V-LiSEMOD: viral green
+  - PROTAC Builder return card: cyan
+- Buttons were upgraded only on the home page using `body[data-page="home"]` scoped CSS so the primary CTA is more energetic without broadly changing the rest of the site.
+- I added a custom HTML/CSS hero visual rather than introducing a new image dependency.
+- I updated the stale examples text from BRD4-oriented language to:
+  - `Browse launchable examples for target-ligand, CRBN, VHL, custom SMILES, API, and handoff-oriented workflows.`
+- I added a `prefers-reduced-motion` rule for the new hover transitions to keep the update accessible.
 
 ## Commands Run
 - `sed -n ...`, `rg -n ...`
-  Inspected the two page templates, metadata file, macros, route definitions, and app entrypoint.
+  Inspected the home template, page base, shared macros, and the shared content stylesheet.
 - `python -m py_compile app.py protac_builder/routes.py protac_builder/site_content.py`
-  Passed; confirmed Python syntax after metadata updates.
+  Passed; confirmed Python-side syntax remained valid after the home-page update.
 - Flask test-client checks via `python - <<'PY' ...`
-  Confirmed `/release-notes` and `/submit-data` render with HTTP `200`, contain the expected sections, and include the expected contact and GitHub links.
-- HTML visible-text extraction checks via `python - <<'PY' ...`
-  Confirmed the configured contact email does not appear in rendered visible page text while remaining present in `mailto:` link targets.
+  Confirmed `/` renders with HTTP `200`, includes the new home-only classes, updated examples copy, and the expected internal and external links.
 - Flask test-client route checks
-  Confirmed internal links referenced from both pages return HTTP `200`.
-- Flask test-client checks for `/openapi.json` and `/openapi.yaml`
-  Confirmed both schema routes return HTTP `200`.
-- Local app startup and HTTP checks via `python - <<'PY' ...`
-  Started the local Flask app and confirmed `http://127.0.0.1:5069/release-notes` and `http://127.0.0.1:5069/submit-data` both returned HTTP `200`.
-- External URL checks via `urllib.request.urlopen(...)`
-  Confirmed the GitHub repository URL, GitHub issues URL, Warhead Hunter, and E3 Ligandalyzer were reachable from this environment. V-LiSEMOD did not return clean success from this environment.
-- `git status --short`
-  Checked the final working-tree state for the files touched by this task.
+  Confirmed the major internal links used on the home page return HTTP `200`.
+- Local app startup and HTTP check via `python - <<'PY' ...`
+  Started the local Flask app and confirmed `http://127.0.0.1:5069/` returned HTTP `200`.
 
 ## Validation Results
 - Python syntax validation: passed.
-- `/release-notes` render through Flask test client: passed with HTTP `200`.
-- `/submit-data` render through Flask test client: passed with HTTP `200`.
-- Release Notes content checks: passed for:
-  - `PROTAC Builder Release Notes`
-  - `Version 1`
-  - `Released June 9, 2026`
-  - `Contact the project team`
-- Submit Data content checks: passed for:
-  - `Submit Data or Contribute`
-  - `How to contribute`
-  - `Contact the project team`
-  - `Open GitHub repository`
-- Contact-link checks: passed.
-  - `mailto:` link target is present on both pages.
-  - The configured contact email does not appear in visible rendered page text.
-- Internal route validation: passed for all major internal links used on both pages.
-- OpenAPI route validation: passed for `/openapi.json` and `/openapi.yaml`.
-- Local live-route validation: passed for:
-  - `http://127.0.0.1:5069/release-notes`
-  - `http://127.0.0.1:5069/submit-data`
-- External validation:
-  - Passed for the GitHub repository URL
-  - Passed for the GitHub issues URL
-  - Passed for Warhead Hunter
-  - Passed for E3 Ligandalyzer
-  - Did not cleanly pass from this environment for V-LiSEMOD
+- Home-page render through Flask test client: passed with HTTP `200`.
+- Content checks passed for:
+  - `PROTAC Builder - Free In Silico Degrader Design Tool`
+  - `🧬 Warhead + linker + E3 workflow`
+  - `Warhead discovery`
+  - `Linker design`
+  - `E3 recruiter discovery`
+  - `Connected discovery ecosystem`
+  - updated examples copy using target-ligand / CRBN / VHL / custom SMILES language
+- Link presence checks passed for:
+  - `/builder`
+  - `/api-builder`
+  - `/api-docs`
+  - `/warheads`
+  - `/linkers`
+  - `/e3-ligase-recruiters`
+  - `/what-is-a-protac`
+  - `/how-to-build-a-protac`
+  - `/in-silico-protac-modeling`
+  - `/examples`
+  - `https://warheadhunter.com/examples`
+  - `https://e3ligandalyzer.com/explorer`
+  - `https://vlisemod.com`
+- Home-only class checks passed for:
+  - `home-component-card--warhead`
+  - `home-component-card--linker`
+  - `home-component-card--e3`
+  - `home-ecosystem-card--warheadhunter`
+  - `home-ecosystem-card--ligandalyzer`
+  - `home-ecosystem-card--vlisemod`
+  - `home-ecosystem-card--builder`
+  - `home-hero-visual`
+- Local live-route validation: passed for `http://127.0.0.1:5069/`
 
 ## Known Issues
-- I did not complete a browser-automation mobile viewport pass in this turn, even though local route rendering and live localhost checks passed.
-- `https://vlisemod.com` returned `502` from this environment during external validation, so I preserved the project’s existing URL instead of inventing a replacement.
-- The pages should still be reviewed by the project or domain owner before public release.
+- I validated rendering and structure, but I did not complete a true browser-driven visual pass for hover states, focus states, or mobile resizing in this turn.
+- Because there was no browser automation pass, responsive and hover behavior were validated by code review and CSS scoping rather than by screenshot comparison.
+- The home page should still be reviewed by the project or domain owner before public release.
 
 ## Manual Verification
 1. Start the local app using the documented project command.
-2. Open `/release-notes`.
-3. Confirm Version 1 and the June 9, 2026 release date render correctly.
-4. Confirm release highlights, known limitations, and next steps are visible.
-5. Open `/submit-data`.
-6. Confirm contribution paths and the submission checklist render.
-7. Confirm the visible page text does not show the configured contact email.
-8. Click `Contact the project team` and confirm it opens an email client or uses the expected contact mechanism.
-9. Confirm GitHub and internal resource links work.
-10. Resize to mobile width and confirm both pages remain readable without horizontal overflow.
+2. Open `/`.
+3. Confirm the hero looks polished and high-energy.
+4. Confirm Warhead, Linker, and E3 recruiter cards have distinct colors.
+5. Hover over component cards and confirm color-specific hover effects.
+6. Hover over ecosystem cards and confirm tool-specific hover effects.
+7. Confirm primary and secondary buttons have visible hover and focus states.
+8. Resize to mobile width and confirm the page remains readable without horizontal overflow.
 
 ## Suggested Next Prompt
-Create a richer `/about` page that explains the PROTAC Builder ecosystem, project scope, Schurer Lab context, and how the connected tools fit together.
+Apply the same component-specific color language across `/component-hubs`, `/warheads`, `/linkers`, and `/e3-ligase-recruiters` so the component identities stay consistent throughout the site.
