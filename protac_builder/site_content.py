@@ -141,8 +141,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "benchmarking": {
         "slug": "benchmarking",
         "template": "pages/benchmarking.html",
-        "meta_title": "PROTAC Modeling Benchmarking | PROTAC Builder",
-        "meta_description": "Benchmarking guidance for PROTAC ternary structure prediction, pose ranking, degradation outcome prediction, generative design evaluation, and reproducible reporting.",
+        "meta_title": "PROTAC Modeling Benchmarking | Standards for Computational PROTAC Design",
+        "meta_description": "Learn how to benchmark computational PROTAC modeling methods across ternary structure prediction, pose ranking, degradation prediction, generative design, molecular representation, domain shift, and reproducibility.",
         "software_app_schema": False,
         "article_schema": True,
     },

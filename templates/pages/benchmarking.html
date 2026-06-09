@@ -1,37 +1,451 @@
 {% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What should a PROTAC benchmark measure?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A useful PROTAC benchmark should separate at least four tasks: ternary structure prediction, pose ranking and enrichment, degradation outcome prediction, and generative design evaluation. No single score captures PROTAC success, so benchmarking should be task-specific, multi-metric, and explicit about domain of applicability."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why is computational PROTAC benchmarking difficult?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PROTAC benchmarks are difficult because the modeled object is a ternary system rather than a simple binary complex, success is defined differently across tasks, datasets are small and heterogeneous, negative examples are scarce, molecular representations are under-standardized, and performance can collapse under domain shift across new targets, E3 ligases, linker chemotypes, or assay contexts."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does a universal PROTAC benchmarking standard already exist?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. A universal or semi-standardized framework is still a community direction rather than an established global standard. The immediate goal is not one universal score, but a shared language for tasks, inputs, metadata, metrics, negative controls, reproducibility assets, and domain-of-applicability reporting."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Benchmarking Hub</span>
-  <h1>PROTAC Modeling Benchmarking</h1>
-  <p class="protac-hero-copy">Benchmarking is a major bottleneck in computational PROTAC design because datasets, representations, scoring conventions, and domains of applicability are still fragmented.</p>
-  <p class="protac-hero-copy">This page focuses on what should be reported and compared, not on invented benchmark wins.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Computational PROTAC Benchmarking</span>
+    <h1>PROTAC Modeling Benchmarking</h1>
+    <p class="protac-hero-copy">
+      Computational PROTAC modeling is advancing quickly, but the field cannot compare methods reliably without shared
+      benchmarks, common molecular representations, consistent metrics, and transparent reporting.
+    </p>
+    <p class="protac-hero-copy">
+      Benchmarking is not about declaring one universal winner. It is about making methods comparable, reproducible, and
+      useful across targets, E3 ligases, linker chemotypes, and assay contexts. For PROTACs, that means evaluating both
+      geometry and downstream biological relevance without pretending one score can summarize everything.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Task-specific evaluation</span>
+      <span class="protac-pill">Representation matters</span>
+      <span class="protac-pill">Domain shift matters</span>
+      <span class="protac-pill">Reproducibility first</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/in-silico-protac-modeling', 'Read in silico modeling guide', primary=True) }}
+      {{ action_link('/downstream-modeling-tools', 'Open downstream modeling') }}
+      {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+      {{ action_link('/builder', 'Launch PROTAC Builder') }}
+      {{ action_link('https://zhuanlan.zhihu.com/p/2004647419527316736', 'Related Chinese commentary', external=True) }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper5/Figure4.png') }}"
+      alt="Decision framework for computational PROTAC workflows showing how modeling objective determines whether structure prediction, outcome prediction, generative design, or staged hybrid prioritization is needed."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 4.</strong> Decision framework for computational PROTAC workflows, showing how the modeling
+      objective determines whether users need structure prediction, outcome prediction, generative design, or staged
+      hybrid prioritization. Figure from the Schurer Lab in silico PROTAC modeling perspective draft, used here as
+      project-owned educational content.
+    </figcaption>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="areas">
-  <div class="protac-section-head"><h2>Benchmarking areas</h2></div>
-  <ul class="protac-bullet-list">
-    <li>Ternary structure prediction</li>
-    <li>Pose ranking and enrichment</li>
-    <li>Degradation outcome prediction</li>
-    <li>Generative design evaluation</li>
-    <li>Domain shift across new E3 ligases, targets, and linker chemotypes</li>
-    <li>Scoring robustness and calibration</li>
-    <li>Representation and conformer standardization</li>
-  </ul>
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: what should a PROTAC benchmark measure?</h2></div>
+  <p class="protac-section-copy">
+    A useful PROTAC benchmark should separate at least four tasks:
+  </p>
+  <ol class="protac-step-list">
+    <li>Ternary structure prediction: did the method recover the target-PROTAC-E3 geometry?</li>
+    <li>Pose ranking and enrichment: did the method rank productive poses above decoys?</li>
+    <li>Degradation outcome prediction: did the method predict degrader or non-degrader labels, DC50, Dmax, or selectivity?</li>
+    <li>Generative design evaluation: did generated candidates remain chemically valid, synthetically plausible, geometrically feasible, and experimentally testable?</li>
+  </ol>
+  <div class="protac-callout">
+    <strong>Takeaway:</strong> no single score captures PROTAC success. Benchmarking should be task-specific,
+    multi-metric, and transparent about domain of applicability.
+  </div>
 </section>
 
-<section class="protac-section-card" id="reporting">
-  <div class="protac-section-head"><h2>Recommended reporting elements</h2></div>
-  <ul class="protac-bullet-list">
-    <li>System definition and scope</li>
-    <li>PROTAC representation and attachment-point notation</li>
-    <li>Conformer and structure preparation details</li>
-    <li>Modeling protocol and scoring rules</li>
-    <li>Evaluation criteria and controls</li>
-    <li>Negative or challenging examples</li>
-    <li>Reproducibility assets and versioning</li>
-    <li>Domain of applicability</li>
-  </ul>
+<section class="protac-section-card" id="why-hard">
+  <div class="protac-section-head"><h2>Why PROTAC benchmarking is hard</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        The key modeled object is a PROTAC-induced ternary complex, not a simple binary ligand-protein pose.
+        Degradation depends on more than static geometry, and different papers define “success” differently depending on
+        whether they are predicting structure, ranking poses, forecasting degradation, or generating chemistry.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Structural datasets are still small relative to PROTAC chemical and E3-ligase diversity.</li>
+        <li>Activity datasets are heterogeneous across assays, cell lines, targets, time points, and readouts.</li>
+        <li>High-quality negatives such as binders that do not degrade are often missing.</li>
+        <li>PROTAC molecules are large, flexible, and highly sensitive to molecular representation choices.</li>
+        <li>ML methods can look strong under random splits and then fail under harder target, E3, linker, or assay-context splits.</li>
+      </ul>
+    </div>
+    <div class="protac-callout">
+      <strong>Community direction:</strong> the first goal is not to create one universal leaderboard too early. The
+      first goal is to define comparable tasks, inputs, outputs, and reporting rules.
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="tasks">
+  <div class="protac-section-head"><h2>Benchmarking tasks that should be kept separate</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Ternary structure prediction</h3>
+      <p><strong>Question:</strong> can the method recover experimentally observed ternary complex geometry?</p>
+      <p><strong>Metrics:</strong> DockQ, interface RMSD, ligand RMSD where applicable, fraction of native contacts, interface precision or recall, and clash or linker-feasibility checks.</p>
+      <p><strong>Cautions:</strong> global alignment can hide degrader-relevant interface errors, accessory proteins can inflate scores, and static crystal structures are snapshots rather than full ensembles.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Pose ranking and enrichment</h3>
+      <p><strong>Question:</strong> can the method rank productive or near-native poses above decoys?</p>
+      <p><strong>Metrics:</strong> top-1, top-5, or top-k success, enrichment factors, score calibration, rank correlation against reference quality, and decoy rejection rate.</p>
+      <p><strong>Cautions:</strong> a method may generate a good pose but fail to rank it well, and raw docking or Rosetta energy should not be treated as uncalibrated truth.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Degradation outcome prediction</h3>
+      <p><strong>Question:</strong> can the method predict whether a candidate PROTAC degrades the target in a defined biological context?</p>
+      <p><strong>Metrics:</strong> AUROC, AUPRC, accuracy, balanced accuracy, calibration curves, regression to DC50, Dmax, or percent degradation, and assay-stratified or target-E3 split performance.</p>
+      <p><strong>Cautions:</strong> labels are noisy, assay context matters, and a plausible ternary structure does not guarantee cellular degradation.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Generative design evaluation</h3>
+      <p><strong>Question:</strong> do generated linkers or degraders survive downstream feasibility and validation filters?</p>
+      <p><strong>Metrics:</strong> validity, uniqueness, novelty, synthetic accessibility, property distribution matching, conformer pass rate, bridgeability pass rate, modeling pass rate, and experimental follow-up rate when available.</p>
+      <p><strong>Cautions:</strong> a molecule can be valid in 2D and still impossible or poor in 3D, so novelty is not enough without feasibility.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="universal-standard">
+  <div class="protac-section-head"><h2>The case for a universal PROTAC benchmarking standard</h2></div>
+  <p class="protac-section-copy">
+    A practical PROTAC benchmarking standard is still a proposed community direction rather than an established
+    standard. It should help groups compare results without forcing every method into the same mold.
+  </p>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What it should define</span>
+      <p>Common input schemas, common output formats, task-specific metrics, required metadata, recommended negative controls, domain-shift splits, and reproducibility assets.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What it should not claim</span>
+      <p>A universal standard does not mean one universal score. It means a shared language for what was modeled, how it was prepared, how it was evaluated, and where it should or should not be trusted.</p>
+    </article>
+  </div>
+  <ol class="protac-step-list">
+    <li>Define the task.</li>
+    <li>Define the system.</li>
+    <li>Define the molecule.</li>
+    <li>Define the protein constructs.</li>
+    <li>Define the modeling protocol.</li>
+    <li>Define the metric.</li>
+    <li>Define the negative controls.</li>
+    <li>Define the domain split.</li>
+    <li>Release reproducibility assets.</li>
+    <li>State the domain of applicability.</li>
+  </ol>
+</section>
+
+<section class="protac-section-card" id="dataset-requirements">
+  <div class="protac-section-head"><h2>Minimal benchmark dataset requirements</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--three">
+    <article class="protac-mini-card">
+      <h3>Structure-prediction benchmarks</h3>
+      <p>Include PDB or structure source, POI and E3 chains, accessory proteins, PROTAC structure, ligand poses, anchor atoms, linker identity, construct boundaries, missing residues, biological assembly choice, and the scored interface definition.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Degradation-prediction benchmarks</h3>
+      <p>Include target, E3, warhead, linker, recruiter structures, cell line, assay type, treatment time, concentration series, DC50 and Dmax when available, label definition, selectivity context, and inactive analogues when available.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Generative-design benchmarks</h3>
+      <p>Include split definition, seed molecules or conditioning inputs, allowed chemistry constraints, validity and novelty metrics, downstream structural-feasibility metrics, and experimental confirmation status when available.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="negatives">
+  <div class="protac-section-head"><h2>Negative controls are not optional</h2></div>
+  <p class="protac-section-copy">
+    Benchmarks need binders that fail to degrade, linker-incompatible designs, nonproductive ternary poses, and decoy
+    poses that are chemically plausible but geometrically wrong. Without negatives, learned models can latch onto
+    shortcuts and pose-ranking methods cannot be evaluated fairly.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Same warhead and recruiter with an inactive linker</div>
+    <div class="protac-checklist-item">Linker too short or too long</div>
+    <div class="protac-checklist-item">Attachment atom that disrupts binding</div>
+    <div class="protac-checklist-item">Binary binders with no observed degradation</div>
+    <div class="protac-checklist-item">Ternary pose with severe linker strain</div>
+    <div class="protac-checklist-item">Target or E3 combination outside the training distribution</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="representation">
+  <div class="protac-section-head"><h2>Molecular representation standards</h2></div>
+  <p class="protac-section-copy">
+    PROTACs are representation-sensitive because they combine long flexible linkers, explicit attachment points,
+    stereochemistry, tautomer or protonation ambiguity, conformer-generation failures, and multiple possible head-group
+    definitions. Without consistent molecular and workflow representations, it becomes difficult to compare docking,
+    learned scoring, and generative outputs in a reproducible way.
+  </p>
+  <ol class="protac-step-list">
+    <li>Canonical 2D encoding with explicit attachment-point labels.</li>
+    <li>Atom-mapped SMILES or equivalent connection-point notation.</li>
+    <li>Stereochemistry specified.</li>
+    <li>Protonation and tautomer state specified or documented.</li>
+    <li>Warhead, linker, and E3 recruiter boundaries defined.</li>
+    <li>Anchor atoms defined.</li>
+    <li>3D conformer protocol documented.</li>
+    <li>Failed conformer-generation cases reported.</li>
+    <li>Protein target and E3 metadata linked to the molecule.</li>
+    <li>Assay context included when degradation labels are used.</li>
+  </ol>
+  <div class="protac-callout">
+    <strong>Builder role:</strong> PROTAC Builder can help users standardize component boundaries, attachment atoms,
+    linker choices, and exportable representations before downstream modeling or benchmarking.
+  </div>
+</section>
+
+<section class="protac-section-card" id="reporting-checklist">
+  <div class="protac-section-head"><h2>Recommended reporting checklist</h2></div>
+  <p class="protac-section-copy">
+    To improve reproducibility, cross-method comparison, and prospective usability, computational PROTAC studies should
+    report the following whenever applicable.
+  </p>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">1. System definition</span>
+      <p>Protein structures, constructs, chain definitions, modeled domains, and E3 complex composition.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">2. PROTAC representation</span>
+      <p>Warhead and E3-ligand binding modes, linker attachment atoms, anchor definitions, stereochemistry, protonation, and tautomer states.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">3. Conformer and structure preparation</span>
+      <p>Conformer-generation procedures, constraints, failure handling, protein-preparation steps, missing residues, and unresolved atoms.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">4. Modeling protocol</span>
+      <p>Docking, restraints, MD, scoring, filtering, pose-selection parameters, software versions, and hyperparameters.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">5. Evaluation criteria</span>
+      <p>Definitions of pose success, ranking success, degradation-prediction success, generative-model success, top-k metrics, and enrichment metrics.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">6. Negative and control examples</span>
+      <p>Binders that fail to degrade, linker-incompatible designs, nonproductive ternary poses, and other control cases.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">7. Reproducibility assets</span>
+      <p>Random seeds, model checkpoints, scripts, containers, benchmark inputs, and output files needed to reproduce the workflow.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">8. Domain of applicability</span>
+      <p>Limitations for new targets, E3 ligases, linker chemotypes, molecular-glue-like systems, or biological contexts outside the validation set.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="domain-shift">
+  <div class="protac-section-head"><h2>Domain shift in PROTAC modeling</h2></div>
+  <p class="protac-section-copy">
+    Random splits can overestimate performance. The field needs harder generalization tests that expose where methods
+    collapse rather than only where they succeed.
+  </p>
+  <div class="protac-linker-grid protac-linker-grid--three">
+    <article class="protac-mini-card">
+      <h3>Leave-one-target-family-out</h3>
+      <p>Tests whether the model can move beyond familiar protein families.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Leave-one-E3-ligase-out</h3>
+      <p>Tests whether performance generalizes beyond dominant CRBN or VHL-heavy datasets.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Leave-one-warhead-chemotype-out</h3>
+      <p>Tests learned dependence on familiar POI-ligand chemistry.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Leave-one-linker-class-out</h3>
+      <p>Tests generalization beyond common PEG or alkyl linker motifs.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Temporal and scaffold splits</h3>
+      <p>Reduce leakage from near-duplicate analogues or chronologically later structures.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Assay-context splits</h3>
+      <p>Expose dependence on one cell line, one readout format, or one treatment window.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Practical takeaway:</strong> a benchmark that only tests familiar CRBN or VHL systems does not prove
+    generalization to the broader degradome.
+  </div>
+</section>
+
+<section class="protac-section-card" id="scoring">
+  <div class="protac-section-head"><h2>Scoring: why one number is not enough</h2></div>
+  <p class="protac-section-copy">
+    Geometry and stability do not uniquely determine degradation. DockQ or RMSD may help for structure recovery but do
+    not measure cellular activity. Docking or Rosetta energy may not correlate with interface correctness. ML confidence
+    may not be calibrated under domain shift. Generative validity does not mean biological usefulness.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Gate 1: chemical validity and representation sanity</div>
+    <div class="protac-checklist-item">Gate 2: geometric feasibility and linker bridgeability</div>
+    <div class="protac-checklist-item">Gate 3: interface plausibility and clash or contact checks</div>
+    <div class="protac-checklist-item">Gate 4: ensemble stability or dynamic persistence</div>
+    <div class="protac-checklist-item">Gate 5: ubiquitination-plausibility proxies</div>
+    <div class="protac-checklist-item">Gate 6: learned degradation prediction with uncertainty</div>
+    <div class="protac-checklist-item">Gate 7: experimental degradation and selectivity validation</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="schema">
+  <div class="protac-section-head"><h2>Proposed universal benchmark output schema</h2></div>
+  <p class="protac-section-copy">
+    This is a conceptual example, not a backend implementation requirement. The goal is to show the kind of structured
+    metadata that makes benchmark outputs comparable across groups.
+  </p>
+  <pre class="protac-schema-block"><code>{
+  "benchmark_task": "ternary_structure_prediction",
+  "system_id": "example_target_e3_protac",
+  "target": {
+    "name": "POI",
+    "structure_id": "PDB_OR_MODEL_ID",
+    "chains": ["A"],
+    "construct_notes": "domain boundaries and missing residues"
+  },
+  "e3_ligase": {
+    "name": "VHL_or_CRBN_or_other",
+    "structure_id": "PDB_OR_MODEL_ID",
+    "chains": ["B"],
+    "accessory_proteins": ["optional"]
+  },
+  "protac": {
+    "smiles": "atom-mapped SMILES",
+    "warhead_anchor_atom": "atom_map_id",
+    "recruiter_anchor_atom": "atom_map_id",
+    "stereochemistry_documented": true,
+    "protonation_state_notes": "documented"
+  },
+  "modeling_protocol": {
+    "method": "PRosettaC_or_other",
+    "software_version": "version",
+    "random_seed": "seed",
+    "parameters": "summary_or_file_link"
+  },
+  "evaluation": {
+    "metrics": ["DockQ", "interface_RMSD", "top_k_success"],
+    "negative_controls": ["decoy_pose_set"],
+    "domain_split": "leave_one_E3_out"
+  },
+  "reproducibility": {
+    "input_files": "available",
+    "output_files": "available",
+    "container_or_environment": "available"
+  }
+}</code></pre>
+</section>
+
+<section class="protac-section-card" id="roadmap">
+  <div class="protac-section-head"><h2>Benchmarking roadmap for the community</h2></div>
+  <ol class="protac-step-list">
+    <li>Curate small but high-quality task-specific benchmark sets.</li>
+    <li>Define common molecular representation rules.</li>
+    <li>Create structure-prediction benchmarks with clear interface scoring.</li>
+    <li>Create pose-ranking benchmarks with realistic decoys.</li>
+    <li>Create degradation-prediction benchmarks with well-defined labels and negatives.</li>
+    <li>Create generative-design benchmarks that measure downstream pass rates.</li>
+    <li>Require domain-shift splits.</li>
+    <li>Publish scripts, containers, and input or output examples.</li>
+    <li>Report failure modes as first-class results.</li>
+    <li>Connect benchmark inputs to practical assembly tools like PROTAC Builder.</li>
+  </ol>
+</section>
+
+<section class="protac-section-card" id="builder-role">
+  <div class="protac-section-head"><h2>How PROTAC Builder supports benchmark-ready workflows</h2></div>
+  <p class="protac-section-copy">
+    PROTAC Builder is not a benchmark standard and not a validated benchmarking engine. It can, however, serve as a
+    preparation and standardization layer for benchmark-ready computational workflows by helping users normalize
+    component boundaries, attachment atoms, and assembly outputs before downstream modeling.
+  </p>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>What it can standardize</h3>
+      <p>Component selection, warhead and recruiter boundaries, attachment atoms, linker choices, assembled candidate structures, export formats, and batch or API-ready handoffs.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>What it should not claim</h3>
+      <p>It should not be presented as the official global benchmark standard or as a guarantee of predictive modeling performance or biological degradation.</p>
+    </article>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+    {{ action_link('/api-builder', 'Open API Builder') }}
+    {{ action_link('/downstream-modeling-tools', 'Read downstream modeling guide') }}
+    {{ action_link('/in-silico-protac-modeling', 'Read in silico modeling guide') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="resources">
+  <div class="protac-section-head"><h2>Related resources and references</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('In Silico PROTAC Modeling', 'Read the broader computational guide that frames physics-based, ML, and hybrid workflows.', '/in-silico-protac-modeling', kicker='Internal Guide', cta='Open in silico guide') }}
+    {{ info_card('Constraint-Driven PROTAC Design', 'Review geometry-aware assembly, anchor atoms, and bridgeability logic.', '/constraint-driven-protac-design', kicker='Internal Guide', cta='Read constraint-driven design') }}
+    {{ info_card('Downstream Modeling Tools', 'See where builder outputs feed into docking, MD, scoring, and hybrid modeling workflows.', '/downstream-modeling-tools', kicker='Internal Guide', cta='Open downstream modeling') }}
+    {{ info_card('How to Build a PROTAC', 'Zoom out to the full staged design and validation workflow.', '/how-to-build-a-protac', kicker='Internal Guide', cta='Read build guide') }}
+    {{ info_card('Linker Design', 'Review linker feasibility, bridgeability, and property tradeoffs.', '/linkers', kicker='Internal Guide', cta='Open linker guide') }}
+    {{ info_card('API Builder', 'Prepare benchmark-ready or batch-ready computational handoffs once candidates are standardized.', '/api-builder', kicker='Internal Guide', cta='Open API Builder') }}
+    {{ info_card('Examples', 'Inspect examples and cross-site handoffs across the broader PROTAC Builder ecosystem.', '/examples', kicker='Internal Guide', cta='Open examples') }}
+    {{ info_card('Related Chinese article/commentary', 'Contextual external commentary link supplied by the project owner; treat it as related reading rather than a validated benchmark source.', 'https://zhuanlan.zhihu.com/p/2004647419527316736', kicker='External Link', cta='Open related commentary', external=True) }}
+    {{ info_card('PRosettaC vs AlphaFold3 ternary-complex benchmarking study', 'Related published benchmarking study already referenced elsewhere in the site ecosystem.', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12568945/', kicker='External Study', cta='Open study', external=True) }}
+  </div>
+  <div class="protac-reference-block">
+    <p>
+      This page is based in part on the Schurer Lab perspective draft <em>From Ternary Modeling to Predictive PROTAC
+      Design: A Computational Perspective.</em> It is intended as an educational benchmarking guide and should be reviewed
+      by the project or domain owner before public release.
+    </p>
+  </div>
 </section>
 {% endblock %}

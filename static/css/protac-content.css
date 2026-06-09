@@ -402,6 +402,23 @@
   color: #92f7ff;
 }
 
+.protac-schema-block {
+  margin: 1rem 0 0;
+  padding: 1rem 1.05rem;
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+  background: rgba(10, 18, 32, 0.86);
+  color: #d7e7f7;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.protac-schema-block code {
+  font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  white-space: pre;
+}
+
 @media (max-width: 768px) {
   .protac-content-shell {
     padding-top: 1.2rem;
