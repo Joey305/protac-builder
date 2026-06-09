@@ -205,8 +205,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "case_studies": {
         "slug": "case-studies",
         "template": "pages/case_studies.html",
-        "meta_title": "PROTAC Builder Case Studies | PROTAC Builder",
-        "meta_description": "Case-study style examples showing how PROTAC Builder fits with warhead discovery, recruiter exploration, and downstream modeling workflows.",
+        "meta_title": "PROTAC Builder Case Studies | Warhead, Recruiter, Viral Target, and Batch Workflows",
+        "meta_description": "Explore conceptual PROTAC Builder case studies showing warhead-first, E3 recruiter-first, viral target, and batch workflow paths through Warhead Hunter, E3 Ligandalyzer, V-LiSEMOD, PROTAC Builder, and downstream modeling.",
         "software_app_schema": False,
         "article_schema": True,
     },

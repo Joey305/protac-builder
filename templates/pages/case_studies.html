@@ -1,20 +1,405 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import info_card %}
+{% from "pages/_macros.html" import action_link, info_card %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Resources</span>
-  <h1>Case Studies</h1>
-  <p class="protac-hero-copy">These case studies describe workflow patterns and tool fit. They are not claims of experimentally validated degradation outcomes by the web app alone.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Workflow Walkthroughs</span>
+    <h1>PROTAC Builder Case Studies</h1>
+    <p class="protac-hero-copy">
+      These are workflow case studies, not claims of experimentally validated degradation outcomes by the web app
+      alone. Each one shows a practical path through the PROTAC Builder ecosystem so users can see where to start,
+      which upstream tool to use, what information to collect, and how to move into assembly and downstream modeling.
+    </p>
+    <p class="protac-hero-copy">
+      The goal is to make tool fit clearer. Some users begin with a target-bound warhead, some begin with recruiter
+      selection, some begin with a viral protein-ligand structure, and some move quickly into API or batch workflows.
+      In every case, assembled candidates should still be treated as design hypotheses that require validation.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Workflow examples</span>
+      <span class="protac-pill">Component-first design</span>
+      <span class="protac-pill">Builder handoff</span>
+      <span class="protac-pill">Validation still required</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/examples', 'View examples', primary=True) }}
+      {{ action_link('/builder', 'Launch PROTAC Builder') }}
+      {{ action_link('/how-to-build-a-protac', 'Read the build guide') }}
+      {{ action_link('/api-builder', 'Open API Builder') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero science-figure science-figure--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper5/TOCgraphic.png') }}"
+      alt="Overview graphic showing computational PROTAC workflows from candidate setup through geometric review, ternary modeling, learned scoring, and prioritization."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Workflow in context.</strong> PROTAC Builder sits in the middle of a broader workflow that starts with
+      component discovery and continues into downstream structural review and prioritization. Figure from the Schürer
+      Lab in silico PROTAC modeling perspective manuscript, used here as project-owned educational content.
+    </figcaption>
+    <div class="protac-figure-card__actions">
+      <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper5/TOCgraphic.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the PROTAC workflow overview figure">View larger figure</a>
+    </div>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="cases">
-  <div class="protac-section-head"><h2>Case-study themes</h2></div>
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Workflow case studies for PROTAC design</h2></div>
+  <p class="protac-section-copy">
+    These case studies are conceptual workflow walkthroughs. They show how a user might start from a target-bound
+    warhead, an E3 recruiter, a viral protein-ligand structure, or a batch/API use case, then move into PROTAC
+    Builder for candidate assembly and downstream modeling. They are not claims that the assembled candidates are
+    experimentally validated degraders.
+  </p>
+</section>
+
+<section class="protac-section-card" id="overview-cards">
+  <div class="protac-section-head"><h2>Case study overview</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Warhead-first workflow</h3>
+      <p>Start from target-binding ligand evidence, inspect protein-bound warhead context in Warhead Hunter, identify candidate solvent-exposed attachment atoms, then return to PROTAC Builder for linker and recruiter selection.</p>
+      <div class="protac-action-row">
+        {{ action_link('https://warheadhunter.com/examples', 'Open Warhead Hunter examples', primary=True, external=True) }}
+        {{ action_link('/warheads', 'Read Warhead Discovery') }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Recruiter-first workflow</h3>
+      <p>Start from E3 recruiter selection in E3 Ligandalyzer, compare recruiter scaffolds and bound poses, choose a plausible recruiter-side attachment vector, then use PROTAC Builder to pair the recruiter with a target warhead and linker panel.</p>
+      <div class="protac-action-row">
+        {{ action_link('https://e3ligandalyzer.com/explorer', 'Open E3 Ligandalyzer', primary=True, external=True) }}
+        {{ action_link('/e3-ligase-recruiters', 'Read E3 Recruiter Guide') }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Viral target workflow</h3>
+      <p>Use V-LiSEMOD to inspect viral protein-ligand structures and solvent-exposed moieties, then bring candidate target-binding ideas into PROTAC Builder for component assembly and downstream evaluation.</p>
+      <div class="protac-action-row">
+        {{ action_link('https://vlisemod.com', 'Open V-LiSEMOD', primary=True, external=True) }}
+        {{ action_link('/warheads', 'Read Warhead Discovery') }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Batch workflow</h3>
+      <p>Use API Builder and API documentation to move from one interactive setup to reproducible, scripted candidate generation and downstream workflow handoff.</p>
+      <div class="protac-action-row">
+        {{ action_link('/api-builder', 'Open API Builder', primary=True) }}
+        {{ action_link('/batch-workflows', 'Read Batch Workflows') }}
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="warhead-first">
+  <div class="protac-section-head"><h2>Warhead-first workflow</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <h3>When to use this workflow</h3>
+      <ul class="protac-bullet-list">
+        <li>You know the protein of interest.</li>
+        <li>You still need a target-binding ligand or warhead.</li>
+        <li>You need plausible modification atoms before adding a linker.</li>
+      </ul>
+      <h3>Workflow steps</h3>
+      <ol class="protac-step-list">
+        <li>Search or inspect ligand-bound structures in Warhead Hunter or RCSB Scout.</li>
+        <li>Identify the bound ligand and target context that matter for your question.</li>
+        <li>Inspect atom-level solvent exposure and 3D pose context.</li>
+        <li>Avoid buried atoms that appear important for binding.</li>
+        <li>Choose one or more candidate attachment atoms.</li>
+        <li>Bring the warhead into PROTAC Builder.</li>
+        <li>Pair it with an E3 recruiter and a linker panel.</li>
+        <li>Export candidates into downstream modeling.</li>
+      </ol>
+      <h3>What to record</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Target name</div>
+        <div class="protac-checklist-item">PDB ID or structure source</div>
+        <div class="protac-checklist-item">Ligand identity</div>
+        <div class="protac-checklist-item">Candidate attachment atoms</div>
+        <div class="protac-checklist-item">Solvent-exposure notes</div>
+        <div class="protac-checklist-item">Key binding interactions to preserve</div>
+        <div class="protac-checklist-item">Uncertainties or alternates</div>
+      </div>
+      <div class="protac-action-row">
+        {{ action_link('/warheads', 'Warhead guide', primary=True) }}
+        {{ action_link('/linkers', 'Linker design') }}
+        {{ action_link('/how-to-build-a-protac', 'Build guide') }}
+        {{ action_link('/downstream-modeling', 'Downstream modeling') }}
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Home.png') }}"
+        alt="Warhead Hunter overview screenshot showing structure-guided warhead discovery, atom-level solvent exposure mapping, and launch paths."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Warhead-first starting point.</strong> Warhead Hunter helps users inspect target-bound ligands,
+        solvent exposure, and candidate modification sites before the warhead is handed into PROTAC Builder.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Home.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the Warhead Hunter overview screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/examples" target="_blank" rel="noopener noreferrer" aria-label="Open Warhead Hunter examples">Open examples</a>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="recruiter-first">
+  <div class="protac-section-head"><h2>Recruiter-first workflow</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/CoverImage.jpg') }}"
+        alt="E3 Ligandalyzer overview image showing recruiter-centered exploration for ligase-side design decisions."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Recruiter-first starting point.</strong> E3 Ligandalyzer supports structure-first recruiter
+        selection, scaffold comparison, and attachment-context review before the recruiter is paired with a warhead.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper3/CoverImage.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the E3 Ligandalyzer overview image">View larger image</a>
+        <a class="protac-figure-card__zoom" href="https://e3ligandalyzer.com/explorer" target="_blank" rel="noopener noreferrer" aria-label="Open E3 Ligandalyzer Explorer">Open explorer</a>
+      </div>
+    </figure>
+    <div>
+      <h3>When to use this workflow</h3>
+      <ul class="protac-bullet-list">
+        <li>You are deciding which E3 ligase or recruiter to use.</li>
+        <li>You want to compare CRBN, VHL, or other recruiter chemotypes.</li>
+        <li>You need recruiter-bound pose, scaffold, or attachment-vector context.</li>
+      </ul>
+      <h3>Workflow steps</h3>
+      <ol class="protac-step-list">
+        <li>Open E3 Ligandalyzer Explorer.</li>
+        <li>Compare recruiter ligands by ligase, scaffold, and available property context.</li>
+        <li>Inspect recruiter-bound structures.</li>
+        <li>Check solvent exposure and plausible attachment atoms.</li>
+        <li>Consider cell or tissue expression context where relevant.</li>
+        <li>Reproduce the recruiter setup in PROTAC Builder.</li>
+        <li>Pair it with a target warhead and linker panel.</li>
+        <li>Use downstream modeling to evaluate ternary geometry.</li>
+      </ol>
+      <h3>What to record</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">E3 ligase</div>
+        <div class="protac-checklist-item">Recruiter ID or scaffold</div>
+        <div class="protac-checklist-item">Bound structure source</div>
+        <div class="protac-checklist-item">Recruiter-side attachment atom</div>
+        <div class="protac-checklist-item">Scaffold notes</div>
+        <div class="protac-checklist-item">Expression or context assumptions</div>
+        <div class="protac-checklist-item">Alternative recruiters to test</div>
+      </div>
+      <div class="protac-action-row">
+        {{ action_link('/e3-ligase-recruiters', 'Recruiter guide', primary=True) }}
+        {{ action_link('/component-hubs', 'Component hubs') }}
+        {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+        {{ action_link('/downstream-modeling', 'Downstream modeling') }}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="viral-target">
+  <div class="protac-section-head"><h2>Viral target workflow</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <h3>When to use this workflow</h3>
+      <ul class="protac-bullet-list">
+        <li>The protein of interest is viral.</li>
+        <li>You want viral protein-ligand structural context.</li>
+        <li>You need solvent-exposed moiety evidence before choosing a warhead attachment point.</li>
+      </ul>
+      <h3>Workflow steps</h3>
+      <ol class="protac-step-list">
+        <li>Open V-LiSEMOD.</li>
+        <li>Identify the viral target and relevant ligand-bound structures.</li>
+        <li>Inspect solvent-exposed moieties or candidate warhead features.</li>
+        <li>Select plausible target-binding ligand ideas.</li>
+        <li>Document target context and candidate modification points.</li>
+        <li>Bring the candidate warhead idea into PROTAC Builder.</li>
+        <li>Choose an E3 recruiter and linker strategy.</li>
+        <li>Evaluate bridgeability and downstream-modeling feasibility.</li>
+      </ol>
+      <h3>What to record</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Viral target</div>
+        <div class="protac-checklist-item">Structure or source</div>
+        <div class="protac-checklist-item">Bound ligand or moiety</div>
+        <div class="protac-checklist-item">Candidate attachment point</div>
+        <div class="protac-checklist-item">Target-specific uncertainty</div>
+        <div class="protac-checklist-item">Proposed builder setup</div>
+      </div>
+      <div class="protac-action-row">
+        {{ action_link('https://vlisemod.com', 'Open V-LiSEMOD', primary=True, external=True) }}
+        {{ action_link('/warheads', 'Warhead discovery') }}
+        {{ action_link('/component-hubs', 'Component hubs') }}
+        {{ action_link('/downstream-modeling', 'Downstream modeling') }}
+      </div>
+    </div>
+    <article class="protac-detail-card">
+      <h3>Why this workflow is different</h3>
+      <p>Viral-target workflows often begin upstream of the builder because the central uncertainty is still the target-bound ligand context rather than the final PROTAC assembly pattern.</p>
+      <p>That means the most important early decision is usually not which linker to enumerate, but whether the viral ligand evidence supports a plausible editable warhead at all.</p>
+      <div class="protac-callout">
+        <strong>Practical interpretation:</strong> the builder becomes useful after the viral-target ligand context is sufficiently clear to define a candidate warhead and one or more plausible attachment atoms.
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="batch-api">
+  <div class="protac-section-head"><h2>Batch and API workflow</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Paper5/Figure4.png') }}"
+        alt="Workflow figure illustrating downstream computational and structured handoff concepts for PROTAC design and prioritization."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Batch-oriented handoff mindset.</strong> Once a workflow is understood interactively, the same logic can
+        be carried into structured payloads, API calls, batch enumeration, and downstream evaluation.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper5/Figure4.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the batch and downstream workflow figure">View larger figure</a>
+      </div>
+    </figure>
+    <div>
+      <h3>When to use this workflow</h3>
+      <ul class="protac-bullet-list">
+        <li>You want to generate many candidate combinations.</li>
+        <li>You are moving from manual exploration to scripted workflows.</li>
+        <li>You need reproducible notebook, server, or pipeline integration.</li>
+      </ul>
+      <h3>Workflow steps</h3>
+      <ol class="protac-step-list">
+        <li>Start from an interactive builder setup or from the examples page.</li>
+        <li>Identify component IDs, linker choices, and attachment atoms.</li>
+        <li>Use API Builder to prepare request payloads.</li>
+        <li>Use API docs and OpenAPI schemas to script generation.</li>
+        <li>Run batch workflows on a controlled set of candidates.</li>
+        <li>Save inputs, outputs, IDs, query parameters, and dates.</li>
+        <li>Send candidates to downstream modeling or descriptor workflows.</li>
+        <li>Report assumptions and validation status explicitly.</li>
+      </ol>
+      <h3>What to record</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Component IDs</div>
+        <div class="protac-checklist-item">Query parameters</div>
+        <div class="protac-checklist-item">Custom SMILES if used</div>
+        <div class="protac-checklist-item">Linker choices</div>
+        <div class="protac-checklist-item">API payload</div>
+        <div class="protac-checklist-item">Output files</div>
+        <div class="protac-checklist-item">Date or version context</div>
+        <div class="protac-checklist-item">Downstream workflow</div>
+      </div>
+      <div class="protac-action-row">
+        {{ action_link('/api-builder', 'Open API Builder', primary=True) }}
+        {{ action_link('/api-docs', 'API docs') }}
+        {{ action_link('/batch-workflows', 'Batch workflows') }}
+        {{ action_link('/database-schema', 'Database schema') }}
+        {{ action_link('/download-manifest', 'Download manifest') }}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="builder-launches">
+  <div class="protac-section-head"><h2>From case study to builder setup</h2></div>
+  <p class="protac-section-copy">
+    When the upstream logic is clear enough, some workflows can be turned into reproducible builder launch examples.
+    These are implemented workflow starters, not biological claims:
+  </p>
   <div class="protac-card-grid">
-    {{ info_card('Warhead-first workflow', 'Move from target-binding exploration in Warhead Hunter into component assembly.', 'https://warheadhunter.com/examples', kicker='Case Study', cta='Open Warhead Hunter', external=True) }}
-    {{ info_card('Recruiter-first workflow', 'Move from recruiter-side analysis in E3 Ligandalyzer into degrader assembly.', 'https://e3ligandalyzer.com/explorer', kicker='Case Study', cta='Open E3 Ligandalyzer', external=True) }}
-    {{ info_card('Viral target workflow', 'Use V-LiSEMOD to inspect viral protein-ligand structures and solvent-exposed moieties before final assembly.', 'https://vlisemod.com', kicker='Case Study', cta='Open V-LiSEMOD', external=True) }}
-    {{ info_card('Batch workflow', 'Use API Builder and API docs to move from interactive design to scripted generation.', '/api-builder', kicker='Case Study', cta='Open API Builder') }}
+    {{ info_card('HIV protease ligand setup', 'Open the builder with a HIV protease target ligand preselected.', '/builder?ligand=DR7', kicker='Builder Launch', cta='Open HIV protease ligand setup') }}
+    {{ info_card('CRBN recruiter setup', 'Open the builder with a CRBN recruiter example preselected.', '/builder?ligase=CRBN_Y70', kicker='Builder Launch', cta='Open CRBN recruiter setup') }}
+    {{ info_card('VHL recruiter setup', 'Open the builder with a VHL recruiter example preselected.', '/builder?ligase=VHL_3JS', kicker='Builder Launch', cta='Open VHL recruiter setup') }}
+    {{ info_card('Custom SMILES setup', 'Open the builder with a starter custom warhead SMILES value.', '/builder?smiles=CCCCC', kicker='Builder Launch', cta='Open custom SMILES setup') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="cross-case-checklist">
+  <div class="protac-section-head"><h2>Cross-case study checklist</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Biological target is defined</div>
+    <div class="protac-checklist-item">Warhead or target-binding ligand is documented</div>
+    <div class="protac-checklist-item">Warhead attachment atom is plausible</div>
+    <div class="protac-checklist-item">E3 recruiter and ligase context are documented</div>
+    <div class="protac-checklist-item">Recruiter attachment atom is plausible</div>
+    <div class="protac-checklist-item">Linker panel varies length and properties</div>
+    <div class="protac-checklist-item">Component IDs or custom structures are saved</div>
+    <div class="protac-checklist-item">Builder setup is reproducible</div>
+    <div class="protac-checklist-item">Downstream modeling plan is defined</div>
+    <div class="protac-checklist-item">Experimental validation plan is defined</div>
+    <div class="protac-checklist-item">The workflow does not claim degradation without assay evidence</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="misinterpretations">
+  <div class="protac-section-head"><h2>Common misinterpretations</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Workflow example is not biological proof</h3>
+      <p>These are workflow examples, not experimentally validated web-app results. Opening a builder preset does not mean the candidate is active.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Warhead or recruiter evidence is not enough alone</h3>
+      <p>Warhead binding does not guarantee degradation, and recruiter binding does not guarantee a productive ternary complex.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Linker choice remains a central uncertainty</h3>
+      <p>Even well-supported warheads and recruiters can fail if linker geometry, polarity, or bridgeability are wrong.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Throughput is not certainty</h3>
+      <p>API generation and downstream modeling increase workflow scale and explanatory power, not biological certainty.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="resources">
+  <div class="protac-section-head"><h2>Connected resources</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Examples', 'Launch reproducible builder examples and quick-start workflows.', '/examples', kicker='Internal Guide', cta='Open examples') }}
+    {{ info_card('How to Build a PROTAC', 'Step-by-step practical guide from components to candidate setup.', '/how-to-build-a-protac', kicker='Internal Guide', cta='Read build guide') }}
+    {{ info_card('Warhead Discovery', 'Read the target-binding warhead guide and upstream Warhead Hunter workflow.', '/warheads', kicker='Internal Guide', cta='Open warhead guide') }}
+    {{ info_card('Linker Design', 'Review bridgeability, linker classes, and geometry-aware linker thinking.', '/linkers', kicker='Internal Guide', cta='Open linker guide') }}
+    {{ info_card('E3 Recruiter Discovery', 'Review recruiter-side structures, scaffolds, and attachment logic.', '/e3-ligase-recruiters', kicker='Internal Guide', cta='Open recruiter guide') }}
+    {{ info_card('Component Hubs', 'See how warheads, linkers, and recruiters connect in one workflow map.', '/component-hubs', kicker='Workflow Map', cta='Open component hubs') }}
+    {{ info_card('API Builder', 'Prepare scriptable or batch-friendly payloads.', '/api-builder', kicker='Automation', cta='Open API Builder') }}
+    {{ info_card('API Docs', 'Review the public route surface and machine-readable workflow endpoints.', '/api-docs', kicker='Automation', cta='Open API docs') }}
+    {{ info_card('Batch Workflows', 'See suggested batch and scripted workflow patterns.', '/batch-workflows', kicker='Automation', cta='Open batch workflows') }}
+    {{ info_card('Downstream Modeling', 'See what happens after assembly: geometry checks, modeling, and prioritization.', '/downstream-modeling', kicker='Handoff', cta='Open downstream modeling') }}
+    {{ info_card('Benchmarking', 'Document modeling and reporting choices more responsibly.', '/benchmarking', kicker='Reporting', cta='Open benchmarking') }}
+    {{ info_card('Warhead Hunter examples', 'Inspect completed Warhead Hunter examples before returning to assembly.', 'https://warheadhunter.com/examples', kicker='External Tool', cta='Open Warhead Hunter examples', external=True) }}
+    {{ info_card('E3 Ligandalyzer Explorer', 'Explore recruiter-first discovery workflows.', 'https://e3ligandalyzer.com/explorer', kicker='External Tool', cta='Open explorer', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Inspect viral protein-ligand structures before building a viral-target case.', 'https://vlisemod.com', kicker='External Tool', cta='Open V-LiSEMOD', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="final-cta">
+  <div class="protac-section-head"><h2>Ready to turn a workflow into a candidate setup?</h2></div>
+  <p class="protac-section-copy">
+    The best next click depends on what is still uncertain in your workflow: target-binding context, recruiter choice,
+    linker strategy, or reproducible generation. Once those pieces are clear enough, PROTAC Builder becomes the place
+    to turn them into explicit candidate setups.
+  </p>
+  <div class="protac-action-row">
+    {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+    {{ action_link('/examples', 'Open Examples') }}
+    {{ action_link('/api-builder', 'Open API Builder') }}
+    {{ action_link('/downstream-modeling', 'Read Downstream Modeling Guide') }}
+  </div>
+  <div class="protac-callout">
+    <strong>Final note:</strong> treat every assembled candidate as a design hypothesis that needs downstream modeling
+    and experimental validation.
   </div>
 </section>
 {% endblock %}
