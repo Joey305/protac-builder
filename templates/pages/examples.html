@@ -12,10 +12,10 @@
 <section class="protac-section-card" id="gallery">
   <div class="protac-section-head"><h2>Example workflows</h2></div>
   <div class="protac-card-grid">
-    {{ info_card('Build a BRD4-oriented PROTAC', 'Start from a bromodomain warhead concept and move into component assembly.', '/how-to-build-a-protac', kicker='Medicinal Chemistry', cta='Review workflow') }}
-    {{ info_card('Build a CRBN-based PROTAC', 'Open the builder with CRBN preselected for recruiter-side exploration.', '/builder?ligase=CRBN', kicker='Open In Builder', cta='Open CRBN in Builder') }}
-    {{ info_card('Build a VHL-based PROTAC', 'Open the builder with VHL preselected for recruiter-side exploration.', '/builder?ligase=VHL', kicker='Open In Builder', cta='Open VHL in Builder') }}
-    {{ info_card('Use a custom warhead SMILES', 'Start from a user-defined warhead instead of a preset example.', '/builder', kicker='Custom Input', cta='Open builder') }}
+    {{ info_card('Build a HIV-Protease Target PROTAC', 'Open PROTAC Builder with an HIV protease target ligand preselected so you can continue into recruiter and linker selection.', '/builder?ligand=DR7', kicker='Target Ligand', cta='Open HIV protease example') }}
+    {{ info_card('Build a CRBN-based PROTAC', 'Open PROTAC Builder with the CRBN recruiter preset for recruiter-side exploration.', '/builder?ligase=CRBN_Y70', kicker='E3 Recruiter', cta='Open CRBN in Builder') }}
+    {{ info_card('Build a VHL-based PROTAC', 'Open PROTAC Builder with the VHL recruiter preset for recruiter-side exploration.', '/builder?ligase=VHL_3JS', kicker='E3 Recruiter', cta='Open VHL in Builder') }}
+    {{ info_card('Use a custom warhead SMILES', 'Open PROTAC Builder with a starter custom SMILES value so you can test the custom input workflow.', '/builder?smiles=CCCCC', kicker='Custom Input', cta='Open custom SMILES') }}
     {{ info_card('Move from Warhead Hunter to PROTAC Builder', 'Use warhead-first discovery before returning to degrader assembly.', 'https://warheadhunter.com/examples', kicker='Cross-site Handoff', cta='Explore Warhead Hunter', external=True) }}
     {{ info_card('Move from E3 Ligandalyzer to PROTAC Builder', 'Inspect recruiter and scaffold context, then return with a session-aware handoff when available.', 'https://e3ligandalyzer.com/explorer', kicker='Cross-site Handoff', cta='Explore E3 Ligandalyzer', external=True) }}
     {{ info_card('Use V-LiSEMOD for a viral target warhead concept', 'Review viral protein-ligand structures and solvent-exposed moieties before returning to PROTAC Builder for assembly.', 'https://vlisemod.com', kicker='Cross-site Handoff', cta='Explore V-LiSEMOD', external=True) }}

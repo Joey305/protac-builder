@@ -228,6 +228,11 @@ async function loadLigaseDropdown() {
             dropdown.appendChild(opt);
         });
 
+        const incomingLigase = new URLSearchParams(window.location.search || "").get("ligase");
+        if (incomingLigase) {
+            dropdown.value = String(incomingLigase).trim().toUpperCase();
+        }
+
         console.log("✅ Ligase dropdown loaded:", ligases.length, "items");
 
     } catch (err) {
@@ -371,20 +376,29 @@ $(document).ready(function () {
 
 // ✅ Function to load ligand from backend (URL or dropdown)
 function loadLigandFromCode(ligandCode) {
-    console.log("🔄 Fetching Ligand:", ligandCode);
+    const cleanLigandCode = String(ligandCode || "").trim().toUpperCase();
+    console.log("🔄 Fetching Ligand:", cleanLigandCode);
 
     if (!chemDoodleInitialized) {
         console.warn("⚠ ChemDoodle not ready. Retrying...");
-        setTimeout(() => loadLigandFromCode(ligandCode), 200);
+        setTimeout(() => loadLigandFromCode(cleanLigandCode), 200);
         return;
     }
+
+    const warheadLigandField = document.getElementById("warheadLigand");
+    if (warheadLigandField) warheadLigandField.value = cleanLigandCode;
+
+    const manualWarheadLigandField = document.getElementById("manual-warheadLigand");
+    if (manualWarheadLigandField) manualWarheadLigandField.value = cleanLigandCode;
+
+    updateTextContent("warhead-code-status", `Loading warhead ${cleanLigandCode}...`, "#93c5fd");
 
     // ✅ Ensure the ligand container is visible
     $("#ligand-container").show();
 
     // ✅ Fetch ligand's SMILES from the backend
     $.ajax({
-        url: `/api/ligand/data?ligand=${ligandCode}`, // Flask API endpoint
+        url: `/api/ligand/data?ligand=${encodeURIComponent(cleanLigandCode)}`, // Flask API endpoint
         type: "GET",
         success: function (data) {
             if (data.mol_block) {
@@ -393,22 +407,25 @@ function loadLigandFromCode(ligandCode) {
                 sketcher.clear();
                 sketcher.loadMolecule(molecule);
                 console.log("✅ Ligand loaded into ChemDoodle.");
+                updateTextContent("warhead-code-status", `Loaded warhead ${cleanLigandCode} into the builder editor.`, "#4ade80");
+                showAlert(`✅ Warhead ${cleanLigandCode} loaded into the builder editor.`, "success");
 
                 // ✅ Open a second window with the same ligand
                 // openNewLigandEditor(ligandCode);
 
             } else {
                 console.error("❌ Failed to load ligand.");
+                updateTextContent("warhead-code-status", `Could not load warhead ${cleanLigandCode}.`, "#f87171");
+                showAlert(`❌ Could not load warhead ${cleanLigandCode}.`, "danger");
             }
         },
         error: function (xhr) {
             console.error("❌ Error fetching ligand data.");
-
-            const fallbackValue = String(ligandCode || "").trim();
-            if (xhr && xhr.status === 404 && fallbackValue) {
-                console.log("↩️ Ligand code lookup missed; retrying incoming value as raw SMILES:", fallbackValue);
-                loadLigand(fallbackValue);
-            }
+            const message = xhr && xhr.status === 404
+                ? `Warhead code ${cleanLigandCode} was not found. Check the URL or choose another ligand.`
+                : `Could not preload warhead ${cleanLigandCode}.`;
+            updateTextContent("warhead-code-status", message, "#f87171");
+            showAlert(`❌ ${message}`, "danger");
         }
     });
 }
@@ -779,10 +796,20 @@ function renderLigase(ligaseCode) {
         return;
     }
 
-    console.log(`🔄 Fetching Ligase: ${ligaseCode}`);
+    const cleanLigaseCode = String(ligaseCode || "").trim().toUpperCase();
+    console.log(`🔄 Fetching Ligase: ${cleanLigaseCode}`);
+
+    const ligaseDropdown = document.getElementById("ligase-dropdown");
+    if (ligaseDropdown) ligaseDropdown.value = cleanLigaseCode;
+
+    const manualLigaseLigandField = document.getElementById("manual-ligaseLigand");
+    if (manualLigaseLigandField) {
+        const parts = cleanLigaseCode.split("_");
+        manualLigaseLigandField.value = parts.length > 1 ? parts[parts.length - 1] : cleanLigaseCode;
+    }
 
     $.ajax({
-        url: `/api/ligase/render?ligase=${encodeURIComponent(ligaseCode)}`, // ✅ Use GET instead of POST
+        url: `/api/ligase/render?ligase=${encodeURIComponent(cleanLigaseCode)}`, // ✅ Use GET instead of POST
         type: "GET",  // ✅ Change from POST to GET
         success: function (data) {
             if (data.mol_block) {
@@ -792,12 +819,18 @@ function renderLigase(ligaseCode) {
                 ligaseSketcher.loadMolecule(molecule); // ✅ Load new molecule
                 $("#ligase-container").show(); // ✅ Show the ligase container
                 console.log("✅ Ligase successfully loaded!");
+                showAlert(`✅ Recruiter ${cleanLigaseCode} loaded into the builder editor.`, "success");
             } else {
                 console.error("❌ Failed to load MOL block for ligase.");
+                showAlert(`❌ Could not load recruiter ${cleanLigaseCode}.`, "danger");
             }
         },
         error: function (xhr, status, error) {
-            console.error(`❌ Error fetching ligase (${ligaseCode}):`, error);
+            console.error(`❌ Error fetching ligase (${cleanLigaseCode}):`, error);
+            const message = xhr && xhr.status === 404
+                ? `Recruiter code ${cleanLigaseCode} was not found. Check the URL or choose another recruiter.`
+                : `Could not preload recruiter ${cleanLigaseCode}.`;
+            showAlert(`❌ ${message}`, "danger");
         }
     });
 }
@@ -1414,6 +1447,13 @@ function showAlert(message, type = "info") {
     setTimeout(() => {
         alertBox.style.display = "none";
     }, 3000); // Hide after 3 seconds
+}
+
+function updateTextContent(id, message, color = "") {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = color;
 }
 
 
