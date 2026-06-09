@@ -1,45 +1,680 @@
 {% extends "pages/_page_base.html" %}
 {% from "pages/_macros.html" import action_link, info_card %}
 
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is a PROTAC in simple terms?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A PROTAC is a bifunctional small molecule designed to bring a protein of interest near an E3 ligase so the target protein can be ubiquitinated and degraded by the proteasome."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What does PROTAC stand for?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PROTAC stands for proteolysis-targeting chimera."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does a PROTAC degrade a protein?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A PROTAC binds a target protein with one end and an E3 ligase with the other. If the whole system forms a productive ternary complex, the E3 ligase machinery can attach ubiquitin to the target, which can then be sent to the proteasome for degradation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the three parts of a PROTAC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The three main parts are a protein-of-interest warhead, a linker, and an E3 ligase recruiter."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the role of the linker in a PROTAC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The linker is not just a spacer. It affects length, flexibility, rigidity, polarity, exit-vector geometry, and whether the target protein and E3 ligase can be arranged in a productive ternary complex."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is an E3 ligase recruiter?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "An E3 ligase recruiter is the part of a PROTAC that binds an E3 ligase and helps bring the ligase into proximity with the target protein."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why do PROTACs need an E3 ligase?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The E3 ligase is part of the cellular ubiquitination machinery. PROTACs use that machinery to help tag the target protein with ubiquitin so it can be degraded."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is a ternary complex?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A ternary complex is the three-part assembly formed by the protein of interest, the PROTAC, and the E3 ligase."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are PROTACs the same as molecular glues?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. PROTACs are usually bifunctional molecules with a target-binding end, a linker, and an E3 recruiter. Molecular glues are usually smaller molecules that stabilize or induce a protein-protein interaction without a long bifunctional linker."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How are PROTACs different from inhibitors?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Traditional inhibitors usually block a target protein while leaving it present. PROTACs are designed to recruit an E3 ligase and remove the target protein through degradation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why can a PROTAC bind but fail to degrade?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A PROTAC can bind both proteins and still fail if the ternary complex is unproductive, the linker geometry is wrong, target lysines are poorly presented, the target is not ubiquitinated efficiently, or the cellular context is unfavorable."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the hook effect?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The hook effect is reduced degradation at high PROTAC concentrations, often because excess binary complexes compete against productive ternary complex formation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can PROTAC Builder predict degradation?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. PROTAC Builder is a preparation and assembly tool for organizing components, attachment points, candidate structures, and downstream workflow handoffs. Experimental validation remains required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I start designing a PROTAC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A practical starting workflow is to choose a biologically meaningful target, identify a target-binding warhead, choose an E3 ligase recruiter, define attachment vectors, build a small linker panel, assemble candidate degraders, and then evaluate them with modeling and experiments."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What should I read next?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Good next reads are the practical build guide, linker design guide, E3 recruiter guide, constraint-driven design page, in silico modeling guide, downstream modeling page, and benchmarking guide."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
+
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Educational Pillar</span>
-  <h1>What Is a PROTAC?</h1>
-  <p class="protac-hero-copy">A PROTAC, or proteolysis-targeting chimera, is a bifunctional small molecule that brings a protein of interest into proximity with an E3 ligase so the target can be ubiquitinated and degraded by the proteasome.</p>
-  <p class="protac-hero-copy">Most degrader concepts can be described through three structural parts: a target-binding warhead, a linker, and an E3 ligase recruiter.</p>
-  <div class="protac-action-row">
-    {{ action_link('/builder', 'Open the builder', primary=True) }}
-    {{ action_link('/how-to-build-a-protac', 'Read the build guide') }}
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Flagship Explainer</span>
+    <h1>What Is a PROTAC?</h1>
+    <p class="protac-hero-copy">
+      A PROTAC, or proteolysis-targeting chimera, is a heterobifunctional small molecule designed to bring a protein of
+      interest near an E3 ligase so the target protein can be tagged with ubiquitin and removed by the proteasome.
+    </p>
+    <p class="protac-hero-copy">
+      In plain language, a PROTAC is designed to remove a protein, not just block it. That idea is powerful, but it is
+      also demanding: productive degradation depends on target binding, E3 recruitment, linker geometry, ternary complex
+      formation, ubiquitination, cell context, and experimental validation.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Targeted protein degradation</span>
+      <span class="protac-pill">Induced proximity</span>
+      <span class="protac-pill">Warhead, linker, recruiter</span>
+      <span class="protac-pill">Validation still required</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+      {{ action_link('/how-to-build-a-protac', 'How to build a PROTAC') }}
+      {{ action_link('/warheads', 'Explore warheads') }}
+      {{ action_link('/linkers', 'Review linker design') }}
+      {{ action_link('/e3-ligase-recruiters', 'Explore E3 recruiters') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero science-figure science-figure--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper2/Figure1.png') }}"
+      alt="Mechanism overview showing a PROTAC binding a protein of interest and an E3 ligase, forming a ternary complex, promoting ubiquitination, triggering proteasomal degradation, and allowing possible PROTAC recycling."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 1.</strong> Mechanistic overview of PROTAC action: one end engages the protein of interest, the
+      other engages an E3 ligase, and productive proximity can lead to ubiquitination and proteasomal degradation.
+      Source: Osman, Thompson, Jörg, and Scanlon, <em>Biochemical Journal</em> (2025),
+      <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+    </figcaption>
+    <div class="protac-figure-card__actions">
+      <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper2/Figure1.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the PROTAC mechanism overview figure">View larger mechanism figure</a>
+    </div>
+  </figure>
+</section>
+
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: what is a PROTAC?</h2></div>
+  <p class="protac-section-copy">
+    A PROTAC is a bifunctional degrader molecule that links a protein-of-interest binder to an E3 ligase recruiter.
+    When the molecule brings the target protein and E3 ligase together in a productive way, the target can be
+    ubiquitinated and sent to the proteasome for degradation.
+  </p>
+  <div class="protac-callout">
+    <strong>In one sentence:</strong> a PROTAC is designed to remove a protein, not just inhibit it.
   </div>
 </section>
 
-<section class="protac-section-card" id="anatomy">
-  <div class="protac-section-head"><h2>Anatomy of a proteolysis-targeting chimera</h2></div>
-  <ul class="protac-bullet-list">
-    <li>Warhead: binds the protein of interest and defines the target-facing anchor.</li>
-    <li>Linker: connects both ends while shaping distance, flexibility, polarity, and projection.</li>
-    <li>E3 recruiter: binds an E3 ligase and defines the ligase-facing anchor and attachment vector.</li>
-  </ul>
-  <div class="protac-card-grid">
-    {{ info_card('Warhead discovery', 'Review target-binding context and handoff into degrader assembly.', '/warheads', kicker='Component') }}
-    {{ info_card('Linker design', 'Understand why geometry and bridgeability matter in degrader design.', '/linkers', kicker='Component') }}
-    {{ info_card('E3 recruiter discovery', 'Explore recruiter classes and attachment-vector considerations.', '/e3-ligase-recruiters', kicker='Component') }}
+<section class="protac-section-card" id="meaning">
+  <div class="protac-section-head"><h2>What does PROTAC stand for?</h2></div>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Proteolysis</span>
+      <p>Proteolysis refers to protein breakdown. In the PROTAC context, the target protein is intended to be routed toward destruction rather than simply blocked.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Targeting</span>
+      <p>Targeting means the molecule is designed to engage a specific protein of interest and recruit degradation machinery in a selective biological context.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Chimera</span>
+      <p>Chimera reflects the combined architecture: one end binds the target, one end binds an E3 ligase, and a linker connects them into one degrader scaffold.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Why the name matters</span>
+      <p>The acronym captures the key idea: PROTACs are proximity-inducing molecules built to connect target biology, ligase recruitment, and degradation machinery.</p>
+    </article>
   </div>
 </section>
 
 <section class="protac-section-card" id="mechanism">
-  <div class="protac-section-head"><h2>How PROTACs recruit an E3 ligase</h2></div>
-  <p class="protac-section-copy">A degrader does not work by simple occupancy alone. Productive degradation depends on whether the molecule can support a compatible ternary complex between the protein of interest, the degrader, and the recruited E3 ligase.</p>
-  <p class="protac-section-copy">That is why attachment atoms, linker geometry, and protein-protein orientation matter so much in modern computational PROTAC workflows.</p>
+  <div class="protac-section-head"><h2>How do PROTACs work?</h2></div>
+  <div class="science-figure-grid">
+    <figure class="protac-figure-card protac-figure-card--feature science-figure science-figure--feature">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure1.png') }}"
+        alt="Large mechanism figure showing the canonical PROTAC sequence from target binding and E3 ligase recruitment through ternary complex formation, ubiquitination, proteasomal degradation, and potential PROTAC reuse."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 1.</strong> The canonical PROTAC mechanism is easiest to understand as a sequence: target
+        binding, E3 recruitment, ternary complex formation, ubiquitination, degradation, and possible reuse of the
+        degrader molecule.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper2/Figure1.png') }}" target="_blank" rel="noopener noreferrer" aria-label="Open full-size PROTAC mechanism figure">Open full-size image</a>
+      </div>
+    </figure>
+  </div>
+  <ol class="protac-step-list">
+    <li>The PROTAC enters the cell or otherwise reaches the relevant intracellular context.</li>
+    <li>One end binds the protein of interest.</li>
+    <li>The other end binds an E3 ligase or its recruiter pocket.</li>
+    <li>The linker allows the target, PROTAC, and E3 ligase to form a ternary complex.</li>
+    <li>If that ternary arrangement is productive, E3 ligase machinery can transfer ubiquitin to the target protein.</li>
+    <li>A polyubiquitin chain can mark the target for proteasomal degradation.</li>
+    <li>The proteasome degrades the target protein.</li>
+    <li>The PROTAC may dissociate and participate in additional degradation cycles, but only when the system supports productive turnover.</li>
+  </ol>
+  <div class="protac-callout">
+    <strong>Important caution:</strong> a PROTAC is designed to trigger this sequence, but productive degradation still
+    depends on geometry, ubiquitination competence, cellular exposure, and experimental validation.
+  </div>
+</section>
+
+<section class="protac-section-card" id="three-parts">
+  <div class="protac-section-head"><h2>The three parts of a PROTAC</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--three">
+    <article class="protac-detail-card">
+      <h3>Protein-of-interest warhead</h3>
+      <p>The warhead binds the target protein. It may come from an inhibitor, ligand, fragment, covalent binder, or another known target-binding motif.</p>
+      <p>Good warheads usually preserve key target interactions while also leaving room for a plausible solvent-exposed attachment vector.</p>
+      <div class="protac-action-row">
+        {{ action_link('/warheads', 'Warhead discovery') }}
+        {{ action_link('https://warheadhunter.com/examples', 'Warhead Hunter', external=True) }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Linker</h3>
+      <p>The linker connects the warhead to the recruiter and shapes reach, flexibility, rigidity, polarity, and bridgeability.</p>
+      <p>The linker is not passive. Too short, too long, too flexible, or too rigid can all undermine ternary complex formation.</p>
+      <div class="protac-action-row">
+        {{ action_link('/linkers', 'Linker design') }}
+        {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>E3 ligase recruiter</h3>
+      <p>The recruiter binds an E3 ligase. E3 choice can affect ternary geometry, cell-context behavior, selectivity, and off-target risk.</p>
+      <p>CRBN and VHL are common examples, but they are not the only relevant ligases, and recruiter binding pose plus attachment atom still matter.</p>
+      <div class="protac-action-row">
+        {{ action_link('/e3-ligase-recruiters', 'E3 recruiter discovery') }}
+        {{ action_link('https://e3ligandalyzer.com/explorer', 'E3 Ligandalyzer', external=True) }}
+      </div>
+    </article>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--large science-figure">
+    <img
+      src="{{ url_for('static', filename='images/Paper2/Figure3.png') }}"
+      alt="Figure showing representative PROTAC component ideas including target-binding warheads, common E3 ligase recruiters, and plausible attachment-vector positions."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 3.</strong> Representative component and attachment-vector view: the warhead, linker strategy, and
+      recruiter are not independent choices because derivatization points influence the ternary geometry you can build.
+      Source: Osman et al., <em>Biochemical Journal</em> (2025),
+      <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+    </figcaption>
+    <div class="protac-figure-card__actions">
+      <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper2/Figure3.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the PROTAC component and attachment-vector figure">View larger component figure</a>
+    </div>
+  </figure>
+</section>
+
+<section class="protac-section-card" id="ternary-complex">
+  <div class="protac-section-head"><h2>What is a PROTAC ternary complex?</h2></div>
+  <p class="protac-section-copy">
+    A ternary complex is the three-part assembly formed by the protein of interest, the PROTAC, and the E3 ligase.
+    This assembly is central to PROTAC activity because binary binding to both proteins is not enough on its own.
+  </p>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Why it matters</span>
+      <p>The target and E3 ligase must be oriented productively enough to support ubiquitination rather than just sitting near each other in an unhelpful way.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What can go wrong</span>
+      <p>A PROTAC can bind both proteins and still fail if the linker path is strained, the protein-protein arrangement is wrong, or the ubiquitination geometry is poor.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Cooperativity</span>
+      <p>Protein-protein contacts within the ternary complex can improve or weaken cooperativity, which can influence stability, selectivity, and degradation performance.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Design consequence</span>
+      <p>In PROTAC discovery, the real question is often not only whether each end binds, but whether the whole system can form a productive ternary complex.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Key idea:</strong> in PROTAC design, the question is not only “does each end bind?” but “can the whole
+    system form a productive ternary complex?”
+  </div>
+</section>
+
+<section class="protac-section-card" id="ubiquitination">
+  <div class="protac-section-head"><h2>What is ubiquitination?</h2></div>
+  <p class="protac-section-copy">
+    Ubiquitin is a small protein tag used by cells to mark proteins for different fates. In PROTAC-mediated degradation,
+    the recruited E3 ligase helps position the target so ubiquitin can be transferred onto the protein of interest.
+  </p>
+  <ul class="protac-bullet-list">
+    <li>Polyubiquitin chains can signal that a target protein should be degraded by the proteasome.</li>
+    <li>The exact outcome depends on target lysines, E3 machinery, geometry, residence time, and cell context.</li>
+    <li>A visually plausible ternary model does not guarantee efficient or biologically meaningful ubiquitination.</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="proteasomal-degradation">
+  <div class="protac-section-head"><h2>What is proteasomal degradation?</h2></div>
+  <p class="protac-section-copy">
+    The proteasome is a cellular machine that degrades many ubiquitin-tagged proteins. PROTACs aim to route a
+    disease-relevant target into that system so the protein is removed from the cell rather than merely occupied by a
+    blocking ligand.
+  </p>
+  <p class="protac-section-copy">
+    That distinction matters because removing a protein can affect catalytic and non-catalytic functions, including
+    scaffolding roles or signaling roles that simple inhibition may not fully address.
+  </p>
+</section>
+
+<section class="protac-section-card" id="vs-inhibitor">
+  <div class="protac-section-head"><h2>PROTAC vs traditional inhibitor</h2></div>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Traditional inhibitor</span>
+      <p>Usually binds and blocks a target protein while leaving that protein present.</p>
+      <p>Activity is often occupancy-driven and often focused on active sites or functional pockets.</p>
+      <p>Effect depends on sustained target engagement and does not necessarily remove non-catalytic protein functions.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">PROTAC</span>
+      <p>Recruits an E3 ligase to promote degradation of the target protein.</p>
+      <p>Designed to remove the target protein rather than only block one functional site.</p>
+      <p>Depends on ternary complex formation, ubiquitination, cell context, and geometry in addition to binding.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Important nuance:</strong> PROTACs are not automatically better than inhibitors. Each modality has
+    strengths, limitations, and target contexts where it may be more or less appropriate.
+  </div>
+</section>
+
+<section class="protac-section-card" id="vs-molecular-glue">
+  <div class="protac-section-head"><h2>PROTAC vs molecular glue</h2></div>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">PROTACs</span>
+      <p>Usually contain two binding elements connected by a linker.</p>
+      <p>One end binds the protein of interest and the other binds an E3 ligase recruiter site.</p>
+      <p>Design often involves explicit warhead, recruiter, linker, and exit-vector optimization.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Molecular glues</span>
+      <p>Usually are smaller molecules that stabilize or induce a protein-protein interaction.</p>
+      <p>They can recruit a target to an E3 ligase without a long bifunctional linker.</p>
+      <p>Their discovery can be less modular and more context-dependent than classic bifunctional PROTAC design.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Shared principle:</strong> both PROTACs and molecular glues are proximity-inducing degradation strategies,
+    but their architectures and discovery logic are often different.
+  </div>
+</section>
+
+<section class="protac-section-card" id="why-linker-geometry-matters">
+  <div class="protac-section-head"><h2>Why linker geometry matters</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Linker design is one of the most common reasons PROTACs succeed or fail. The linker controls the distance,
+        direction, conformational freedom, and property burden that connect the target-facing and ligase-facing ends of
+        the molecule.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Too short can create impossible reach or severe steric clash.</li>
+        <li>Too long can increase entropy and reduce the population of productive ternary states.</li>
+        <li>Too rigid can overconstrain the system.</li>
+        <li>Too flexible can create a large conformational search problem.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('/linkers', 'Read linker design guide', primary=True) }}
+        {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure3.png') }}"
+        alt="Attachment-vector and component figure that helps illustrate why derivatization points and linker projection matter in PROTAC design."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 3.</strong> Attachment atoms and projection vectors influence which linker trajectories are even
+        possible, which is why linker design is a geometry problem as much as a chemistry problem.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper2/Figure3.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the attachment-vector figure used to explain linker geometry">View larger version</a>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="why-design-is-hard">
+  <div class="protac-section-head"><h2>Why PROTAC design is hard</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">A molecule can bind both proteins but still fail to degrade the target.</div>
+    <div class="protac-checklist-item">Linker geometry can make or break ternary complex formation.</div>
+    <div class="protac-checklist-item">E3 ligase expression varies by cell type and tissue.</div>
+    <div class="protac-checklist-item">PROTACs are often large and polar, which can hurt permeability.</div>
+    <div class="protac-checklist-item">Accessible lysines and productive ubiquitination geometry still matter.</div>
+    <div class="protac-checklist-item">Hook effect can reduce degradation at high concentrations.</div>
+    <div class="protac-checklist-item">Solubility, metabolic stability, and synthesis feasibility still matter.</div>
+    <div class="protac-checklist-item">Computational models help prioritize but do not replace experiments.</div>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('/linkers', 'Linker design') }}
+    {{ action_link('/e3-ligase-recruiters', 'E3 recruiter discovery') }}
+    {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+    {{ action_link('/in-silico-protac-modeling', 'In silico modeling') }}
+    {{ action_link('/benchmarking', 'Benchmarking') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="metrics">
+  <div class="protac-section-head"><h2>Key PROTAC metrics</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <div class="protac-note-grid">
+        <article class="protac-note">
+          <h3>DC50</h3>
+          <p>The concentration where 50% of maximal degradation is achieved in a defined assay context.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Dmax</h3>
+          <p>The maximum observed degradation under the tested conditions.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Hook effect</h3>
+          <p>Reduced degradation at high PROTAC concentration, often because binary complexes compete against productive ternary complexes.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Selectivity</h3>
+          <p>Which proteins are degraded or spared across targets, isoforms, or broader proteomic context.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Target engagement</h3>
+          <p>Evidence that the molecule binds the intended target in the relevant system.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Ternary cooperativity</h3>
+          <p>Whether the POI-PROTAC-E3 assembly is more or less stable than expected from binary interactions alone.</p>
+        </article>
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure8.png') }}"
+        alt="Degradation-response curve illustrating DC50, Dmax, and hook effect across PROTAC concentration."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 8.</strong> Degradation-response curves are usually interpreted through potency, maximal
+        degradation, and high-dose behavior rather than one concentration or one headline number alone.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper2/Figure8.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the degradation metrics figure showing DC50, Dmax, and hook effect">View larger metrics figure</a>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="design-workflow">
+  <div class="protac-section-head"><h2>How scientists design PROTACs</h2></div>
+  <ol class="protac-step-list">
+    <li>Choose a biologically meaningful protein of interest.</li>
+    <li>Find or design a target-binding warhead.</li>
+    <li>Choose an E3 ligase recruiter.</li>
+    <li>Identify solvent-exposed attachment vectors.</li>
+    <li>Build a linker panel instead of relying on one guess.</li>
+    <li>Assemble candidate PROTACs.</li>
+    <li>Check descriptors, geometry, and bridgeability.</li>
+    <li>Model ternary complexes where appropriate.</li>
+    <li>Test degradation experimentally.</li>
+    <li>Iterate based on DC50, Dmax, selectivity, permeability, and structure-activity relationships.</li>
+  </ol>
+  <div class="protac-action-row">
+    {{ action_link('/how-to-build-a-protac', 'Read the practical build guide', primary=True) }}
+    {{ action_link('/downstream-modeling-tools', 'Downstream modeling') }}
+    {{ action_link('/api-builder', 'API Builder') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="builder-role">
+  <div class="protac-section-head"><h2>How PROTAC Builder fits into PROTAC design</h2></div>
+  <p class="protac-section-copy">
+    PROTAC Builder is a preparation and assembly layer for degrader design. It helps users organize candidate warheads,
+    linkers, and recruiters; define attachment atoms; assemble candidate structures; compare component choices; and
+    prepare handoffs into downstream modeling or batch workflows.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Organize warhead, linker, and recruiter components.</div>
+    <div class="protac-checklist-item">Define attachment atoms and component boundaries.</div>
+    <div class="protac-checklist-item">Assemble candidate PROTAC structures.</div>
+    <div class="protac-checklist-item">Compare linker, recruiter, and warhead hypotheses.</div>
+    <div class="protac-checklist-item">Prepare structures for downstream modeling.</div>
+    <div class="protac-checklist-item">Support API and batch-ready workflows.</div>
+  </div>
+  <div class="protac-callout">
+    <strong>Honest scope:</strong> PROTAC Builder helps create better-structured design hypotheses. It does not predict
+    or guarantee degradation, and experimental validation remains required.
+  </div>
+</section>
+
+<section class="protac-section-card" id="ecosystem">
+  <div class="protac-section-head"><h2>Connected tool ecosystem</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead Hunter', 'Target-binding warhead discovery and target-context exploration before degrader assembly.', 'https://warheadhunter.com/examples', kicker='External', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('E3 Ligandalyzer', 'Recruiter, scaffold, solvent exposure, and E3 context before final assembly.', 'https://e3ligandalyzer.com/explorer', kicker='External', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Viral protein-ligand structures and solvent-exposed moieties for viral-target workflows.', 'https://vlisemod.com', kicker='External', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('PROTAC Builder', 'Assemble and organize candidate degraders once the component choices are ready.', '/builder', kicker='Assembly', cta='Launch PROTAC Builder') }}
+    {{ info_card('Downstream Modeling', 'Move candidate degraders into ternary modeling, scoring, and validation handoff workflows.', '/downstream-modeling-tools', kicker='Internal Guide', cta='Open downstream modeling') }}
+    {{ info_card('Benchmarking', 'Review reporting standards, task definitions, and reproducibility expectations for computational PROTAC workflows.', '/benchmarking', kicker='Internal Guide', cta='Open benchmarking') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="misconceptions">
+  <div class="protac-section-head"><h2>Common misconceptions about PROTACs</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>A PROTAC is not just two ligands glued together</h3>
+      <p>Linker geometry, exit vectors, ternary complex formation, and protein-protein orientation matter as much as the component list.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Strong binding does not guarantee degradation</h3>
+      <p>Binary affinity is only one part of the mechanism. Productive proximity and ubiquitination still have to happen.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>The linker is not passive</h3>
+      <p>It shapes distance, flexibility, polarity, property burden, and whether the whole degrader can actually work in 3D.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>CRBN and VHL are not the only E3 ligases</h3>
+      <p>They are common starting points, but E3 choice should still be context-aware and structure-aware.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>A computational model is not proof of degradation</h3>
+      <p>Models prioritize and explain. Assays validate.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>A low DC50 is not the whole story</h3>
+      <p>Dmax, selectivity, exposure, hook effect, and biological context still matter.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="faq">
+  <div class="protac-section-head"><h2>Frequently asked questions</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>What is a PROTAC in simple terms?</h3>
+      <p>A PROTAC is a molecule designed to bring a target protein near an E3 ligase so the target can be marked for degradation.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What does PROTAC stand for?</h3>
+      <p>PROTAC stands for proteolysis-targeting chimera.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How does a PROTAC degrade a protein?</h3>
+      <p>It binds the target with one end, recruits an E3 ligase with the other, and can promote target ubiquitination if a productive ternary complex forms.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What are the three parts of a PROTAC?</h3>
+      <p>The three main parts are a protein-of-interest warhead, a linker, and an E3 ligase recruiter.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is the role of the linker in a PROTAC?</h3>
+      <p>The linker controls reach, flexibility, polarity, and geometry between the target-binding and recruiter-binding ends.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is an E3 ligase recruiter?</h3>
+      <p>It is the PROTAC component that binds an E3 ligase and helps recruit ubiquitination machinery to the target.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Why do PROTACs need an E3 ligase?</h3>
+      <p>Because the E3 ligase is part of the machinery that can attach ubiquitin to the target protein.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is a ternary complex?</h3>
+      <p>It is the three-part assembly of the target protein, the PROTAC, and the E3 ligase.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Are PROTACs the same as molecular glues?</h3>
+      <p>No. Both are proximity-inducing strategies, but PROTACs are usually bifunctional linker-containing molecules, while molecular glues are usually smaller context-dependent interaction stabilizers.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How are PROTACs different from inhibitors?</h3>
+      <p>Traditional inhibitors usually block target function while leaving the protein present. PROTACs are designed to remove the target protein through degradation.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Why can a PROTAC bind but fail to degrade?</h3>
+      <p>Because binding alone is not enough. Ternary geometry, ubiquitination competence, exposure, and cell context still matter.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is the hook effect?</h3>
+      <p>It is reduced degradation at high PROTAC concentration, often because too much binary binding competes against productive ternary complex formation.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can PROTAC Builder predict degradation?</h3>
+      <p>No. PROTAC Builder is an assembly and workflow-preparation tool, not a guarantee of biological activity.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How do I start designing a PROTAC?</h3>
+      <p>Start with a meaningful target, a target-binding warhead, an E3 recruiter, plausible attachment vectors, and a small linker panel, then move into modeling and experiments.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What should I read next?</h3>
+      <p>The best next pages are the build guide, linker guide, E3 recruiter guide, constraint-driven design page, in silico modeling page, downstream modeling page, and benchmarking page.</p>
+    </article>
+  </div>
 </section>
 
 <section class="protac-section-card" id="next-steps">
-  <div class="protac-section-head"><h2>Where the connected tools fit</h2></div>
+  <div class="protac-section-head"><h2>Suggested reading and next steps</h2></div>
+  <div class="protac-action-row">
+    {{ action_link('/builder', 'Start building a PROTAC', primary=True) }}
+    {{ action_link('/how-to-build-a-protac', 'Read the practical build guide') }}
+  </div>
   <div class="protac-card-grid">
-    {{ info_card('Explore warheads in Warhead Hunter', 'Use the sister site when you need deeper warhead discovery or target-context exploration.', 'https://warheadhunter.com/examples', kicker='External', cta='Open Warhead Hunter', external=True) }}
-    {{ info_card('Inspect E3 recruiters in Ligandalyzer', 'Use recruiter, scaffold, and ligase-oriented views before final assembly.', 'https://e3ligandalyzer.com/explorer', kicker='External', cta='Open E3 Ligandalyzer', external=True) }}
-    {{ info_card('Explore viral warhead leads in V-LiSEMOD', 'Use viral protein-ligand structures and solvent-exposed moieties to guide warhead discovery for viral targets.', 'https://vlisemod.com', kicker='External', cta='Open V-LiSEMOD', external=True) }}
-    {{ info_card('Assemble in PROTAC Builder', 'Return to the builder once you are ready to combine components.', '/builder', kicker='Assembly', cta='Return to builder') }}
+    {{ info_card('Warhead discovery', 'Target-binding chemistry, target context, and derivatization-aware warhead thinking.', '/warheads', kicker='Next Read', cta='Explore warheads') }}
+    {{ info_card('Linker design', 'Bridgeability, flexibility, polarity, and ternary-geometry reasoning.', '/linkers', kicker='Next Read', cta='Review linker design') }}
+    {{ info_card('E3 recruiter discovery', 'Recruiter scaffolds, bound poses, and ligase-side attachment choices.', '/e3-ligase-recruiters', kicker='Next Read', cta='Explore E3 recruiters') }}
+    {{ info_card('Constraint-driven design', 'Anchor-aware geometry before expensive modeling.', '/constraint-driven-protac-design', kicker='Next Read', cta='Open constraint-driven guide') }}
+    {{ info_card('In silico modeling', 'How docking, restrained modeling, ML, and hybrid workflows fit together.', '/in-silico-protac-modeling', kicker='Next Read', cta='Read modeling guide') }}
+    {{ info_card('Downstream modeling', 'What happens after assembly: bridgeability, ternary modeling, scoring, and refinement.', '/downstream-modeling-tools', kicker='Next Read', cta='Open downstream modeling') }}
+    {{ info_card('Benchmarking', 'How to compare methods responsibly and report computational results clearly.', '/benchmarking', kicker='Next Read', cta='Open benchmarking') }}
+    {{ info_card('Examples', 'Workflow-oriented examples across the broader PROTAC Builder ecosystem.', '/examples', kicker='Examples', cta='Open examples') }}
+  </div>
+  <div class="protac-reference-block">
+    <p>
+      This page is educational and intended as a flagship explainer for PROTAC Builder. It should still be reviewed by
+      the project or domain owner before public release as publication-grade scientific guidance.
+    </p>
   </div>
 </section>
 {% endblock %}

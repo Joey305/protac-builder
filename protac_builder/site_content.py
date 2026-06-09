@@ -69,8 +69,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "what_is_a_protac": {
         "slug": "what-is-a-protac",
         "template": "pages/what_is_a_protac.html",
-        "meta_title": "What Is a PROTAC? | PROTAC Builder",
-        "meta_description": "Learn what a PROTAC is, how proteolysis-targeting chimeras work, and why warheads, linkers, E3 recruiters, and ternary complex geometry matter.",
+        "meta_title": "What Is a PROTAC? | Proteolysis-Targeting Chimera Explained",
+        "meta_description": "Learn what a PROTAC is, how proteolysis-targeting chimeras work, and how warheads, linkers, E3 ligase recruiters, ternary complexes, ubiquitination, and proteasomal degradation fit into targeted protein degradation.",
         "software_app_schema": False,
         "article_schema": True,
     },
