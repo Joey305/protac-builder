@@ -1,4 +1,5 @@
 {% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
 
 {% block structured_data %}
   <script type="application/ld+json">
@@ -8,34 +9,50 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Does PROTAC Builder guarantee that a generated molecule will degrade the target?",
+          "name": "What is PROTAC Builder?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. The builder standardizes components and assembles candidate degraders, but degradation still depends on broader structural, biophysical, cellular, and experimental factors."
+            "text": "PROTAC Builder is a web tool for assembling candidate degrader structures from target-binding warheads, linkers, and E3 ligase recruiters."
           }
         },
         {
           "@type": "Question",
-          "name": "Is this site a complete library of all warheads, linkers, or recruiters?",
+          "name": "Does PROTAC Builder guarantee that a molecule will degrade a target?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. The site provides component hubs and assembly workflows, while deeper component-specific exploration may live in Warhead Hunter, E3 Ligandalyzer, or other connected resources."
+            "text": "No. PROTAC Builder helps organize components, define attachment points, assemble candidate structures, and prepare downstream handoffs, but degradation still depends on ternary complex formation, ubiquitination geometry, cell permeability, E3 expression, target context, and experimental validation."
           }
         },
         {
           "@type": "Question",
-          "name": "When should I use Warhead Hunter or E3 Ligandalyzer first?",
+          "name": "Can I open the builder with a preselected ligand or recruiter?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Use Warhead Hunter when the target-binding ligand is still under exploration, and use E3 Ligandalyzer when recruiter, scaffold, or ligase-side attachment context is still under exploration."
+            "text": "Yes. Implemented examples include builder query-parameter launch routes such as /builder?ligand=DR7, /builder?ligase=CRBN_Y70, /builder?ligase=VHL_3JS, and /builder?smiles=CCCCC."
           }
         },
         {
           "@type": "Question",
-          "name": "Can I use PROTAC Builder in scripted or batch workflows?",
+          "name": "Can I use PROTAC Builder programmatically?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. The site exposes API-oriented routes and an API Builder page to help with notebook, server, and batch workflows."
+            "text": "Yes. The site includes API-oriented routes, an API Builder page, API docs, OpenAPI schema routes, and batch-workflow resources for scripted or reproducible workflows where implemented."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What should I do after assembling a candidate?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "After assembly, users should review descriptors, attachment geometry, linker bridgeability, ternary-complex plausibility, downstream modeling options, and experimental validation plans rather than assuming the assembled candidate will degrade."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are the example workflows validated degraders?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. The examples are workflow starters and reproducible entry points, not claims of validated biological activity unless explicitly documented elsewhere."
           }
         }
       ]
@@ -44,31 +61,300 @@
 {% endblock %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Resources</span>
-  <h1>PROTAC Builder FAQ</h1>
-  <p class="protac-hero-copy">These answers focus on scope, workflow fit, and careful interpretation of generated outputs.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Resources</span>
+    <h1>PROTAC Builder FAQ</h1>
+    <p class="protac-hero-copy">
+      PROTAC Builder helps users assemble candidate degrader structures from warheads, linkers, and E3 recruiters.
+      This FAQ explains what the tool does, what it does not do, how to use it responsibly, and how it connects to
+      examples, API workflows, downstream modeling, and sister discovery tools.
+    </p>
+    <p class="protac-hero-copy">
+      Generated candidates are design hypotheses. They still require chemical review, structure-aware interpretation,
+      modeling where useful, and experimental validation before biological conclusions are drawn.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Scope and limitations</span>
+      <span class="protac-pill">Builder inputs and outputs</span>
+      <span class="protac-pill">API and examples</span>
+      <span class="protac-pill">Responsible interpretation</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+      {{ action_link('/how-to-build-a-protac', 'How to Build a PROTAC') }}
+      {{ action_link('/examples', 'View Examples') }}
+      {{ action_link('/api-builder', 'Open API Builder') }}
+    </div>
+  </div>
 </section>
 
-<section class="protac-section-card" id="faq">
-  <div class="protac-section-head"><h2>Frequently Asked Questions</h2></div>
+<section class="protac-section-card" id="scope-callout">
+  <div class="protac-section-head"><h2>Quick answer</h2></div>
+  <div class="protac-callout">
+    <strong>PROTAC Builder is an assembly and workflow-preparation tool.</strong> It helps organize components, define
+    attachment points, generate candidate structures, and prepare downstream handoffs. It does not guarantee
+    degradation, biological activity, permeability, or synthetic success.
+  </div>
+</section>
+
+<section class="protac-section-card" id="general">
+  <div class="protac-section-head"><h2>General questions</h2></div>
   <div class="protac-faq-list">
     <article class="protac-faq-item">
-      <h3>Does PROTAC Builder guarantee that a generated molecule will degrade the target?</h3>
-      <p>No. The builder standardizes components and assembles candidate degraders, but degradation still depends on broader structural, biophysical, cellular, and experimental factors.</p>
+      <h3>What is PROTAC Builder?</h3>
+      <p>PROTAC Builder is a web tool for assembling candidate PROTAC structures from target-binding warheads, linkers, and E3 ligase recruiters.</p>
     </article>
     <article class="protac-faq-item">
-      <h3>Is this site a complete library of all warheads, linkers, or recruiters?</h3>
-      <p>No. The site provides component hubs and assembly workflows, while deeper component-specific exploration may live in Warhead Hunter, E3 Ligandalyzer, or other connected resources.</p>
+      <h3>Who is PROTAC Builder for?</h3>
+      <p>It is useful for medicinal chemists, chemical biologists, computational chemists, structural biology users, and researchers preparing degrader candidates for modeling or experimental follow-up.</p>
     </article>
     <article class="protac-faq-item">
-      <h3>When should I use Warhead Hunter or E3 Ligandalyzer first?</h3>
-      <p>Use Warhead Hunter when the target-binding ligand is still under exploration, and use E3 Ligandalyzer when recruiter, scaffold, or ligase-side attachment context is still under exploration.</p>
+      <h3>What problem does PROTAC Builder solve?</h3>
+      <p>It standardizes component selection, attachment-point thinking, candidate assembly, and downstream handoff so users can move from idea to reproducible degrader hypothesis more cleanly.</p>
     </article>
     <article class="protac-faq-item">
-      <h3>Can I use PROTAC Builder in scripted or batch workflows?</h3>
-      <p>Yes. The site exposes API-oriented routes and an API Builder page to help with notebook, server, and batch workflows.</p>
+      <h3>Does PROTAC Builder guarantee that a molecule will degrade a target?</h3>
+      <p>No. Degradation depends on ternary complex formation, ubiquitination geometry, cell permeability, E3 expression, target context, and experimental validation.</p>
     </article>
+    <article class="protac-faq-item">
+      <h3>Is PROTAC Builder a complete PROTAC discovery platform?</h3>
+      <p>No. It is a preparation and assembly layer, not a full replacement for warhead discovery, recruiter discovery, ternary modeling, synthesis, or biological assays.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="using-builder">
+  <div class="protac-section-head"><h2>Using the builder</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>What inputs can I use?</h3>
+      <p>The builder supports preset component workflows, recruiter and ligand identifiers where implemented, custom SMILES input for browser-based editing, and query-parameter launches used in examples and handoff flows.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can I open the builder with a preselected ligand or recruiter?</h3>
+      <p>Yes. Implemented entry points include <code>/builder?ligand=DR7</code>, <code>/builder?ligase=CRBN_Y70</code>, <code>/builder?ligase=VHL_3JS</code>, and <code>/builder?smiles=CCCCC</code>.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can I use a custom SMILES string?</h3>
+      <p>Yes, where the custom SMILES workflow is supported. The structure should still be inspected carefully because valid string parsing does not guarantee correct chemistry, correct attachment logic, or downstream bridgeability.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What are attachment atoms?</h3>
+      <p>Attachment atoms are the atoms selected for linker connection on the warhead and recruiter sides of the design. They define where the linker leaves each bound ligand.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Why do attachment atoms matter?</h3>
+      <p>They determine exit vectors, linker geometry, and whether downstream modeling is even meaningful. A chemically valid 2D assembly can still be a poor 3D hypothesis if the attachment atoms are wrong.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can I edit or choose linker attachment points?</h3>
+      <p>Yes. The builder includes browser-based editing steps so users can inspect and modify warhead, linker, and ligase-side structures before saving the components and generating a candidate.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What output formats are available?</h3>
+      <p>The builder clearly exposes generated SMILES in the interface and downloadable SMILES output. MOL- and SDF-backed representations are also used in implemented editing, handoff, and batch workflows, with ZIP-style workflow bundles available in some scripted paths.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="components">
+  <div class="protac-section-head"><h2>Warheads, linkers, and E3 recruiters</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>What is a PROTAC warhead?</h3>
+      <p>A warhead is the target-binding ligand or motif that anchors the degrader to the protein of interest.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How should I choose a warhead?</h3>
+      <p>Prefer known binding context, ligand-bound structures when available, solvent-exposed candidate modification atoms, and evidence that target engagement remains meaningful after derivatization.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>When should I use Warhead Hunter?</h3>
+      <p>Use Warhead Hunter when you need to inspect protein-bound ligands, RCSB structures, solvent exposure, or candidate modification atoms before bringing a warhead back into the builder.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What does the linker do?</h3>
+      <p>The linker controls distance, flexibility, rigidity, polarity, bridgeability, and much of the geometric relationship between the target protein and the recruited E3 ligase.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How do I choose a linker?</h3>
+      <p>Start with a small panel, vary length and chemistry, consider both flexible and rigid alternatives, and use downstream structural review rather than assuming one linker hypothesis will be enough.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is an E3 ligase recruiter?</h3>
+      <p>An E3 recruiter is the ligand that binds the recruited E3 ligase and defines the ligase-side anchor of the PROTAC.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>When should I use E3 Ligandalyzer?</h3>
+      <p>Use E3 Ligandalyzer when recruiter structure, scaffold diversity, solvent exposure, expression context, or ligase-side attachment geometry still needs exploration.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Are CRBN and VHL the only E3 ligases supported?</h3>
+      <p>No. CRBN and VHL are common examples, but the builder data and recruiter-oriented workflows are not conceptually limited to those two ligases. Actual recruiter availability depends on the current deployment and data.</p>
+    </article>
+  </div>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead Discovery', 'Inspect target-bound ligands and candidate modification atoms before assembly.', '/warheads', kicker='Internal Guide', cta='Open warhead guide') }}
+    {{ info_card('Warhead Hunter', 'Use atom-level solvent exposure mapping and RCSB-aware upstream discovery.', 'https://warheadhunter.com', kicker='External Tool', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('Linker Design', 'Review linker classes, bridgeability ideas, and geometry-aware design patterns.', '/linkers', kicker='Internal Guide', cta='Open linker guide') }}
+    {{ info_card('E3 Recruiter Discovery', 'Review recruiter-side structure and attachment-vector considerations.', '/e3-ligase-recruiters', kicker='Internal Guide', cta='Open recruiter guide') }}
+    {{ info_card('E3 Ligandalyzer', 'Inspect recruiter ligands, scaffolds, structures, and attachment context.', 'https://e3ligandalyzer.com/explorer', kicker='External Tool', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Use viral protein-ligand structures and solvent-exposed moieties for viral-target workflows.', 'https://vlisemod.com', kicker='External Tool', cta='Open V-LiSEMOD', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="examples">
+  <div class="protac-section-head"><h2>Examples and query parameters</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>Where can I find example workflows?</h3>
+      <p>See the <a href="/examples">Examples</a> page for launchable builder workflows and cross-site handoff patterns.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Are the examples validated degraders?</h3>
+      <p>No. They are workflow examples and reproducible entry points, not claims of validated degradation unless another page explicitly documents that status.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How do I build an HIV protease target PROTAC example?</h3>
+      <p>You can start from the implemented route <a href="/builder?ligand=DR7"><code>/builder?ligand=DR7</code></a>, which preloads a HIV protease target ligand entry into the builder workflow.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How do I start with CRBN or VHL?</h3>
+      <p>Use <a href="/builder?ligase=CRBN_Y70"><code>/builder?ligase=CRBN_Y70</code></a> or <a href="/builder?ligase=VHL_3JS"><code>/builder?ligase=VHL_3JS</code></a> to open the builder with common recruiter examples preloaded.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How does PROTAC Builder connect to Warhead Hunter?</h3>
+      <p>Warhead Hunter supports upstream inspection of target-bound ligands and candidate modification atoms. PROTAC Builder then uses the selected warhead and attachment logic for degrader assembly.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How does PROTAC Builder connect to E3 Ligandalyzer?</h3>
+      <p>E3 Ligandalyzer helps users inspect recruiter ligands, scaffolds, bound structures, and attachment vectors before recruiter-side choices are carried back into the builder.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How does PROTAC Builder connect to V-LiSEMOD?</h3>
+      <p>V-LiSEMOD helps users inspect viral protein-ligand structures and solvent-exposed moieties when the target context is viral and a structure-aware warhead is still being selected.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="api">
+  <div class="protac-section-head"><h2>API and batch workflows</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>Can I use PROTAC Builder programmatically?</h3>
+      <p>Yes. The site includes API-oriented routes plus helper pages such as <a href="/api-builder">API Builder</a> and <a href="/api-docs">API Docs</a>.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is the API Builder?</h3>
+      <p>API Builder is a helper page for preparing scriptable and batch-friendly payloads that connect builder-style workflows to the public route surface.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Where can I find the OpenAPI schema?</h3>
+      <p>The site exposes both <a href="/openapi.json"><code>/openapi.json</code></a> and <a href="/openapi.yaml"><code>/openapi.yaml</code></a> for machine-readable API discovery.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can I batch-generate PROTAC candidates?</h3>
+      <p>Yes, where the batch routes are implemented. See <a href="/batch-workflows">Batch Workflows</a> and the API docs for linker-library and assembled-candidate generation patterns.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How should I report or reproduce batch workflows?</h3>
+      <p>Record component IDs, custom SMILES where used, query parameters, builder route, date or version context, selected linkers, attachment logic, and output artifacts so others can reconstruct the same run.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="downstream">
+  <div class="protac-section-head"><h2>Downstream modeling</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>What should I do after assembling a candidate?</h3>
+      <p>Review descriptors, geometry, linker bridgeability, ternary-complex plausibility, and your experimental plan rather than assuming the assembled candidate is ready for biological claims.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Does PROTAC Builder perform ternary complex modeling?</h3>
+      <p>No. Its methodological role is assembly and handoff. Ternary modeling belongs in downstream workflows and should be interpreted as prioritization evidence rather than proof of degradation.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is constraint-driven PROTAC design?</h3>
+      <p>It is a geometry-aware design framing that emphasizes explicit anchors, exit vectors, linker bridgeability, and structure-aware ternary hypotheses. See <a href="/constraint-driven-protac-design">Constraint-Driven PROTAC Design</a>.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is in silico PROTAC modeling?</h3>
+      <p>It covers docking, restrained ternary construction, MD, learned re-ranking, and related computational prioritization workflows. See <a href="/in-silico-protac-modeling">In Silico PROTAC Modeling</a>.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What downstream tools should I use?</h3>
+      <p>See <a href="/downstream-modeling">Downstream Modeling</a> for handoff methods and <a href="/benchmarking">Benchmarking</a> for reporting and reproducibility considerations.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What does benchmarking mean here?</h3>
+      <p>Benchmarking means documenting modeling assumptions, splits, metrics, failure modes, and reproducibility practices rather than reporting isolated scores without workflow context.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="limitations">
+  <div class="protac-section-head"><h2>Limitations and interpretation</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>Why can a molecule bind both proteins but fail to degrade?</h3>
+      <p>Ternary geometry, cooperativity, ubiquitination positioning, target lysine presentation, cell permeability, E3 expression, target context, and assay conditions can all break the path from binding to degradation.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can a low docking score prove degradation?</h3>
+      <p>No. A docking score is only one computational signal and does not prove productive ternary formation, ubiquitination, or cellular activity.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can a predicted ternary complex prove degradation?</h3>
+      <p>No. A predicted ternary complex is a hypothesis that may help prioritize chemistry, but it is not proof of biological outcome.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can a good DC50 alone define the best degrader?</h3>
+      <p>No. Dmax, selectivity, hook effect, exposure, target engagement, cooperativity, and practical assay context also matter.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Is this medical or clinical advice?</h3>
+      <p>No. PROTAC Builder is a research-oriented platform, not a clinical decision tool.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Should generated candidates be experimentally validated?</h3>
+      <p>Yes. Assembly, descriptors, and modeling can prioritize candidates, but experimental validation remains necessary.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="troubleshooting">
+  <div class="protac-section-head"><h2>Troubleshooting</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>My custom SMILES does not load. What should I check?</h3>
+      <p>Check that the SMILES is valid, reasonably encoded for URL use when passed by query parameter, chemically sensible for the editor, and not relying on unsupported assumptions about salts, stereochemistry, or attachment logic.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>A query-parameter example does not preload correctly. What should I check?</h3>
+      <p>Check the route, the exact identifier, URL encoding, whether the referenced data exists in the current deployment, and whether your browser session is showing the latest builder code.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>An image or page link is broken. How should I report it?</h3>
+      <p>Use the project contribution or contact path such as <a href="/submit-data">Submit Data / Contribute</a> so the broken link or asset can be reviewed in context.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Where can I contribute data or feedback?</h3>
+      <p>See <a href="/submit-data">Submit Data / Contribute</a> for contribution and feedback paths.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="next-steps">
+  <div class="protac-section-head"><h2>Related resources</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('How to Build a PROTAC', 'Step-by-step practical guide for assembling and prioritizing candidate degraders.', '/how-to-build-a-protac', kicker='Guide', cta='Read build guide') }}
+    {{ info_card('Component Hubs', 'See how warheads, linkers, and recruiters fit together as one discovery workflow.', '/component-hubs', kicker='Workflow Map', cta='Open component hubs') }}
+    {{ info_card('Examples', 'Launch reproducible builder examples and workflow starter routes.', '/examples', kicker='Examples', cta='View examples') }}
+    {{ info_card('API Builder', 'Prepare scriptable and batch-friendly builder workflows.', '/api-builder', kicker='Automation', cta='Open API Builder') }}
+    {{ info_card('Methods', 'Read the methodology page for scope, assembly logic, handoffs, and limitations.', '/methods', kicker='Methods', cta='Open methods page') }}
+    {{ info_card('Downstream Modeling', 'See what comes after assembly: geometry checks, ternary modeling, and prioritization.', '/downstream-modeling', kicker='Handoff', cta='Open downstream modeling') }}
   </div>
 </section>
 {% endblock %}

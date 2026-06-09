@@ -1,20 +1,300 @@
 {% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Resources</span>
-  <h1>PROTAC Builder Methods</h1>
-  <p class="protac-hero-copy">PROTAC Builder focuses on component assembly, attachment editing, and workflow handoff rather than on claiming an end-to-end degradation prediction engine.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Methods</span>
+    <h1>PROTAC Builder Methods</h1>
+    <p class="protac-hero-copy">
+      PROTAC Builder is a component assembly and workflow handoff tool. It helps users turn warheads, linkers, and E3
+      recruiters into candidate degrader structures while keeping component boundaries, attachment atoms, and
+      downstream-ready representations explicit.
+    </p>
+    <p class="protac-hero-copy">
+      The methodological role of the builder is not to serve as a complete biological prediction engine. Instead, it
+      supports disciplined candidate preparation so downstream modeling, reporting, and experimental planning can be
+      more reproducible.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Component assembly</span>
+      <span class="protac-pill">Attachment-aware workflow</span>
+      <span class="protac-pill">API and handoff ready</span>
+      <span class="protac-pill">Limits stated explicitly</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+      {{ action_link('/how-to-build-a-protac', 'Read the build guide') }}
+      {{ action_link('/examples', 'View examples') }}
+      {{ action_link('/api-builder', 'Open API Builder') }}
+    </div>
+  </div>
 </section>
 
-<section class="protac-section-card" id="scope">
-  <div class="protac-section-head"><h2>Current method scope</h2></div>
+<section class="protac-section-card" id="scope-summary">
+  <div class="protac-section-head"><h2>Method scope</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>In scope</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Component selection and assembly</div>
+        <div class="protac-checklist-item">Warhead, linker, and recruiter organization</div>
+        <div class="protac-checklist-item">Attachment-atom and anchor-aware thinking</div>
+        <div class="protac-checklist-item">Curated template use where available</div>
+        <div class="protac-checklist-item">Custom SMILES input where implemented</div>
+        <div class="protac-checklist-item">Query-parameter launch workflows where implemented</div>
+        <div class="protac-checklist-item">Generated-structure and workflow handoff support</div>
+        <div class="protac-checklist-item">API and batch preparation where implemented</div>
+        <div class="protac-checklist-item">Downstream modeling preparation</div>
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Out of scope</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Guaranteed degradation prediction</div>
+        <div class="protac-checklist-item">Guaranteed synthetic feasibility</div>
+        <div class="protac-checklist-item">Complete universal component libraries</div>
+        <div class="protac-checklist-item">Full ADMET prediction unless explicitly implemented elsewhere</div>
+        <div class="protac-checklist-item">Experimental assay interpretation</div>
+        <div class="protac-checklist-item">Clinical decision-making</div>
+        <div class="protac-checklist-item">Fully automated target-to-drug discovery</div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="design-philosophy">
+  <div class="protac-section-head"><h2>Design philosophy</h2></div>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Component-plus-geometry</span>
+      <p>The workflow treats PROTAC design as component assembly constrained by geometry, not as simple concatenation of two ligands and a spacer.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Explicit boundaries</span>
+      <p>Warhead, linker, and recruiter boundaries are preserved so downstream interpretation does not lose track of where each component begins and ends.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Explicit attachment atoms</span>
+      <p>Attachment atoms and exit vectors are treated as first-class design choices because wrong anchors can invalidate otherwise attractive chemistry.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Hypothesis framing</span>
+      <p>Assembled candidates are treated as hypotheses that need descriptor review, structural analysis, and experimental follow-up.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>The central methodological assumption:</strong> cleaner component representation makes downstream modeling
+    and experimental planning more reproducible.
+  </div>
+</section>
+
+<section class="protac-section-card" id="workflow">
+  <div class="protac-section-head"><h2>Component assembly workflow</h2></div>
+  <ol class="protac-step-list">
+    <li>Select or import a target-binding warhead.</li>
+    <li>Select or import an E3 recruiter.</li>
+    <li>Choose or enumerate linkers.</li>
+    <li>Define attachment atoms and anchor logic.</li>
+    <li>Assemble candidate molecules.</li>
+    <li>Inspect the resulting chemical representation.</li>
+    <li>Export or hand off candidates to downstream workflows.</li>
+    <li>Evaluate with modeling and experiments.</li>
+  </ol>
+  <div class="protac-action-row">
+    {{ action_link('/how-to-build-a-protac', 'Practical build guide', primary=True) }}
+    {{ action_link('/component-hubs', 'Component hubs') }}
+    {{ action_link('/examples', 'Examples') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="warhead-methodology">
+  <div class="protac-section-head"><h2>Warhead methodology</h2></div>
+  <p class="protac-section-copy">
+    The warhead is the target-binding component. Methodologically, the builder assumes warhead choice should be as
+    structure-aware as possible: preserve target binding, prefer known or credible bound pose context, and identify a
+    plausible attachment atom that does not obviously destroy key interactions.
+  </p>
   <ul class="protac-bullet-list">
-    <li>Warhead, linker, and recruiter component assembly</li>
-    <li>Attachment-point editing in the browser</li>
-    <li>Curated linker template support</li>
-    <li>Generated structure export and workflow handoff</li>
-    <li>Descriptor and API-adjacent workflow support where implemented</li>
+    <li>Bound pose and solvent exposure should guide modification-site choice.</li>
+    <li>Warhead Hunter can support upstream inspection of target-bound ligands and candidate modification atoms.</li>
+    <li>Warhead selection should preserve target engagement rather than only maximize abstract modularity.</li>
   </ul>
+  <div class="protac-action-row">
+    {{ action_link('/warheads', 'Warhead methodology guide', primary=True) }}
+    {{ action_link('https://warheadhunter.com', 'Warhead Hunter', external=True) }}
+    {{ action_link('https://warheadhunter.com/science', 'Warhead Hunter Science', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="linker-methodology">
+  <div class="protac-section-head"><h2>Linker methodology</h2></div>
+  <p class="protac-section-copy">
+    Linkers are chosen to test bridgeability hypotheses. The workflow does not treat them as passive spacers. Instead,
+    it assumes linker choices affect reach, flexibility, rigidity, polarity, rotatable-bond burden, and the geometric
+    feasibility of a ternary arrangement.
+  </p>
+  <ul class="protac-bullet-list">
+    <li>Flexible and rigid alternatives should both be considered where appropriate.</li>
+    <li>Length, polarity, and attachment chemistry should be documented rather than guessed implicitly.</li>
+    <li>Bridgeability should be reviewed before expensive downstream modeling begins.</li>
+  </ul>
+  <div class="protac-action-row">
+    {{ action_link('/linkers', 'Linker methodology guide', primary=True) }}
+    {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="recruiter-methodology">
+  <div class="protac-section-head"><h2>E3 recruiter methodology</h2></div>
+  <p class="protac-section-copy">
+    The recruiter defines ligase-side binding and attachment geometry. The method assumes recruiter choice should
+    consider bound pose, scaffold context, solvent exposure, and when possible the biological context of the recruited
+    ligase rather than defaulting blindly to one familiar example.
+  </p>
+  <ul class="protac-bullet-list">
+    <li>E3 choice influences ternary geometry and downstream compatibility.</li>
+    <li>Recruiter-side attachment vectors deserve the same care as warhead-side attachment vectors.</li>
+    <li>E3 Ligandalyzer supports upstream recruiter inspection before assembly.</li>
+  </ul>
+  <div class="protac-action-row">
+    {{ action_link('/e3-ligase-recruiters', 'Recruiter methodology guide', primary=True) }}
+    {{ action_link('https://e3ligandalyzer.com', 'E3 Ligandalyzer', external=True) }}
+    {{ action_link('https://e3ligandalyzer.com/explorer', 'Explorer', external=True) }}
+    {{ action_link('https://e3ligandalyzer.com/scaffolds', 'Scaffolds', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="anchors">
+  <div class="protac-section-head"><h2>Attachment atoms and exit vectors</h2></div>
+  <p class="protac-section-copy">
+    Attachment atoms are where the linker connects. Exit vectors describe how the linker leaves the warhead and the
+    recruiter. This part of the method is critical because a 2D-valid assembly can still be a poor 3D hypothesis if
+    the anchor choices point into steric clashes or destroy key interactions.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Is the atom solvent-exposed?</div>
+    <div class="protac-checklist-item">Does it preserve key binding interactions?</div>
+    <div class="protac-checklist-item">Does it point toward plausible partner-protein space?</div>
+    <div class="protac-checklist-item">Are alternate attachment atoms worth testing?</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="query-params">
+  <div class="protac-section-head"><h2>Query-parameter launch workflows</h2></div>
+  <p class="protac-section-copy">
+    Implemented query parameters create reproducible entry points for examples, documentation, teaching, and scripted
+    workflows. Current examples include:
+  </p>
+  <ul class="protac-bullet-list">
+    <li><a href="/builder?ligand=DR7"><code>/builder?ligand=DR7</code></a></li>
+    <li><a href="/builder?ligase=CRBN_Y70"><code>/builder?ligase=CRBN_Y70</code></a></li>
+    <li><a href="/builder?ligase=VHL_3JS"><code>/builder?ligase=VHL_3JS</code></a></li>
+    <li><a href="/builder?smiles=CCCCC"><code>/builder?smiles=CCCCC</code></a></li>
+  </ul>
+  <p class="protac-section-copy">
+    These routes help document starting conditions more explicitly. Invalid or missing IDs should fail clearly or fall
+    back safely depending on the implemented path.
+  </p>
+</section>
+
+<section class="protac-section-card" id="api-batch">
+  <div class="protac-section-head"><h2>API and batch methodology</h2></div>
+  <p class="protac-section-copy">
+    API Builder and the public route surface support scriptable workflows where implemented. Methodologically, batch
+    workflows should preserve component IDs, custom SMILES where relevant, attachment atoms, linker identifiers, query
+    parameters, and output metadata so runs can be reproduced later.
+  </p>
+  <div class="protac-action-row">
+    {{ action_link('/api-builder', 'API Builder', primary=True) }}
+    {{ action_link('/api-docs', 'API Docs') }}
+    {{ action_link('/openapi.json', 'OpenAPI JSON') }}
+    {{ action_link('/openapi.yaml', 'OpenAPI YAML') }}
+    {{ action_link('/batch-workflows', 'Batch Workflows') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="outputs">
+  <div class="protac-section-head"><h2>Outputs and downstream handoff</h2></div>
+  <p class="protac-section-copy">
+    What should leave the builder is not just a string, but a reproducible candidate record. At minimum that means the
+    assembled candidate structure plus enough component and anchor metadata for downstream interpretation.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Candidate structure</div>
+    <div class="protac-checklist-item">Component IDs or names</div>
+    <div class="protac-checklist-item">Warhead, linker, and recruiter boundaries</div>
+    <div class="protac-checklist-item">Attachment atoms</div>
+    <div class="protac-checklist-item">Custom SMILES when applicable</div>
+    <div class="protac-checklist-item">Selected linker identity</div>
+    <div class="protac-checklist-item">Supported export or handoff format</div>
+    <div class="protac-checklist-item">Date, version, or workflow notes</div>
+    <div class="protac-checklist-item">Downstream modeling plan</div>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('/downstream-modeling', 'Downstream Modeling', primary=True) }}
+    {{ action_link('/in-silico-protac-modeling', 'In Silico Modeling') }}
+    {{ action_link('/benchmarking', 'Benchmarking') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="validation">
+  <div class="protac-section-head"><h2>Validation and interpretation</h2></div>
+  <p class="protac-section-copy">
+    Builder output is a hypothesis. Downstream validation can include descriptor review, bridgeability checks, ternary
+    modeling, molecular dynamics, ML re-ranking, and experimental degradation assays. No single computational score
+    proves activity.
+  </p>
+  <ul class="protac-bullet-list">
+    <li>DC50, Dmax, hook effect, selectivity, and target engagement remain experimental concepts.</li>
+    <li>Computational signals can rank or explain, but not replace biological validation.</li>
+    <li>Interpretation should remain aligned with what the current workflow actually measures.</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="reporting">
+  <div class="protac-section-head"><h2>Recommended reporting</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Builder route and version or date</div>
+    <div class="protac-checklist-item">Input warhead, recruiter, and linker IDs</div>
+    <div class="protac-checklist-item">Custom SMILES if used</div>
+    <div class="protac-checklist-item">Attachment atoms</div>
+    <div class="protac-checklist-item">Query parameters</div>
+    <div class="protac-checklist-item">Output files or structures</div>
+    <div class="protac-checklist-item">Downstream modeling method</div>
+    <div class="protac-checklist-item">Validation status</div>
+    <div class="protac-checklist-item">Known limitations</div>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('/benchmarking', 'Read benchmarking guide', primary=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="limitations">
+  <div class="protac-section-head"><h2>Current limitations</h2></div>
+  <div class="protac-bullet-list">
+    <li>Not a guarantee of degradation.</li>
+    <li>Not a complete component universe.</li>
+    <li>Not all query parameters or exports may be supported in every deployment.</li>
+    <li>Custom SMILES still require user validation.</li>
+    <li>2D-valid assembly does not guarantee 3D bridgeability.</li>
+    <li>Downstream modeling and experiments remain necessary.</li>
+    <li>Data and features may change as the platform evolves.</li>
+  </div>
+</section>
+
+<section class="protac-section-card" id="resources">
+  <div class="protac-section-head"><h2>Connected resources</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('FAQ', 'Read user-facing scope, workflow, API, and troubleshooting answers.', '/faq', kicker='Support', cta='Open FAQ') }}
+    {{ info_card('How to Build a PROTAC', 'Practical assembly workflow from component choice to validation.', '/how-to-build-a-protac', kicker='Guide', cta='Read build guide') }}
+    {{ info_card('Component Hubs', 'See how warheads, linkers, and recruiters connect into one workflow.', '/component-hubs', kicker='Workflow Map', cta='Open component hubs') }}
+    {{ info_card('Warhead Discovery', 'Upstream methodology for target-binding warhead inspection.', '/warheads', kicker='Guide', cta='Open warhead guide') }}
+    {{ info_card('Linker Design', 'Bridgeability, linker classes, and geometry-aware linker thinking.', '/linkers', kicker='Guide', cta='Open linker guide') }}
+    {{ info_card('E3 Recruiter Discovery', 'Recruiter-side structure, scaffold, and attachment-vector considerations.', '/e3-ligase-recruiters', kicker='Guide', cta='Open recruiter guide') }}
+    {{ info_card('API Builder', 'Prepare batch-friendly and scripted workflows.', '/api-builder', kicker='Automation', cta='Open API Builder') }}
+    {{ info_card('Downstream Modeling', 'Move assembled candidates into modeling, scoring, and prioritization workflows.', '/downstream-modeling', kicker='Handoff', cta='Open downstream modeling') }}
+    {{ info_card('Benchmarking', 'Report workflows and results more reproducibly.', '/benchmarking', kicker='Reporting', cta='Open benchmarking') }}
+  </div>
 </section>
 {% endblock %}
