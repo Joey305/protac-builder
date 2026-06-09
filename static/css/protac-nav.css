@@ -458,7 +458,7 @@ body.protac-nav-open {
   max-width: 390px;
   height: 100vh;
   height: 100dvh;
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 0;
   padding:
@@ -480,6 +480,7 @@ body.protac-nav-open {
 }
 
 .protac-mobile-drawer.is-open {
+  display: flex;
   pointer-events: auto;
   transform: translateX(0);
 }

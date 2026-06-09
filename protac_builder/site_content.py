@@ -133,8 +133,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "in_silico_protac_modeling": {
         "slug": "in-silico-protac-modeling",
         "template": "pages/in_silico_protac_modeling.html",
-        "meta_title": "In Silico PROTAC Modeling | PROTAC Builder",
-        "meta_description": "Overview of restrained docking, PRosettaC-style modeling, MD refinement, HAPOD-like scoring, learned re-ranking, and hybrid in silico PROTAC workflows.",
+        "meta_title": "In Silico PROTAC Modeling | Computational PROTAC Design Workflows",
+        "meta_description": "Learn how in silico PROTAC modeling combines ternary complex docking, PRosettaC-style constraints, molecular dynamics, machine learning, generative linker design, feasibility filters, and benchmarking to prioritize degrader candidates.",
         "software_app_schema": False,
         "article_schema": True,
     },
