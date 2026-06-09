@@ -125,8 +125,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "constraint_driven_protac_design": {
         "slug": "constraint-driven-protac-design",
         "template": "pages/constraint_driven_protac_design.html",
-        "meta_title": "Constraint-Driven PROTAC Design | PROTAC Builder",
-        "meta_description": "Learn how anchor atoms, distance restraints, linker bridgeability, and ternary complex geometry shape constraint-driven computational PROTAC design.",
+        "meta_title": "Constraint-Driven PROTAC Design | Geometry-Aware Degrader Modeling",
+        "meta_description": "Learn how constraint-driven PROTAC design uses anchor atoms, exit vectors, linker bridgeability, solved structures, PRosettaC-style modeling, and downstream validation to build geometry-aware degrader candidates.",
         "software_app_schema": False,
         "article_schema": True,
     },

@@ -1,132 +1,124 @@
 # Qodex.summary
 
 ## Task
-Expand E3 Ligase Recruiters page.
+Expand Constraint-Driven PROTAC Design page.
 
 ## Original Goal
-Make `/e3-ligase-recruiters` more detailed, informative, visually useful, and synced with the current E3 Recruiter Ligandalyzer platform, linking to E3 Ligandalyzer, Explorer, Scaffolds, and downstream PROTAC Builder workflows while using the images in `static/images/Paper3/`.
+Make `/constraint-driven-protac-design` much more detailed and informative by explaining constraint-driven geometric PROTAC design, using the PRosettaC versus AlphaFold3 benchmark paper, showing how solved structures and anchor constraints ground discovery, and integrating the figures in `static/images/Paper4/`.
 
 ## Assumptions
-- The existing Flask route `/e3-ligase-recruiters` should remain the canonical recruiter-guide route.
-- The internal E3 Recruiter Ligandalyzer draft should be treated as an active platform source, not cited as a published manuscript.
-- The dataset counts supplied in the prompt are best presented as a current platform snapshot rather than permanent fixed totals.
-- The local `static/images/Paper3/` screenshots are approved for use on this guide page.
-- A non-destructive cleaned copy of the hero image is acceptable if it improves template readability and static-asset handling.
-- Existing shared content-page CSS utilities are sufficient for this page without adding a new styling system.
+- The existing Flask route `/constraint-driven-protac-design` should remain the canonical route for this guide.
+- The Scientific Reports article and DOI provided by the user are the correct primary sources for benchmark claims and figure attribution.
+- The local `static/images/Paper4/` figures are approved for display on the site when shown unmodified with visible attribution and license wording.
+- The article’s CC BY-NC-ND 4.0 license means figures should be displayed unmodified, so the page should not crop, recolor, annotate, or otherwise adapt them.
+- Existing shared content-page CSS utilities are sufficient for the expanded page without adding a separate style layer.
 
 ## Files Inspected
 - `protac_builder/routes.py`
-  Confirmed the `/e3-ligase-recruiters` route, nearby internal guide routes, and the `/e3-recruiter-library` redirect.
+  Confirmed the `/constraint-driven-protac-design` route and verified the nearby internal routes used for ecosystem links.
 - `protac_builder/site_content.py`
-  Inspected and updated page-level metadata and checked ecosystem links already defined in the site content map.
-- `templates/pages/e3_ligase_recruiters.html`
-  Reviewed the existing short recruiter-hub content before replacing it with the expanded guide.
+  Inspected and updated the page’s SEO metadata entry.
+- `templates/pages/constraint_driven_protac_design.html`
+  Reviewed the short existing page before rewriting it.
 - `templates/pages/how_to_build_a_protac.html`
-  Used as the main pattern for section depth, CTA structure, and figure integration.
+  Used as a pattern for section depth, callouts, figure cards, and CTA structure.
 - `templates/pages/linkers.html`
-  Used as the main pattern for figure cards, callouts, checklist blocks, and page flow.
+  Used as a pattern for comparison grids, checklist blocks, and longer educational page flow.
+- `templates/pages/e3_ligase_recruiters.html`
+  Used as a pattern for a richer science/tool guide tied into the broader ecosystem.
+- `templates/pages/in_silico_protac_modeling.html`
+  Checked for tone, cross-link conventions, and method-family phrasing.
 - `templates/pages/_macros.html`
-  Confirmed the available `action_link` and `info_card` macros used throughout the content pages.
+  Confirmed the available `action_link` and `info_card` macros used by content pages.
 - `templates/pages/_page_base.html`
-  Confirmed the page-level metadata and optional structured-data block conventions.
+  Relied on the existing metadata and structured-data block conventions already established for these guide pages.
 - `templates/partials/_nav.html`
-  Verified naming conventions and existing internal and external ecosystem links.
+  Verified existing internal route names and labels.
 - `static/css/protac-content.css`
-  Confirmed reusable hero, figure-card, checklist, grid, and callout classes.
+  Reused existing hero, figure-card, grid, checklist, and callout classes.
 - `README.md`
-  Confirmed the local app startup command and development URL.
-- `static/images/Paper3/CoverImage.png.jpg`
-- `static/images/Paper3/Figure1.png`
-- `static/images/Paper3/Figure2.png`
-- `static/images/Paper3/Figure3.png`
-- `static/images/Paper3/Figure4.png`
-- `static/images/Paper3/Figure5.png`
-- `static/images/Paper3/Figure6.png`
-- `static/images/Paper3/Figure7.png`
-- `static/images/Paper3/Figure8.png`
-- `static/images/Paper3/Figure9.png`
-  Confirmed local asset presence and used the screenshots to ground each section of the page.
+  Confirmed the documented local app startup command.
+- `static/images/Paper4/Figure1.jpg`
+- `static/images/Paper4/Figure2.jpg`
+- `static/images/Paper4/Figure3.jpg`
+- `static/images/Paper4/Figure4.jpg`
+- `static/images/Paper4/Figure5.jpg`
+- `static/images/Paper4/Figure6.jpg`
+- `static/images/Paper4/Figure7.jpg`
+- `static/images/Paper4/Figure8.jpg`
+  Confirmed all eight Paper4 figures exist locally and are available for the page.
 
 ## Files Changed
-- `templates/pages/e3_ligase_recruiters.html`
-  Rewrote the page into a detailed guide covering recruiter choice, structure-first selection, chemical space, solvent exposure, ligase coverage, aligned structures, scaffold diversity, expression context, export to PROTAC Builder, checklist items, common mistakes, and ecosystem workflow links. Added all Paper3 images with captions and a platform-note section that avoids presenting the draft as a published paper.
+- `templates/pages/constraint_driven_protac_design.html`
+  Rewrote the page into a detailed guide covering geometry-aware design, anchor atoms, exit vectors, bridgeability, solved-structure grounding, PRosettaC versus AF3 benchmark interpretation, dynamic ensemble evaluation, a staged builder workflow, benefits, cautions, evaluation stack, ecosystem links, and a visible references/license block. Integrated all eight Paper4 figures with captions and attribution.
 - `protac_builder/site_content.py`
-  Updated the page SEO title and meta description to target E3 recruiter selection for PROTAC design more directly.
+  Updated the page SEO title and meta description to reflect geometry-aware degrader modeling and constraint-driven design.
 - `Qodex.summary.md`
-  Replaced the previous task record with this recruiter-page implementation summary, validation notes, and decisions.
+  Replaced the prior task log with this task’s implementation, validation, and licensing notes.
 
 ## Files Created
-- `static/images/Paper3/CoverImage.jpg`
-  Created as a non-destructive cleaned copy of `static/images/Paper3/CoverImage.png.jpg` so the page can reference a simpler hero-image filename while preserving the original asset.
+- No new page assets were created for this task.
 
 ## Implementation Summary
-The `/e3-ligase-recruiters` page was expanded from a short generic hub into a structure-first guide for selecting E3 recruiters before PROTAC assembly. It now explains why recruiter choice matters, why CRBN and VHL are not the only useful options, how recruiter-bound geometry affects linker attachment and ternary design, and how E3 Ligandalyzer supports ligand-centric, scaffold-centric, ligase-centric, and expression-aware decision making.
+The `/constraint-driven-protac-design` page was expanded from a short placeholder into a practical guide explaining why PROTAC design is a geometry problem and how constraint-driven workflows help keep degrader assembly grounded in real ligand poses, anchor atoms, exit vectors, linker reach, and target-E3 orientation. The page now frames PROTAC Builder as a preparation layer that standardizes anchor-aware assembly before downstream ternary-complex modeling.
 
-The page now uses the full Paper3 image set: a hero cover image plus Figures 1 through 9. Each screenshot is paired with visible captions and nearby explanation of why that specific view matters to recruiter selection. The guide also now connects recruiter analysis to the rest of the PROTAC Builder ecosystem through clear calls to action for E3 Ligandalyzer, Explorer, Scaffolds, PROTAC Builder, Warhead Hunter, V-LiSEMOD, Linker Design, and downstream modeling pages.
+The guide now explains the PRosettaC versus AlphaFold3 benchmark in practical terms: what PRosettaC-style anchor constraints can help with, where unconstrained protein-complex prediction can mislead in PROTAC contexts, why accessory proteins can inflate global scoring, and why dynamic ensemble evaluation can reveal compatibility that static crystal comparison misses. All eight local Paper4 figures are used with visible captions, attribution, and an explicit unmodified-license note tied to the Scientific Reports article.
 
 ## Key Decisions
 - Updated the metadata to the requested SEO framing:
-  `E3 Ligase Recruiters for PROTAC Design | Structure-First Recruiter Selection`
-  with a more explicit meta description around scaffold diversity, solvent exposure, expression context, and PROTAC Builder integration.
-- Added FAQ-style structured data because the page already sits inside a metadata-friendly content framework and this supports the requested SEO intent without adding dependencies.
-- Kept the tone platform-oriented and careful:
-  decision support, can inform, helps prioritize, and should be validated.
-- Did not cite the internal E3 Ligandalyzer draft as a peer-reviewed publication. Instead, the page uses a platform note that describes it as an active Schurer Lab platform whose counts and features may evolve.
-- Created `CoverImage.jpg` as a copy instead of renaming or deleting `CoverImage.png.jpg`, preserving the original asset and documenting the change.
-- Reused the existing shared content-page CSS rather than introducing a new design layer, keeping the recruiter page aligned with the recently improved `/linkers` and `/how-to-build-a-protac` pages.
+  `Constraint-Driven PROTAC Design | Geometry-Aware Degrader Modeling`
+  with a more explicit meta description around anchor atoms, exit vectors, bridgeability, solved structures, PRosettaC-style modeling, and downstream validation.
+- Added FAQ-style structured data because the existing page framework already supports it and it fits the user’s SEO requirement without adding dependencies.
+- Kept the tone cautious and educational throughout:
+  can help, supports, suggests, may reveal, and should be validated.
+- Used the Scientific Reports article as the main scientific source and linked both the PMC article and DOI.
+- Included the PRosettaC GitHub link in the references block because the user explicitly allowed it if used in the page text.
+- Kept the Paper4 figures unmodified and added explicit CC BY-NC-ND 4.0 language so the page does not imply adaptation rights.
+- Reused the existing content-page design system rather than introducing new scoped CSS, which keeps the page visually consistent with the recently expanded science guides.
 
 ## Commands Run
-- `sed -n ...`, `rg -n ...`, and `ls -l static/images/Paper3`
-  Inspected routes, template patterns, metadata, macros, CSS helpers, and local recruiter-page assets.
-- `cp -n static/images/Paper3/CoverImage.png.jpg static/images/Paper3/CoverImage.jpg`
-  Created the cleaned hero-image copy without touching the original file.
-- `md5 static/images/Paper3/CoverImage.png.jpg static/images/Paper3/CoverImage.jpg`
-  Confirmed the cleaned copy matches the original image exactly.
-- `file static/images/Paper3/CoverImage.png.jpg static/images/Paper3/CoverImage.jpg static/images/Paper3/Figure1.png static/images/Paper3/Figure9.png`
-  Confirmed file formats and dimensions for the hero and representative screenshots.
+- `rg -n ...`, `sed -n ...`, and `ls -l static/images/Paper4`
+  Inspected routes, templates, metadata, navigation labels, and Paper4 assets.
 - `python -m compileall app.py protac_builder`
   Confirmed Python compilation after metadata changes.
 - `python - <<'PY' ...`
-  Used Flask’s test client to render `/e3-ligase-recruiters` and check for expected content markers and links.
+  Used Flask’s test client to render `/constraint-driven-protac-design`, verify expected markers, and confirm related internal routes return `200`.
 - `python app.py`
   Started the local development server.
-- `curl -I http://127.0.0.1:5069/e3-ligase-recruiters`
-  Confirmed live HTTP `200` for the page.
-- `python - <<'PY' ...`
-  Checked internal route status codes for `/e3-ligase-recruiters`, `/builder`, `/how-to-build-a-protac`, `/linkers`, `/warheads`, `/downstream-modeling-tools`, `/in-silico-protac-modeling`, and `/benchmarking`.
-- `curl -I -L ...`
-  Confirmed external `200` responses for `https://e3ligandalyzer.com`, `https://e3ligandalyzer.com/explorer`, and `https://e3ligandalyzer.com/scaffolds`.
+- `curl -I -L --max-time 20 ...`
+  Confirmed external links resolve for the PMC article, DOI, and PRosettaC GitHub repository.
 - Browser plugin verification through the in-app browser
-  Opened `http://127.0.0.1:5069/e3-ligase-recruiters`, captured a desktop screenshot, then switched to a mobile viewport and captured a mobile screenshot to confirm the hero and overall layout behaved responsively.
-- `git status --short` and `git diff --stat ...`
-  Reviewed changed files and the scope of edits.
+  Opened `http://127.0.0.1:5069/constraint-driven-protac-design`, captured a desktop screenshot, then switched to a mobile viewport and captured a mobile screenshot to confirm the dense figure layout and captions remained readable.
 
 ## Validation Results
-- Template rendering: passed for `/e3-ligase-recruiters` through Flask’s test client with expected content markers present.
+- Template rendering: passed for `/constraint-driven-protac-design` through Flask’s test client with expected markers present.
 - Python compile check: passed for `app.py` and `protac_builder/`.
 - Local app startup: passed with `python app.py`.
-- Live page load: passed with HTTP `200` for `/e3-ligase-recruiters`.
-- Internal routes: passed with HTTP `200` for the recruiter page, builder, how-to page, linker page, warhead page, downstream modeling tools, in silico modeling, and benchmarking.
-- External E3 Ligandalyzer links: passed with HTTP `200` responses for the homepage, explorer, and scaffold dashboard URLs.
-- Image loading: passed for the hero image and Paper3 figures referenced on the page.
-- Hero image cleanup: passed; the page now references `CoverImage.jpg`, and the original `CoverImage.png.jpg` remains untouched.
-- Responsive check: passed through the in-app browser at desktop width and a mobile-style `390x844` viewport. The hero content stayed readable, the mobile nav remained intact, and the page did not show obvious overflow in the checked viewport.
-- Unrelated code changes: no unrelated routes or non-page logic were changed.
+- Live page load: passed for `/constraint-driven-protac-design` in the in-app browser.
+- Internal route checks: passed with `200` responses for builder, how-to guide, warheads, E3 recruiters, linkers, downstream modeling tools, in silico modeling, benchmarking, and the constraint-driven page itself.
+- External link checks: passed for
+  `https://pmc.ncbi.nlm.nih.gov/articles/PMC12568945/`,
+  `https://doi.org/10.1038/s41598-025-21502-8`,
+  and `https://github.com/LondonLab/PRosettaC`.
+- Paper4 images: passed; all eight local figures are present and referenced on the page.
+- Attribution and license visibility: passed; the page includes visible paper attribution and CC BY-NC-ND 4.0 language.
+- Responsive layout: passed through the in-app browser at desktop width and a mobile-style `390x844` viewport. The hero, figure cards, and visible text remained readable with no obvious overflow in the checked viewport.
+- Unrelated code changes: no unrelated routes, APIs, or non-page logic were modified.
 
 ## Known Issues
-- The Paper3 image directory appears untracked in git status in this workspace, which suggests the screenshots may have been added locally but not yet committed by the project owner. I only added the cleaned `CoverImage.jpg` copy and did not alter the original screenshots.
-- I verified the page visually at the top of the desktop and mobile layouts, but I did not perform a full manual scroll-through of every section in the in-app browser.
-- The page is synced to the current E3 Ligandalyzer platform/tool draft and should still be reviewed by the project or domain owner before public release.
+- The page includes repeated use of some Paper4 figures in both narrative sections and figure-reading sections so the benchmark can be explained cleanly. This keeps the content readable, but it means the page is visually dense and should still be reviewed by the project owner for final editorial preference.
+- I verified desktop and mobile rendering at the top-level browser pass, but I did not manually scroll through every figure card in the browser after the mobile resize.
+- The page is grounded in the cited Scientific Reports paper and should still be reviewed by the project or domain owner before public release.
 
 ## Manual Verification
 1. Start the local app using the documented project command: `python app.py`.
-2. Open `/e3-ligase-recruiters`.
+2. Open `/constraint-driven-protac-design`.
 3. Confirm the expanded guide renders.
-4. Confirm all images in `static/images/Paper3/` load.
-5. Confirm the cover image fits properly.
-6. Confirm external links to E3 Ligandalyzer, Explorer, and Scaffolds work.
-7. Confirm internal links to PROTAC Builder, Linker Design, How to Build a PROTAC, and Downstream Modeling work.
+4. Confirm all eight Paper4 figures load.
+5. Confirm captions, paper attribution, and license or source links are visible.
+6. Confirm internal CTA links work.
+7. Confirm the external paper, DOI, and PRosettaC GitHub links open.
 8. Resize to mobile width and confirm the page remains readable.
 
 ## Suggested Next Prompt
-Expand the `Component Hubs` page so it ties warheads, linkers, and E3 recruiters into one end-to-end PROTAC workflow with clearer handoffs between Warhead Hunter, E3 Ligandalyzer, PROTAC Builder, and downstream modeling.
+Expand `/in-silico-protac-modeling` to compare restrained docking, PRosettaC, AlphaFold3, MD refinement, and benchmark-reporting workflows in more depth, with clearer guidance on when each method is useful.

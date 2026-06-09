@@ -1,34 +1,504 @@
 {% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is constraint-driven PROTAC design?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Constraint-driven PROTAC design is a geometry-aware workflow that starts from known or modeled ligand binding poses, defines anchor atoms and exit vectors, checks whether a linker can bridge those anchors across plausible protein orientations, and then exports feasible candidates for downstream ternary-complex modeling and experimental validation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why are PROTACs a geometry problem and not just a chemical assembly problem?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A PROTAC must connect two bound ligands without impossible strain, buried linker paths, or incompatible protein orientations. Binary binding alone is not enough; the degrader must also support a productive target-E3 arrangement for ternary complex formation and ubiquitination."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does PRosettaC or PROTAC Builder guarantee degradation outcomes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Constraint-guided assembly and PRosettaC-style modeling can help prioritize geometry-aware candidates when anchor chemistry and binding modes are reliable, but they do not guarantee ternary-complex formation, degradation, or cellular activity."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Science</span>
-  <h1>Constraint-Driven PROTAC Design</h1>
-  <p class="protac-hero-copy">Constraint-driven PROTAC design treats linker assembly as a geometry problem as well as a medicinal chemistry problem.</p>
-  <p class="protac-hero-copy">Rather than assuming any warhead-linker-recruiter combination is plausible, the workflow asks whether anchor atoms, distances, orientations, and bridgeability support a realistic ternary arrangement.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Geometry-Aware PROTAC Design</span>
+    <h1>Constraint-Driven PROTAC Design</h1>
+    <p class="protac-hero-copy">
+      Constraint-driven PROTAC design treats degrader construction as a geometry-aware assembly problem. A candidate
+      PROTAC must not only contain a protein-of-interest warhead, linker, and E3 recruiter; it must connect two bound
+      ligands through attachment atoms that can plausibly support a ternary complex.
+    </p>
+    <p class="protac-hero-copy">
+      In practice, that means a PROTAC is physically constrained by its two bound ligands, the linker must bridge real
+      exit vectors, and the target plus E3 ligase must adopt an orientation that can exist without impossible strain or
+      buried linker paths. Structure-first preparation helps remove implausible candidates before synthesis or heavier
+      ternary-complex modeling.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Anchor-aware design</span>
+      <span class="protac-pill">Bridgeability first</span>
+      <span class="protac-pill">Structure-grounded assembly</span>
+      <span class="protac-pill">Validation still required</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+      {{ action_link('/downstream-modeling-tools', 'Open downstream modeling') }}
+      {{ action_link('/linkers', 'Review linker design') }}
+      {{ action_link('/e3-ligase-recruiters', 'Explore E3 recruiters') }}
+      {{ action_link('https://pmc.ncbi.nlm.nih.gov/articles/PMC12568945/', 'Read the PRosettaC benchmark', external=True) }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}"
+      alt="Benchmark figure comparing DockQ score distributions across AF3 minimal-complex, PRosettaC ternary-complex, and AF3 core-complex predictions for crystallographically resolved PROTAC ternary systems."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 1.</strong> Benchmark overview: model-quality distributions varied strongly across systems, with
+      constraint-guided PRosettaC and unconstrained AF3 behaving differently across the 36-system reference set.
+      Figure from Schulz et al., <em>Scientific Reports</em> (2025),
+      <a href="https://doi.org/10.1038/s41598-025-21502-8" target="_blank" rel="noopener noreferrer">doi:10.1038/s41598-025-21502-8</a>,
+      displayed unmodified under CC BY-NC-ND 4.0.
+    </figcaption>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="concepts">
-  <div class="protac-section-head"><h2>Core constraints</h2></div>
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: what is constraint-driven PROTAC design?</h2></div>
+  <p class="protac-section-copy">
+    Constraint-driven PROTAC design is a workflow that uses known or modeled binding poses, defined anchor atoms, linker
+    length and shape constraints, and candidate protein-protein orientations to decide whether a warhead-linker-recruiter
+    design is geometrically plausible before downstream modeling or experimental testing.
+  </p>
+  <ol class="protac-step-list">
+    <li>Start from a POI ligand bound to the target and an E3 recruiter bound to the ligase.</li>
+    <li>Identify solvent-exposed anchor atoms or exit vectors on both ligands.</li>
+    <li>Estimate whether a linker can bridge the two anchors without disrupting binding.</li>
+    <li>Enumerate linkers with varied length, rigidity, and chemistry.</li>
+    <li>Export plausible candidates into ternary-complex modeling.</li>
+    <li>Evaluate interface geometry, linker strain, solvent exposure, and ensemble behavior.</li>
+    <li>Validate experimentally with degradation assays.</li>
+  </ol>
+</section>
+
+<section class="protac-section-card" id="geometry-problem">
+  <div class="protac-section-head"><h2>Why PROTAC design is a geometry problem</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        PROTACs work by induced proximity, so the degrader must position the target protein and E3 ligase in a productive
+        orientation. Binary binding alone is insufficient. The linker does not merely connect two fragments; it imposes
+        distance, orientation, flexibility, and strain constraints on the whole ternary hypothesis.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>A candidate can look valid in 2D and still fail in 3D because the linker cannot bridge the bound poses.</li>
+        <li>Even good binders can fail if one exit vector points into buried protein volume or away from the partner protein.</li>
+        <li>Productive degradation depends on a target-E3 arrangement that the physical degrader can actually occupy.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Builder positioning:</strong> PROTAC Builder is a preparation layer. It helps users define components,
+        anchors, and assembled candidates, then hand them off to downstream modeling. It does not guarantee ternary-complex
+        formation or degradation.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper4/Figure2.jpg') }}"
+        alt="Cumulative DockQ distribution comparison showing different tails and high-score behavior for AF3 minimal-complex, PRosettaC, and AF3 core-complex models."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 2.</strong> Cumulative DockQ distributions highlight why degrader-specific methods are judged by
+        how often they reach useful high-scoring tails, not just by average-looking protein-complex poses.
+        Figure from Schulz et al., <em>Scientific Reports</em> (2025),
+        <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12568945/" target="_blank" rel="noopener noreferrer">source article</a>,
+        displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="core-constraints">
+  <div class="protac-section-head"><h2>The core constraints</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--three">
+    <article class="protac-mini-card">
+      <h3>Anchor atoms</h3>
+      <p>These are the atoms where the linker attaches to the POI ligand and the E3 recruiter. They should usually be solvent-exposed and avoid key binding contacts.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Exit-vector direction</h3>
+      <p>The direction the linker leaves each bound ligand strongly affects whether the bridge points toward the partner protein or into empty or buried space.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Distance and reach</h3>
+      <p>The end-to-end span between anchors sets a reach problem. Too short causes clashes or impossible geometry; too long raises entropy and often weakens cooperativity.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Linker flexibility and strain</h3>
+      <p>Flexible linkers sample more conformations but pay entropic cost. Rigid linkers can preserve geometry but fail quickly when the vectors are wrong.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Protein-protein orientation</h3>
+      <p>The target and E3 ligase still need an arrangement compatible with the selected linker, anchor chemistry, and recruited binding modes.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Interface quality</h3>
+      <p>Productive complexes often rely on favorable protein-protein contacts, solvent exposure, and accessible ubiquitination geometry rather than ligand binding alone.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Linker bridgeability:</strong> a bridgeable PROTAC is one whose linker can connect the two chosen anchors
+    across a plausible target-E3 orientation without impossible strain, clashes, or buried paths through protein volume.
+  </div>
+</section>
+
+<section class="protac-section-card" id="solved-structures">
+  <div class="protac-section-head"><h2>Start from solved structures when possible</h2></div>
+  <p class="protac-section-copy">
+    Constraint-driven design is strongest when grounded in experimentally resolved structures: a POI-ligand complex, an
+    E3-recruiter complex, and ideally a known PROTAC ternary complex when one exists for a related system. Solved
+    structures define the ligand binding mode, exit vector, pocket geometry, exposed atoms, and likely steric clashes.
+  </p>
   <ul class="protac-bullet-list">
-    <li>Anchor atoms or attachment atoms on both component ends</li>
-    <li>Distance restraints between exit vectors</li>
-    <li>Linker bridgeability across candidate protein-protein orientations</li>
-    <li>Compatibility between linker flexibility and desired geometry</li>
-    <li>Selective export into downstream ternary complex modeling</li>
+    <li>Use modeled structures carefully when no solved structure is available, and document that uncertainty.</li>
+    <li>Anchor selection is only as good as the binding pose used to define it.</li>
+    <li>Constraint-driven assembly becomes much weaker if one or both ligand poses are speculative.</li>
   </ul>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead Discovery', 'Start from target-binding ligands with plausible exit vectors and structure support.', '/warheads', kicker='POI Side', cta='Explore warheads') }}
+    {{ info_card('E3 Recruiter Discovery', 'Inspect recruiter binding poses, solvent exposure, and attachment atoms before assembly.', '/e3-ligase-recruiters', kicker='Ligase Side', cta='Explore E3 recruiters') }}
+    {{ info_card('Linker Design', 'Use bridgeability and linker-property hypotheses to guide the first linker panel.', '/linkers', kicker='Bridge Design', cta='Review linker design') }}
+    {{ info_card('Downstream Modeling', 'Export anchor-aware candidates into PRosettaC-style or other ternary-modeling workflows.', '/downstream-modeling-tools', kicker='Modeling', cta='Open downstream modeling') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="benchmark">
+  <div class="protac-section-head"><h2>What the PRosettaC benchmark shows</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        The Scientific Reports benchmark compared two modeling philosophies on 36 crystallographically resolved PROTAC
+        ternary complexes: broad, general protein-complex prediction with AlphaFold3 and PROTAC-specific,
+        Rosetta-based, anchor-constrained modeling with PRosettaC.
+      </p>
+      <div class="protac-note-grid">
+        <article class="protac-note">
+          <h3>AlphaFold3</h3>
+          <p>Fast and general for protein-complex prediction, but it does not explicitly enforce degrader-specific linker geometry or anchor constraints.</p>
+        </article>
+        <article class="protac-note">
+          <h3>PRosettaC</h3>
+          <p>Uses known warhead and recruiter poses plus chemically defined anchors, so it can generate more degrader-relevant ternary poses when those constraints are compatible.</p>
+        </article>
+      </div>
+      <ul class="protac-bullet-list">
+        <li>PRosettaC produced successful models for 25 of 36 benchmarked systems and failed in 11.</li>
+        <li>It was the top-performing method in 48% of modeled cases, but not universally.</li>
+        <li>AF3 full-complex scores could be inflated by accessory proteins such as Elongin B/C or DDB1.</li>
+        <li>PRosettaC often showed a longer high-scoring DockQ tail, but it was brittle when anchors or linker sampling were wrong.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Practical takeaway:</strong> the benchmark supports constraint-guided modeling as a useful strategy for
+        geometry-aware PROTAC design when reliable anchors and binding modes are available. It does not mean PRosettaC
+        always wins, and it does not remove the need for experimental validation.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper4/Figure6.jpg') }}"
+        alt="Per-system median DockQ comparison showing PRosettaC, AF3 minimal-complex, and AF3 core-complex performance across benchmarked ternary complexes."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 6.</strong> Median DockQ by system shows why no single method dominates every case. PRosettaC is
+        strong in some systems, but not universal, which reinforces the need for method-aware interpretation.
+        Figure from Schulz et al., <em>Scientific Reports</em> (2025),
+        <a href="https://doi.org/10.1038/s41598-025-21502-8" target="_blank" rel="noopener noreferrer">doi link</a>,
+        displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="benchmark-figures">
+  <div class="protac-section-head"><h2>Reading the benchmark figures</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}" alt="Boxplot-style DockQ score distributions across benchmark ternary systems for AF3 minimal complex, PRosettaC ternary complex, and AF3 core complex models." loading="lazy">
+      <figcaption>
+        <strong>Figure 1.</strong> Median-centered DockQ distributions show broad variability across systems and methods;
+        PRosettaC reaches higher medians in some targets but not all. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure2.jpg') }}" alt="Cumulative DockQ distribution curves for AF3 minimal complex, PRosettaC ternary complex, and AF3 core complex benchmark models." loading="lazy">
+      <figcaption>
+        <strong>Figure 2.</strong> Cumulative DockQ curves emphasize tail behavior; PRosettaC accesses more high-scoring
+        outliers in favorable systems, which matters for ternary-complex prioritization. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure3.jpg') }}" alt="Normalized histogram of DockQ score fractions showing most predicted models in low-scoring bins and smaller fractions in mid or high bins." loading="lazy">
+      <figcaption>
+        <strong>Figure 3.</strong> Normalized DockQ distributions show that most sampled models remain low-scoring, while
+        constraint-guided methods can access more mid- and high-quality bins when the geometry is compatible. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure4.jpg') }}" alt="Heat map of median DockQ differences comparing AF3 core complex, PRosettaC ternary complex, and AF3 minimal complex across benchmark systems." loading="lazy">
+      <figcaption>
+        <strong>Figure 4.</strong> Median DockQ difference heat maps make the method-to-method tradeoffs explicit rather
+        than collapsing them into one summary score. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure5.jpg') }}" alt="Swarm plot of model-level DockQ variability across benchmarked ternary complexes with many PRosettaC samples and high-scoring outliers." loading="lazy">
+      <figcaption>
+        <strong>Figure 5.</strong> Swarm-plot variability shows how PRosettaC can generate many sampled poses, including
+        high-scoring outliers, even when median performance is modest. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure6.jpg') }}" alt="Line plot of per-system median DockQ scores for AF3 core complex, AF3 minimal complex, and PRosettaC ternary complex predictions." loading="lazy">
+      <figcaption>
+        <strong>Figure 6.</strong> Per-system medians reinforce that PRosettaC is often strong in favorable systems but
+        does not universally dominate every target-E3 pair. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="anchor-constraints">
+  <div class="protac-section-head"><h2>Why anchor constraints matter</h2></div>
+  <p class="protac-section-copy">
+    PRosettaC-style logic starts from known warhead and recruiter binding poses, defines anchor atoms on each ligand, and
+    models the PROTAC linker as a physical bridge between those anchors. Candidate protein orientations are sampled under
+    the constraint that the linker must actually connect the two bound ligands.
+  </p>
+  <ul class="protac-bullet-list">
+    <li>This filters out many geometrically impossible protein poses before downstream ranking.</li>
+    <li>It keeps the ternary-complex question tied to the actual degrader chemistry instead of a protein-only complex fantasy.</li>
+    <li>It makes the modeling assumptions explicit and testable.</li>
+  </ul>
+  <div class="protac-callout">
+    <strong>Caution:</strong> bad anchors produce bad constraints. If the chosen attachment atom is buried, disrupts
+    binding, or points away from the partner protein, a constraint-driven model can fail or become misleading.
+  </div>
+</section>
+
+<section class="protac-section-card" id="af3-limitations">
+  <div class="protac-section-head"><h2>AlphaFold3 limitations for PROTAC ternary complexes</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        AlphaFold3 is powerful for many biomolecular structure-prediction tasks, but PROTAC ternary complexes are unusual
+        because the small-molecule linker imposes explicit chemical constraints. A globally plausible protein-protein
+        arrangement may still be impossible for a specific degrader.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>AF3 can place the target and ligase in orientations that look reasonable yet cannot be bridged by the actual linker.</li>
+        <li>Accessory proteins can inflate full-complex scoring even when the degrader-relevant target-E3 interface is weak.</li>
+        <li>Scaffold-stripped or interface-focused evaluation is more informative for PROTAC interpretation than global confidence alone.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Practical takeaway:</strong> for PROTAC modeling, evaluate the interface that matters: the target-E3
+        geometry made possible by the actual degrader, not only the global protein assembly.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper4/Figure4.jpg') }}"
+        alt="Method-comparison heat map summarizing where AF3 core complex, AF3 minimal complex, and PRosettaC differ in median DockQ performance."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 4.</strong> The benchmark’s comparison heat map is a good reminder that method differences are
+        system-specific and should be interpreted at the degrader-relevant interface level. Figure from Schulz et al.,
+        displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="dynamic-ensembles">
+  <div class="protac-section-head"><h2>Static structures vs dynamic ensembles</h2></div>
+  <p class="protac-section-copy">
+    Crystal structures are snapshots, while ternary complexes are dynamic. A predicted pose may look poor against one
+    static crystal frame and still align with a transient conformation sampled along an MD trajectory. The benchmark
+    introduced frame-by-frame DockQ evaluation to expose that hidden compatibility.
+  </p>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure7.jpg') }}" alt="Frame-by-frame DockQ traces comparing AF3 models to molecular-dynamics reference frames, showing low scores across the ensemble and an acceptable-threshold guide line." loading="lazy">
+      <figcaption>
+        <strong>Figure 7.</strong> AF3 minimal predictions in the benchmark stayed low-scoring across the dynamic
+        reference ensemble, showing that a static pose can remain incompatible even after local conformational motion.
+        Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img src="{{ url_for('static', filename='images/Paper4/Figure8.jpg') }}" alt="Frame-by-frame DockQ traces for PRosettaC models against molecular-dynamics reference frames, showing transient score improvements above a benchmark threshold." loading="lazy">
+      <figcaption>
+        <strong>Figure 8.</strong> Several PRosettaC predictions transiently improved against MD frames, revealing
+        compatibility that a single static crystal comparison would miss. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
+      </figcaption>
+    </figure>
+  </div>
+  <div class="protac-callout">
+    <strong>Ensemble thinking:</strong> MD is not required for every early design, but dynamic evaluation can help when
+    a candidate looks borderline, when multiple poses compete, or when one static structure seems too restrictive.
+  </div>
 </section>
 
 <section class="protac-section-card" id="workflow">
-  <div class="protac-section-head"><h2>Practical staged workflow</h2></div>
-  <p class="protac-section-copy">PROTAC Builder helps with representation, anchor editing, and candidate assembly. It does not guarantee degradation outcomes and should be treated as a preparation layer in a broader validation workflow.</p>
-  <ul class="protac-bullet-list">
-    <li>Define warhead and recruiter anchors.</li>
-    <li>Choose or enumerate linkers.</li>
-    <li>Check geometric feasibility and bridgeability.</li>
-    <li>Generate candidate PROTACs.</li>
-    <li>Export to downstream ternary modeling.</li>
-    <li>Rank and validate with structure-based or learned methods.</li>
-  </ul>
+  <div class="protac-section-head"><h2>A practical constraint-driven workflow for PROTAC Builder</h2></div>
+  <ol class="protac-step-list">
+    <li>Select the POI context: define the target, isoform, domain, and biological rationale.</li>
+    <li>Select or import a POI warhead: prefer known binding modes or solved structures and confirm a plausible exit vector.</li>
+    <li>Select an E3 recruiter: use E3 Ligandalyzer when possible and inspect binding pose, solvent exposure, and attachment atom.</li>
+    <li>Define anchor atoms explicitly on both the warhead and recruiter sides.</li>
+    <li>Build a linker panel that varies length, rigidity, polarity, and chemistry around a geometric hypothesis.</li>
+    <li>Check bridgeability: ask whether the linker can physically connect anchors across plausible protein orientations.</li>
+    <li>Generate candidate PROTACs in PROTAC Builder for standardized assembly and representation.</li>
+    <li>Export to downstream modeling with PRosettaC-style or other constraint-aware workflows when compatible.</li>
+    <li>Score and filter using linker strain, interface quality, solvent exposure, clashes, and ensemble behavior.</li>
+    <li>Validate experimentally with degradation, DC50, Dmax, selectivity, and hook-effect readouts.</li>
+  </ol>
+</section>
+
+<section class="protac-section-card" id="benefits">
+  <div class="protac-section-head"><h2>Benefits of constraint-driven design</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Reduces arbitrary linker enumeration by starting from real geometric hypotheses.</div>
+    <div class="protac-checklist-item">Grounds candidate design in experimentally observed binding modes when available.</div>
+    <div class="protac-checklist-item">Helps identify impossible exit-vector choices early.</div>
+    <div class="protac-checklist-item">Supports rational linker length and rigidity selection.</div>
+    <div class="protac-checklist-item">Produces better inputs for PRosettaC or restrained ternary modeling.</div>
+    <div class="protac-checklist-item">Makes modeling assumptions explicit and easier to communicate.</div>
+    <div class="protac-checklist-item">Helps explain why some good binders still fail as degraders.</div>
+    <div class="protac-checklist-item">Supports reproducible handoffs between builder, modeling, and experiments.</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="failure-modes">
+  <div class="protac-section-head"><h2>Failure modes and cautions</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Wrong anchor atom</h3>
+      <p>If the anchor disrupts ligand binding or points into buried space, the whole geometric model inherits that error.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Buried or misleading exit vector</h3>
+      <p>A clean 2D attachment atom can still fail in 3D if the linker path runs through protein volume or away from the partner surface.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Linker mismatch</h3>
+      <p>Too short, too long, too rigid, or too floppy linkers can all undermine bridgeability even when both ligands bind well independently.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Scoring overreach</h3>
+      <p>High global DockQ, Rosetta energy, or protein confidence scores do not guarantee a degrader-relevant interface or cellular activity.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Missing biological context</h3>
+      <p>Ignoring E3 expression, cell context, or target accessibility can make even a geometrically plausible model biologically irrelevant.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Overconfidence in prediction</h3>
+      <p>Predicted ternary-complex formation is a prioritization tool, not proof of degradation, selectivity, or pharmacology.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="evaluation-stack">
+  <div class="protac-section-head"><h2>Recommended evaluation stack</h2></div>
+  <p class="protac-section-copy">
+    No single score is enough. Robust evaluation layers chemical validity, geometry checks, interface review, and
+    experimental confirmation instead of treating one metric as truth.
+  </p>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">1. Chemical validity</span>
+      <p>Confirm the assembled PROTAC is chemically sensible and that the chosen linker can actually exist between the selected anchors.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">2. Anchor sanity</span>
+      <p>Check anchor atoms, exit vectors, reach, and linker strain before heavier pose ranking.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">3. Interface review</span>
+      <p>Inspect clashes, solvent exposure, and degrader-relevant target-E3 contacts rather than only total complex scores.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">4. Reference-aware scoring</span>
+      <p>Use DockQ or similar structural metrics when reference structures exist, but treat them as one layer, not final truth.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">5. Ensemble checks</span>
+      <p>Use MD or local conformational ensembles for promising or ambiguous candidates when static structure comparison is too brittle.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">6. Experimental validation</span>
+      <p>Confirm the computational hypothesis with degradation assays, selectivity review, and cellular exposure data.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="ecosystem">
+  <div class="protac-section-head"><h2>How this page connects to the ecosystem</h2></div>
+  <ol class="protac-step-list">
+    <li>Warhead Discovery: identify a target-binding ligand and a plausible exit vector.</li>
+    <li>E3 Recruiter Discovery: inspect recruiter binding modes, solvent exposure, and attachment atoms.</li>
+    <li>Linker Design: define flexible or rigid bridgeability hypotheses.</li>
+    <li>PROTAC Builder: assemble candidate degraders with explicit anchors.</li>
+    <li>Downstream Modeling: export to PRosettaC-style or other ternary-modeling workflows.</li>
+    <li>Benchmarking: evaluate and report model quality responsibly.</li>
+  </ol>
+  <div class="protac-card-grid">
+    {{ info_card('PROTAC Builder', 'Assemble candidate degraders with explicit warhead, recruiter, and linker choices.', '/builder', kicker='Assembly', cta='Launch builder') }}
+    {{ info_card('How to Build a PROTAC', 'Zoom out to the full staged design and validation workflow.', '/how-to-build-a-protac', kicker='Workflow', cta='Read the full guide') }}
+    {{ info_card('Warhead Discovery', 'Start from target-binding ligand selection and exit-vector reasoning.', '/warheads', kicker='POI Side', cta='Explore warheads') }}
+    {{ info_card('E3 Recruiter Discovery', 'Use recruiter-bound structures, scaffold diversity, and solvent exposure before assembly.', '/e3-ligase-recruiters', kicker='Ligase Side', cta='Explore E3 recruiters') }}
+    {{ info_card('Linker Design', 'Review linker classes, bridgeability, and property tradeoffs.', '/linkers', kicker='Bridge Design', cta='Review linker design') }}
+    {{ info_card('Downstream Modeling', 'Follow builder outputs into ternary-complex modeling workflows.', '/downstream-modeling-tools', kicker='Modeling', cta='Open downstream modeling') }}
+    {{ info_card('In Silico PROTAC Modeling', 'Compare restrained docking, PRosettaC-style approaches, MD, and scoring ideas.', '/in-silico-protac-modeling', kicker='Methods', cta='Read modeling overview') }}
+    {{ info_card('Benchmarking', 'Review what should be reported when comparing computational ternary-modeling workflows.', '/benchmarking', kicker='Reporting', cta='Open benchmarking') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="references">
+  <div class="protac-section-head"><h2>References and attribution</h2></div>
+  <div class="protac-reference-block">
+    <p>
+      Schulz JM, Schürer SI, Reynolds RC, Schürer SC. <em>PRosettaC outperforms AlphaFold3 for modeling PROTAC ternary complexes.</em>
+      <em>Scientific Reports</em>. 2025;15:37620.
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12568945/" target="_blank" rel="noopener noreferrer">Article</a> |
+      <a href="https://doi.org/10.1038/s41598-025-21502-8" target="_blank" rel="noopener noreferrer">DOI</a> |
+      <a href="https://github.com/LondonLab/PRosettaC" target="_blank" rel="noopener noreferrer">PRosettaC GitHub</a>
+    </p>
+    <p>
+      Figures from the <em>Scientific Reports</em> article are displayed unmodified with attribution under the article’s
+      CC BY-NC-ND 4.0 license. Users should consult the source license before reuse.
+    </p>
+  </div>
 </section>
 {% endblock %}
