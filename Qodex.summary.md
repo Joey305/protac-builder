@@ -1,142 +1,135 @@
 # Qodex.summary
 
 ## Task
-Expand PROTAC Builder Case Studies page.
+Refresh Release Notes and Submit Data pages.
 
 ## Original Goal
-Make `/case-studies` a complete workflow walkthrough page that explains warhead-first, recruiter-first, viral target, and batch/API case-study patterns conceptually while preserving useful buttons and avoiding claims of experimentally validated degradation outcomes.
+Make `/release-notes` and `/submit-data` more complete and visually polished. Release Notes should present Version 1 as released June 9, 2026. Submit Data should provide clear contribution and contact pathways, with the project email hidden behind a contact button rather than displayed as visible text.
 
 ## Assumptions
 - The canonical internal builder route is `/builder`.
-- The implemented builder launch examples documented elsewhere on the site remain valid and can be referenced here:
-  - `/builder?ligand=DR7`
-  - `/builder?ligase=CRBN_Y70`
-  - `/builder?ligase=VHL_3JS`
-  - `/builder?smiles=CCCCC`
-- The existing external case-study destinations should be preserved:
-  - Warhead Hunter examples
-  - E3 Ligandalyzer Explorer
-  - V-LiSEMOD
-  - API Builder
-- The page should be positioned as workflow guidance rather than biological proof, because the repository does not provide evidence that these are experimentally validated degrader case studies.
+- The public GitHub repository URL used throughout the project is `https://github.com/schurerlab/protacbuilder`.
+- The public GitHub issues URL is `https://github.com/schurerlab/protacbuilder/issues`.
+- The site does not currently expose a dedicated contact page, so a `mailto:` contact button is the smallest safe implementation.
+- The configured contact email may appear in link targets, but not in visible page text.
+- The existing external ecosystem links should be preserved unless they are clearly replaced elsewhere in the repository.
 
 ## Files Inspected
-- `templates/pages/case_studies.html`
-  Reviewed the short current page before replacing it.
-- `protac_builder/routes.py`
-  Confirmed the `/case-studies` route and related internal routes used for resource links.
+- `templates/pages/release_notes.html`
+  Reviewed the short existing Release Notes page before replacing it.
+- `templates/pages/submit_data.html`
+  Reviewed the short existing Submit Data / Contribute page before replacing it.
 - `templates/pages/_macros.html`
-  Confirmed reusable CTA and info-card patterns.
-- `templates/pages/examples.html`
-  Confirmed the currently implemented builder-launch examples and overall workflow tone.
-- `templates/pages/component_hubs.html`
-  Used as a style and structure reference for richer workflow sections and resource cards.
-- `templates/pages/batch_workflows.html`
-  Used to align the batch case-study description with the documented batch workflow surface.
-- `templates/api_builder.html`
-  Used to align the batch/API case study with the actual API Builder positioning.
+  Confirmed the reusable CTA and info-card macros used for buttons and resource cards.
+- `templates/pages/faq.html`
+  Used as a style reference for richer hero, section, card, and callout patterns.
+- `templates/pages/methods.html`
+  Used as a style and structure reference for polished resource-page layout.
+- `templates/pages/case_studies.html`
+  Used as a recent style reference for richer workflow-oriented sections and CTA rows.
+- `protac_builder/routes.py`
+  Confirmed the `/release-notes` and `/submit-data` routes and related internal routes used for links.
 - `protac_builder/site_content.py`
-  Reviewed and updated metadata for the case-studies page.
-- `static/images/Warhead_Hunter/Hunter_Home.png`
-  Selected for the warhead-first walkthrough.
-- `static/images/Paper3/CoverImage.jpg`
-  Selected for the recruiter-first walkthrough.
-- `static/images/Paper5/TOCgraphic.png`
-  Selected for the hero workflow overview.
-- `static/images/Paper5/Figure4.png`
-  Selected for the batch/API workflow section.
+  Reviewed and updated metadata for the two pages.
+- `app.py`
+  Confirmed the correct Flask app entrypoint and `create_app()` location for validation.
 
 ## Files Changed
-- `templates/pages/case_studies.html`
-  Rewrote the page into a full workflow case-studies hub with a stronger hero, quick-answer section, overview cards, detailed walkthroughs for the four workflow themes, builder launch examples, checklist, common misinterpretations, resource cards, and final CTA section.
+- `templates/pages/release_notes.html`
+  Rebuilt the page into a polished Version 1 release page with hero, release badges, highlights, categorized changes, ecosystem cards, limitations, next steps, and feedback CTA.
+- `templates/pages/submit_data.html`
+  Rebuilt the page into a full contribution hub with contribution paths, submission checklists, caution notes, attribution expectations, contact panel, and connected resource cards.
 - `protac_builder/site_content.py`
-  Updated the case-studies SEO title and meta description.
+  Updated the SEO title and meta description for both pages.
 - `Qodex.summary.md`
-  Replaced the previous task summary with this case-studies summary.
+  Replaced the previous task summary with this release-notes and submit-data summary.
 
 ## Files Created
 - No new project files were created.
 
 ## Implementation Summary
-The old `/case-studies` page was a short row of four cards. It is now a richer workflow walkthrough page that explains what kind of case studies these are, when to use each workflow pattern, what steps a user would usually take, what information to record, what downstream handoff looks like, and what limitations still apply.
+The old Release Notes page was just a short snapshot paragraph and a small bullet list. It is now a full Version 1 page that clearly presents the first public release as released June 9, 2026, explains what shipped, groups the changes by area, links users to the most important workflows and resources, states limitations honestly, and closes with a feedback CTA.
 
-I preserved the four original case-study themes and their main destinations:
-- Warhead-first workflow
-- Recruiter-first workflow
-- Viral target workflow
-- Batch workflow
-
-Each theme now has a fuller walkthrough with “when to use,” “workflow steps,” “what to record,” and recommended next pages. I also added a builder-launch section that bridges the conceptual case studies to implemented example routes where that behavior is already supported.
+The old Submit Data page was only a short paragraph with two cards. It is now a complete contribution hub that explains how to report issues, suggest examples, improve documentation, propose component updates, coordinate ecosystem changes, and prepare higher-quality submissions. It also includes a dedicated contact button that uses the configured email in the link target without displaying it in visible page text.
 
 ## Key Decisions
-- The page metadata was updated to:
-  - Title: `PROTAC Builder Case Studies | Warhead, Recruiter, Viral Target, and Batch Workflows`
-  - Description: `Explore conceptual PROTAC Builder case studies showing warhead-first, E3 recruiter-first, viral target, and batch workflow paths through Warhead Hunter, E3 Ligandalyzer, V-LiSEMOD, PROTAC Builder, and downstream modeling.`
-- I kept the original four workflow themes and preserved their useful main destinations instead of replacing them with unrelated content.
-- The page uses four visuals total to avoid overcrowding while still making the workflows feel grounded:
-  - `Paper5/TOCgraphic.png` for the hero
-  - `Warhead_Hunter/Hunter_Home.png` for warhead-first
-  - `Paper3/CoverImage.jpg` for recruiter-first
-  - `Paper5/Figure4.png` for batch/API workflow
-- Builder query-parameter launch examples were documented because they are already implemented and validated elsewhere in the project.
-- The copy explicitly avoids claiming any case study is an experimentally validated degrader and repeatedly frames assembled candidates as design hypotheses.
+- The Release Notes metadata was updated to:
+  - Title: `PROTAC Builder Release Notes | Version 1`
+  - Description: `Read PROTAC Builder Version 1 release notes, including educational pages, component hubs, builder examples, API documentation, ecosystem links, and workflow resources released June 9, 2026.`
+- The Submit Data metadata was updated to:
+  - Title: `Submit Data or Contribute | PROTAC Builder`
+  - Description: `Contribute to PROTAC Builder by reporting issues, suggesting examples, improving documentation, proposing component updates, coordinating ecosystem links, or contacting the project team.`
+- I used `mailto:` buttons for contact because there is no dedicated internal contact route in the repository and the user explicitly allowed that pattern.
+- I used direct `<a>` buttons instead of the shared macro for contact links so I could add accessibility attributes while keeping visible text clean.
+- I kept all visible contact text generic, such as `Contact the project team`, so the configured email never appears in rendered page text.
+- The Release Notes page only describes features and routes that are actually present in the repository, including builder launch examples, OpenAPI routes, and public resource pages.
+- I verified the GitHub repository and issues URLs before using them in CTAs.
 
 ## Commands Run
 - `sed -n ...`, `rg -n ...`
-  Inspected the case-studies template, route, metadata, examples page, component hubs page, batch workflows page, and API Builder page.
-- `python - <<'PY' ...` with `PIL.Image`
-  Confirmed selected image sizes before using them.
+  Inspected the two page templates, metadata file, macros, route definitions, and app entrypoint.
 - `python -m py_compile app.py protac_builder/routes.py protac_builder/site_content.py`
   Passed; confirmed Python syntax after metadata updates.
 - Flask test-client checks via `python - <<'PY' ...`
-  Confirmed `/case-studies` renders with HTTP `200`, contains the required major sections, includes the preserved buttons and documented builder-launch example URLs, and references the selected images.
+  Confirmed `/release-notes` and `/submit-data` render with HTTP `200`, contain the expected sections, and include the expected contact and GitHub links.
+- HTML visible-text extraction checks via `python - <<'PY' ...`
+  Confirmed the configured contact email does not appear in rendered visible page text while remaining present in `mailto:` link targets.
 - Flask test-client route checks
-  Confirmed the internal links used on the new page return HTTP `200`.
-- Flask test-client asset checks
-  Confirmed all selected local images used on the page return HTTP `200`.
+  Confirmed internal links referenced from both pages return HTTP `200`.
+- Flask test-client checks for `/openapi.json` and `/openapi.yaml`
+  Confirmed both schema routes return HTTP `200`.
+- Local app startup and HTTP checks via `python - <<'PY' ...`
+  Started the local Flask app and confirmed `http://127.0.0.1:5069/release-notes` and `http://127.0.0.1:5069/submit-data` both returned HTTP `200`.
 - External URL checks via `urllib.request.urlopen(...)`
-  Confirmed Warhead Hunter and E3 Ligandalyzer destinations are live from this environment; V-LiSEMOD did not return clean success from this environment.
+  Confirmed the GitHub repository URL, GitHub issues URL, Warhead Hunter, and E3 Ligandalyzer were reachable from this environment. V-LiSEMOD did not return clean success from this environment.
 - `git status --short`
   Checked the final working-tree state for the files touched by this task.
 
 ## Validation Results
 - Python syntax validation: passed.
-- `/case-studies` render through Flask test client: passed with HTTP `200`.
-- Required section presence checks: passed for:
-  - hero content
-  - workflow overview
-  - warhead-first walkthrough
-  - recruiter-first walkthrough
-  - viral target walkthrough
-  - batch/API walkthrough
-  - builder launch examples
-  - checklist
-  - common misinterpretations
-  - final CTA
-- Internal route validation: passed for all major internal links referenced on the page.
-- Builder-launch example links were confirmed present and their target routes return HTTP `200`.
-- Selected image validation: passed for all four images used on the page.
+- `/release-notes` render through Flask test client: passed with HTTP `200`.
+- `/submit-data` render through Flask test client: passed with HTTP `200`.
+- Release Notes content checks: passed for:
+  - `PROTAC Builder Release Notes`
+  - `Version 1`
+  - `Released June 9, 2026`
+  - `Contact the project team`
+- Submit Data content checks: passed for:
+  - `Submit Data or Contribute`
+  - `How to contribute`
+  - `Contact the project team`
+  - `Open GitHub repository`
+- Contact-link checks: passed.
+  - `mailto:` link target is present on both pages.
+  - The configured contact email does not appear in visible rendered page text.
+- Internal route validation: passed for all major internal links used on both pages.
+- OpenAPI route validation: passed for `/openapi.json` and `/openapi.yaml`.
+- Local live-route validation: passed for:
+  - `http://127.0.0.1:5069/release-notes`
+  - `http://127.0.0.1:5069/submit-data`
 - External validation:
-  - Passed for `https://warheadhunter.com/examples`
-  - Passed for `https://warheadhunter.com`
-  - Passed for `https://e3ligandalyzer.com/explorer`
-  - Passed for `https://e3ligandalyzer.com`
-  - Did not cleanly pass from this environment for `https://vlisemod.com`
+  - Passed for the GitHub repository URL
+  - Passed for the GitHub issues URL
+  - Passed for Warhead Hunter
+  - Passed for E3 Ligandalyzer
+  - Did not cleanly pass from this environment for V-LiSEMOD
 
 ## Known Issues
-- I validated the page with Flask’s test client rather than a browser automation pass, so I did not complete a true visual mobile-viewport test in this turn.
-- `https://vlisemod.com` returned `502` from this environment during external validation, so I kept the site’s existing V-LiSEMOD URL rather than inventing a replacement.
-- The page should still be reviewed by the project or domain owner before public release.
+- I did not complete a browser-automation mobile viewport pass in this turn, even though local route rendering and live localhost checks passed.
+- `https://vlisemod.com` returned `502` from this environment during external validation, so I preserved the project’s existing URL instead of inventing a replacement.
+- The pages should still be reviewed by the project or domain owner before public release.
 
 ## Manual Verification
 1. Start the local app using the documented project command.
-2. Open `/case-studies`.
-3. Confirm the expanded case-study page renders.
-4. Confirm each workflow section is visible.
-5. Click Warhead-first, Recruiter-first, Viral target, and Batch workflow buttons.
-6. Confirm internal resource links work.
-7. Confirm any images load and are readable.
-8. Resize to mobile width and confirm the page remains readable without horizontal overflow.
+2. Open `/release-notes`.
+3. Confirm Version 1 and the June 9, 2026 release date render correctly.
+4. Confirm release highlights, known limitations, and next steps are visible.
+5. Open `/submit-data`.
+6. Confirm contribution paths and the submission checklist render.
+7. Confirm the visible page text does not show the configured contact email.
+8. Click `Contact the project team` and confirm it opens an email client or uses the expected contact mechanism.
+9. Confirm GitHub and internal resource links work.
+10. Resize to mobile width and confirm both pages remain readable without horizontal overflow.
 
 ## Suggested Next Prompt
-Create detailed single-page case studies for HIV protease, CRBN-first, VHL-first, and custom SMILES workflows with screenshots and expected builder query parameters.
+Create a richer `/about` page that explains the PROTAC Builder ecosystem, project scope, Schurer Lab context, and how the connected tools fit together.

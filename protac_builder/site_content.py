@@ -189,8 +189,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "release_notes": {
         "slug": "release-notes",
         "template": "pages/release_notes.html",
-        "meta_title": "PROTAC Builder Release Notes | PROTAC Builder",
-        "meta_description": "Release notes for the current PROTAC Builder site structure, including SEO pages, navigation updates, ecosystem links, and developer discovery files.",
+        "meta_title": "PROTAC Builder Release Notes | Version 1",
+        "meta_description": "Read PROTAC Builder Version 1 release notes, including educational pages, component hubs, builder examples, API documentation, ecosystem links, and workflow resources released June 9, 2026.",
         "software_app_schema": False,
         "article_schema": True,
     },
@@ -213,8 +213,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "submit_data": {
         "slug": "submit-data",
         "template": "pages/submit_data.html",
-        "meta_title": "Submit Data Or Contribute | PROTAC Builder",
-        "meta_description": "Learn how to contribute feedback, request additions, or work with the PROTAC Builder open-access ecosystem.",
+        "meta_title": "Submit Data or Contribute | PROTAC Builder",
+        "meta_description": "Contribute to PROTAC Builder by reporting issues, suggesting examples, improving documentation, proposing component updates, coordinating ecosystem links, or contacting the project team.",
         "software_app_schema": False,
         "article_schema": True,
     },

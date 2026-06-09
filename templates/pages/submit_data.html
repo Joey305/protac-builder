@@ -1,23 +1,233 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import info_card %}
+{% from "pages/_macros.html" import action_link, info_card %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Community</span>
-  <h1>Submit Data Or Contribute</h1>
-  <p class="protac-hero-copy">The safest current contribution paths are through the public repository, issue reporting, and coordinated updates across the related Schurer Lab tools.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Community</span>
+    <h1>Submit Data or Contribute</h1>
+    <p class="protac-hero-copy">
+      PROTAC Builder improves through clear examples, accurate documentation, component updates, reproducible
+      workflows, and coordinated feedback across the connected Schurer Lab tool ecosystem.
+    </p>
+    <p class="protac-hero-copy">
+      This page explains what kinds of contributions are helpful, what information to include, how to coordinate
+      cross-tool updates, and how to contact the project team without turning contribution requests into guesswork.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Issues and broken links</span>
+      <span class="protac-pill">Examples and docs</span>
+      <span class="protac-pill">Component updates</span>
+      <span class="protac-pill">Cross-tool coordination</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('https://github.com/schurerlab/protacbuilder', 'Open GitHub repository', primary=True, external=True) }}
+      <a
+        href="mailto:jmschulz@med.miami.edu"
+        class="protac-action-button is-secondary"
+        aria-label="Contact the project team by email"
+        title="Contact the project team by email"
+      >
+        Contact the project team
+      </a>
+      {{ action_link('/release-notes', 'View release notes') }}
+      {{ action_link('/methods', 'Read methods') }}
+    </div>
+  </div>
 </section>
 
-<section class="protac-section-card" id="paths">
-  <div class="protac-section-head"><h2>Contribution paths</h2></div>
-  <ul class="protac-bullet-list">
-    <li>Open issues or discussion threads in the public GitHub repository when relevant.</li>
-    <li>Request new examples, documentation improvements, or workflow clarifications.</li>
-    <li>Coordinate cross-tool updates when a feature spans PROTAC Builder, Warhead Hunter, E3 Ligandalyzer, or V-LiSEMOD.</li>
-  </ul>
+<section class="protac-section-card" id="contribution-paths">
+  <div class="protac-section-head"><h2>How to contribute</h2></div>
   <div class="protac-card-grid">
-    {{ info_card('GitHub repository', 'Review the public project repository and documentation.', 'https://github.com/schurerlab/protacbuilder', kicker='External', cta='Open GitHub', external=True) }}
-    {{ info_card('About page', 'Review the project background and scientific framing.', '/about', kicker='Local', cta='Open About') }}
+    {{ info_card('Report a bug or broken link', 'Report broken pages, missing images, incorrect external links, unexpected builder behavior, query-parameter preload issues, or API documentation mismatches.', 'https://github.com/schurerlab/protacbuilder/issues', kicker='Issues', cta='Open GitHub issue', external=True) }}
+    {{ info_card('Suggest a workflow example', 'Request new builder launch examples, warhead-first walkthroughs, recruiter-first workflows, viral target patterns, batch workflows, or downstream handoff examples.', '/examples', kicker='Examples', cta='View examples') }}
+    {{ info_card('Suggest component updates', 'Propose warhead examples, linker templates, recruiter additions, attachment-atom notes, or cross-tool data consistency fixes.', '/component-hubs', kicker='Components', cta='Open component hubs') }}
+    {{ info_card('Improve documentation', 'Request FAQ clarifications, Methods page updates, API docs edits, schema notes, or download-manifest improvements.', '/faq', kicker='Docs', cta='Read FAQ') }}
+    {{ info_card('Coordinate ecosystem updates', 'Flag cross-tool updates spanning PROTAC Builder, Warhead Hunter, E3 Ligandalyzer, V-LiSEMOD, screenshots, or shared workflow pages.', '/component-hubs', kicker='Ecosystem', cta='Explore ecosystem') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="supporting-pages">
+  <div class="protac-section-head"><h2>What you can submit</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Report an issue</h3>
+      <ul class="protac-bullet-list">
+        <li>Broken page or route</li>
+        <li>Broken image or figure link</li>
+        <li>External ecosystem link issue</li>
+        <li>Unexpected builder behavior</li>
+        <li>Query-parameter preload mismatch</li>
+        <li>API doc or schema mismatch</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('https://github.com/schurerlab/protacbuilder/issues', 'Open GitHub issue', primary=True, external=True) }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Suggest examples or documentation</h3>
+      <ul class="protac-bullet-list">
+        <li>New builder launch examples</li>
+        <li>Warhead-first, recruiter-first, or viral-target walkthroughs</li>
+        <li>Batch or API workflow examples</li>
+        <li>FAQ clarifications</li>
+        <li>Methods page improvements</li>
+        <li>Download-manifest or schema notes</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('/examples', 'View examples', primary=True) }}
+        {{ action_link('/case-studies', 'View case studies') }}
+        {{ action_link('/methods', 'Read methods') }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Contribute component data</h3>
+      <ul class="protac-bullet-list">
+        <li>Warhead examples</li>
+        <li>Linker templates or families</li>
+        <li>E3 recruiter examples</li>
+        <li>Attachment-atom notes</li>
+        <li>Supporting references or IDs</li>
+        <li>Cross-tool consistency fixes</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('/component-hubs', 'Open component hubs', primary=True) }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Coordinate ecosystem updates</h3>
+      <ul class="protac-bullet-list">
+        <li>Warhead Hunter links or screenshots</li>
+        <li>E3 Ligandalyzer links or recruiter references</li>
+        <li>V-LiSEMOD links or viral-target workflow framing</li>
+        <li>Shared cross-tool handoff examples</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('/component-hubs', 'Explore ecosystem map', primary=True) }}
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="submission-checklist">
+  <div class="protac-section-head"><h2>What to include in a useful submission</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Bug reports</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Page URL</div>
+        <div class="protac-checklist-item">Steps to reproduce</div>
+        <div class="protac-checklist-item">Expected behavior</div>
+        <div class="protac-checklist-item">Actual behavior</div>
+        <div class="protac-checklist-item">Screenshot if relevant</div>
+        <div class="protac-checklist-item">Browser or device if relevant</div>
+        <div class="protac-checklist-item">Error message or console output if available</div>
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Data or component suggestions</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Component type: warhead, linker, recruiter, example, or workflow</div>
+        <div class="protac-checklist-item">Structure identifier, SMILES, or source ID if available</div>
+        <div class="protac-checklist-item">Supporting reference or source</div>
+        <div class="protac-checklist-item">Suggested attachment atom or context if relevant</div>
+        <div class="protac-checklist-item">Notes on uncertainty</div>
+        <div class="protac-checklist-item">Whether it relates to Warhead Hunter, E3 Ligandalyzer, V-LiSEMOD, or PROTAC Builder</div>
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>API or batch issues</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Endpoint or route</div>
+        <div class="protac-checklist-item">Request payload</div>
+        <div class="protac-checklist-item">Response or error</div>
+        <div class="protac-checklist-item">Expected output</div>
+        <div class="protac-checklist-item">Minimal reproducible example</div>
+        <div class="protac-checklist-item">Version or date</div>
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Documentation suggestions</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Page or route to update</div>
+        <div class="protac-checklist-item">What felt unclear</div>
+        <div class="protac-checklist-item">Suggested wording or structure</div>
+        <div class="protac-checklist-item">Any supporting examples</div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="do-not-submit">
+  <div class="protac-section-head"><h2>What not to submit</h2></div>
+  <div class="protac-callout">
+    <strong>Please do not submit</strong> private patient data, confidential company data, unpublished proprietary
+    structures without the right to share them, secrets, API keys, tokens, passwords, unsafe wet-lab protocols,
+    unsupported activity claims, or large datasets without coordination.
+  </div>
+</section>
+
+<section class="protac-section-card" id="attribution">
+  <div class="protac-section-head"><h2>Data and attribution expectations</h2></div>
+  <ul class="protac-bullet-list">
+    <li>Public contributions should include source information when possible.</li>
+    <li>Component suggestions should distinguish evidence from assumptions.</li>
+    <li>Published references, PDB IDs, database IDs, and tool-generated results should be cited or linked when relevant.</li>
+    <li>If a contribution is speculative, label it as speculative.</li>
+    <li>Do not upload restricted or confidential content.</li>
+  </ul>
+</section>
+
+<section class="protac-section-card" id="contact">
+  <div class="protac-section-head"><h2>Contact the project team</h2></div>
+  <div class="protac-callout">
+    <strong>For coordinated updates, cross-tool questions, or contribution planning, contact the project team.</strong>
+    Use the contact button if you need to discuss documentation updates, ecosystem synchronization, or more structured
+    contribution paths than a public issue thread allows.
+  </div>
+  <div class="protac-action-row">
+    <a
+      href="mailto:jmschulz@med.miami.edu"
+      class="protac-action-button is-primary"
+      aria-label="Contact the project team by email"
+      title="Contact the project team by email"
+    >
+      Contact the project team
+    </a>
+  </div>
+</section>
+
+<section class="protac-section-card" id="connected-resources">
+  <div class="protac-section-head"><h2>Connected contribution areas</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('GitHub repository', 'Review the public repository, issues, and contribution context for PROTAC Builder.', 'https://github.com/schurerlab/protacbuilder', kicker='External', cta='Open GitHub repository', external=True) }}
+    {{ info_card('FAQ', 'Review common questions and clarify where users may need better guidance.', '/faq', kicker='Internal', cta='Read FAQ') }}
+    {{ info_card('Methods', 'Review the documented workflow scope, assumptions, and limits.', '/methods', kicker='Internal', cta='Read methods') }}
+    {{ info_card('Release Notes', 'Review what shipped in Version 1 and which improvements are already documented.', '/release-notes', kicker='Internal', cta='View release notes') }}
+    {{ info_card('API Builder', 'Review scriptable builder workflows and payload-preparation surfaces.', '/api-builder', kicker='Internal', cta='Open API Builder') }}
+    {{ info_card('API Docs', 'Check whether a public route, schema, or example still matches the documented behavior.', '/api-docs', kicker='Internal', cta='Open API docs') }}
+    {{ info_card('Batch Workflows', 'Review the current batch-generation and reproducibility guidance.', '/batch-workflows', kicker='Internal', cta='Read batch workflows') }}
+    {{ info_card('Database Schema', 'Review public-facing data and schema notes that may need updates.', '/database-schema', kicker='Internal', cta='Read schema notes') }}
+    {{ info_card('Download Manifest', 'Review public downloads, manifest links, and discovery files.', '/download-manifest', kicker='Internal', cta='Open download manifest') }}
+    {{ info_card('Case Studies', 'Suggest richer workflow walkthroughs or clearer case-study framing.', '/case-studies', kicker='Internal', cta='View case studies') }}
+    {{ info_card('Component Hubs', 'Review or improve how the site connects warheads, linkers, and recruiters.', '/component-hubs', kicker='Internal', cta='Explore component hubs') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="final-cta">
+  <div class="protac-section-head"><h2>Ready to contribute?</h2></div>
+  <div class="protac-action-row">
+    {{ action_link('https://github.com/schurerlab/protacbuilder', 'Open GitHub repository', primary=True, external=True) }}
+    <a
+      href="mailto:jmschulz@med.miami.edu"
+      class="protac-action-button is-secondary"
+      aria-label="Contact the project team by email"
+      title="Contact the project team by email"
+    >
+      Contact the project team
+    </a>
+    {{ action_link('/release-notes', 'View release notes') }}
+    {{ action_link('/component-hubs', 'Explore component hubs') }}
   </div>
 </section>
 {% endblock %}
