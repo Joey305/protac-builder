@@ -1,134 +1,122 @@
 # Qodex.summary
 
 ## Task
-Expand PROTAC Warhead Discovery page.
+Expand PROTAC Component Hubs page.
 
 ## Original Goal
-Make `/warheads` a detailed, visually rich, useful warhead discovery hub that explains PROTAC warhead selection, ligand solvent exposure, RCSB Scout search, Warhead Hunter launch/results/examples/API workflows, and how selected warheads hand off into PROTAC Builder.
+Make `/component-hubs` a complete, visually polished hub connecting warhead discovery, linker design, E3 recruiter discovery, sister tools, PROTAC Builder assembly, and downstream modeling using selected assets across the site.
 
 ## Assumptions
 - The correct internal builder route is `/builder`.
-- The correct internal downstream modeling route to link directly from this page is `/downstream-modeling`, which is also served by the `downstream_modeling_tools` page handler.
-- The existing screenshots in `static/images/Warhead_Hunter/` are the intended local assets and should be used as-is without editing.
-- The extra screenshot `static/images/Warhead_Hunter/rcsb-scout2.png` is useful because it adds a second RCSB Scout / handoff view and supports the “known PDB vs protein/keyword” explanation.
-- Warhead Hunter should be described as an upstream inspection and prioritization tool, not as a guarantee of successful PROTAC design.
+- The direct internal route to the modeling handoff page is `/downstream-modeling`, which is served by the downstream modeling tools template.
+- The confirmed Warhead Hunter RCSB Scout route is `https://warheadhunter.com/scout`.
+- The existing assets in `static/images/Warhead_Hunter/`, `static/images/Figures/`, `static/images/Paper2/`, and `static/images/Paper3/` are intended to be used as-is without editing or annotation.
+- V-LiSEMOD should link to the existing navigation URL `https://vlisemod.com`.
+- This page should describe component selection and assembly as a design workflow, not as proof of successful degradation.
 
 ## Files Inspected
 - `protac_builder/routes.py`
-  Confirmed the `/warheads` route and checked the downstream modeling route aliases.
+  Confirmed the `/component-hubs` route and checked related route aliases such as `/downstream-modeling`.
 - `protac_builder/site_content.py`
-  Confirmed the page metadata entry for `/warheads` and updated the SEO title and meta description.
+  Reviewed the existing metadata entry and updated the component-hubs SEO title and meta description.
+- `templates/pages/component_hubs.html`
+  Replaced the short existing page with a full ecosystem hub.
 - `templates/pages/warheads.html`
-  Reviewed the short existing content before replacing it.
-- `templates/pages/what_is_a_protac.html`
-  Used as a style and structure reference for a richer science/education page.
-- `templates/pages/how_to_build_a_protac.html`
-  Used as the main layout and tone reference for a long-form practical guide.
+  Used as a style and discovery-tool reference for the warhead section.
 - `templates/pages/linkers.html`
-  Used as a reference for image-card patterns, layout rhythm, and internal-link conventions.
+  Used as a structure and image-card reference for the linker section.
 - `templates/pages/e3_ligase_recruiters.html`
-  Used as a reference for discovery-tool positioning, science-page structure, and ecosystem language.
+  Used as a recruiter-side reference for tool positioning and tone.
+- `templates/pages/what_is_a_protac.html`
+  Used as a reference for educational-page pacing and richer explainer structure.
+- `templates/pages/how_to_build_a_protac.html`
+  Used as a workflow and CTA reference.
+- `templates/partials/_nav.html`
+  Confirmed external ecosystem links used in the site navigation.
+- `templates/partials/_footer.html`
+  Confirmed the external V-LiSEMOD and Schürer Lab URLs already used by the site.
 - `static/css/protac-content.css`
-  Confirmed that the shared figure-card, CTA, checklist, hero, and FAQ styles were already sufficient.
+  Confirmed that the shared hero, figure-card, card-grid, checklist, and CTA styles were already sufficient.
+- `static/images/Paper2/Figure1.png`
+  Selected as the hero visual because it best communicates the whole PROTAC system in one figure.
 - `static/images/Warhead_Hunter/Hunter_Home.png`
-- `static/images/Warhead_Hunter/Science.png`
-- `static/images/Warhead_Hunter/RCSB_Scout.png`
+  Selected for the warhead discovery section as the clearest upstream tool overview.
+- `static/images/Figures/Figure2.jpg`
+  Selected for the linker section because it summarizes linker classes without overwhelming the page.
+- `static/images/Paper3/CoverImage.jpg`
+  Selected for the E3 recruiter section because it fits the recruiter-discovery overview well.
 - `static/images/Warhead_Hunter/rcsb-scout2.png`
-- `static/images/Warhead_Hunter/Hunter_Launch.png`
-- `static/images/Warhead_Hunter/DYRK1A_Results.png`
-- `static/images/Warhead_Hunter/Example_Page.png`
-- `static/images/Warhead_Hunter/DYRK1A_Example.png`
-- `static/images/Warhead_Hunter/Hunter_API.png`
-  Confirmed all screenshot paths exist locally and checked their dimensions.
-- `https://warheadhunter.com`
-  Confirmed the live homepage and navigation context.
-- `https://warheadhunter.com/scout`
-  Confirmed the live RCSB Scout route.
-- `https://warheadhunter.com/science`
-- `https://warheadhunter.com/hunter`
-- `https://warheadhunter.com/api-docs`
-- `https://warheadhunter.com/examples`
-- `https://warheadhunter.com/examples/d6706e03`
-- `https://warheadhunter.com/results/d6706e03`
-  Confirmed the live pages used by the new buttons and screenshots.
+  Confirmed it exists, though it was not required for the final page composition.
 
 ## Files Changed
-- `templates/pages/warheads.html`
-  Rewrote the page into a full Warhead Hunter–connected discovery hub with a richer hero, quick answer, warhead-context explanation, solvent-exposure science section, RCSB Scout section, launch workflow section, results walkthrough, examples section, API section, PROTAC Builder handoff section, checklist, caution section, workflow, ecosystem cards, and FAQ JSON-LD plus visible FAQ content.
+- `templates/pages/component_hubs.html`
+  Rewrote the page into a full ecosystem hub with a stronger hero, quick-answer section, three component cards, workflow map, richer warhead/linker/E3 sections, viral-warhead section, assembly section, readiness checklist, common mistakes, connected tool cards, and FAQ JSON-LD.
 - `protac_builder/site_content.py`
-  Updated the `/warheads` SEO title and meta description to the requested wording.
+  Updated the component-hubs SEO title and meta description to the requested wording.
 - `Qodex.summary.md`
-  Replaced the previous task summary with this warhead-page summary.
+  Replaced the previous task summary with this component-hubs summary.
 
 ## Files Created
 - No new project files were created.
 
 ## Implementation Summary
-The old `/warheads` page was a short placeholder. It is now a detailed discovery guide centered on how target-binding warheads are selected and inspected before degrader assembly. The new page explains what a PROTAC warhead is, why bound-pose context and solvent exposure matter, how Warhead Hunter supports atom-level modification-site inspection, how RCSB Scout fits into structure discovery, and how users should carry warhead insights back into PROTAC Builder.
+The old `/component-hubs` page was a short link list. It is now a component ecosystem page that explains how warheads, linkers, and E3 recruiters each shape degrader design, which sister tool supports each discovery question, and how users should move from component inspection into PROTAC Builder assembly and then into downstream modeling and validation.
 
-The page now uses the local Warhead Hunter screenshots as large readable figure cards with captions and “View larger” links, and it connects each screenshot to the corresponding live Warhead Hunter page with clickable buttons. It also adds a practical handoff section so users understand exactly what information to bring back from Warhead Hunter into PROTAC Builder.
+The new page uses a small number of strong visuals instead of a screenshot dump. It combines a mechanism-level hero figure, a Warhead Hunter section, a linker-design section, and an E3 Ligandalyzer section with large readable figure cards and “View larger” links. It also adds a practical workflow map, readiness checklist, common-mistakes section, and connected tool cards so the page behaves like a workflow guide rather than a static resource list.
 
 ## Key Decisions
-- The page H1 was set to `PROTAC Warhead Discovery` to match the requested SEO direction while keeping the page human-readable.
-- The metadata was updated to:
-  - Title: `PROTAC Warhead Discovery | Target-Binding Ligands and Linker Attachment Sites`
-  - Description: `Learn how PROTAC warhead discovery uses ligand-bound protein structures, solvent exposure mapping, RCSB search, attachment-vector inspection, and Warhead Hunter outputs to guide degrader assembly.`
-- The confirmed live RCSB Scout route is `https://warheadhunter.com/scout`.
-- `Hunter_Home.png` was used as the hero screenshot because it best communicates the whole Warhead Hunter platform at a glance.
-- `rcsb-scout2.png` was included because it adds value to the RCSB Scout explanation and supports the dual search-mode story.
-- Each dense screenshot was placed in a large figure card with a direct local “View larger” link and a live-site CTA when appropriate.
-- The page positions Warhead Hunter as an upstream discovery and inspection layer and PROTAC Builder as the downstream assembly layer.
-- FAQ JSON-LD was added by reusing the site’s existing pattern instead of introducing a new dependency or component.
-- Claims were kept careful: the page does not claim that Warhead Hunter guarantees successful warheads or that PROTAC Builder predicts degradation.
+- The page metadata was updated to:
+  - Title: `PROTAC Component Hubs | Warheads, Linkers, and E3 Recruiters`
+  - Description: `Explore the core PROTAC component workflow: target-binding warheads, linker design, E3 ligase recruiters, attachment vectors, bridgeability, and handoff into PROTAC Builder.`
+- The hero uses `static/images/Paper2/Figure1.png` because it is the clearest single figure for explaining that warheads, linkers, and recruiters only matter together as one degradation system.
+- The warhead section uses `Hunter_Home.png` so the page directly connects to the live Warhead Hunter platform and its discovery role.
+- The linker section uses `Figure2.jpg` from the linker asset set because it is broad and readable without overloading the page with too many dense scientific panels.
+- The E3 recruiter section uses `CoverImage.jpg` from the E3 Ligandalyzer asset set because it provides a clean recruiter-discovery overview and keeps the page visually balanced.
+- The confirmed Warhead Hunter RCSB Scout route is `https://warheadhunter.com/scout`.
+- V-LiSEMOD and Schürer Lab links were taken from the project’s existing navigation and footer rather than invented.
+- The page deliberately avoids claiming that any component hub, discovery tool, or assembly workflow guarantees successful degradation.
 
 ## Commands Run
-- `git status --short`
-  Checked the working tree before and after edits.
 - `rg -n ...`, `sed -n ...`
-  Inspected routes, metadata, page templates, navigation patterns, and shared science-page layout conventions.
+  Inspected routes, templates, metadata, navigation links, and existing science-page patterns.
+- `ls static/images/Warhead_Hunter static/images/Paper3 static/images/Figures static/images/Paper2`
+  Confirmed the selected asset folders and filenames.
 - `python - <<'PY' ...` with `PIL.Image`
-  Confirmed the screenshot files in `static/images/Warhead_Hunter/` and recorded their dimensions.
+  Checked selected image dimensions to choose a manageable, readable set of visuals.
 - `python -m py_compile app.py protac_builder/routes.py protac_builder/site_content.py`
-  Passed; confirmed Python syntax for the updated files.
+  Passed; confirmed Python syntax after the metadata update.
 - Flask test-client checks via `python - <<'PY' ...`
-  Confirmed `/warheads` renders with HTTP `200`, contains the new sections, references the confirmed Scout URL, and includes the expected CTA and FAQ content.
-- Flask test-client internal-link checks
-  Confirmed the internal routes and referenced static assets from the rendered page resolve successfully.
+  Confirmed `/component-hubs` renders with HTTP `200`, includes the new title and page sections, and references the expected internal and external links.
 - Flask test-client asset checks
-  Confirmed all Warhead Hunter screenshots referenced on the page return HTTP `200`.
-- `urllib.request.urlopen(...)`
-  Confirmed the live Warhead Hunter URLs used on the page return HTTP `200`.
-- Local app start:
-  - `python - <<'PY' from app import app; app.run(...)`
-  Successfully started the local app on `http://127.0.0.1:5069`.
-- Local route check:
-  - `urllib.request.urlopen('http://127.0.0.1:5069/warheads')`
-  Confirmed live local HTTP `200` plus expected hero and CTA content.
+  Confirmed all selected local images used on the page return HTTP `200`.
+- External URL checks via `urllib.request.urlopen(...)`
+  Confirmed the linked Warhead Hunter, E3 Ligandalyzer, V-LiSEMOD, and Schürer Lab URLs are live and correctly formed.
+- Local app start and route check
+  Confirmed the page responds on localhost and returns HTTP `200`.
 
 ## Validation Results
 - Python syntax validation: passed.
-- `/warheads` render through Flask test client: passed with HTTP `200`.
-- Key content presence checks: passed for H1, confirmed Scout URL, launch-workflow copy, FAQ content, DYRK1A results CTA, and builder handoff CTA.
-- Internal link validation from the rendered page: passed for all internal routes checked.
-- Screenshot validation: all referenced Warhead Hunter screenshots returned HTTP `200`.
-- Local app startup: passed on `http://127.0.0.1:5069`.
-- Local live route check for `/warheads`: passed with HTTP `200`.
-- External Warhead Hunter URL validation: passed with HTTP `200` for homepage, science, scout, hunter, API docs, examples index, DYRK1A example, and DYRK1A results pages.
+- `/component-hubs` render through Flask test client: passed with HTTP `200`.
+- Metadata/content presence checks: passed for the updated title, hero headline, workflow map, component sections, checklist, and tool-card content.
+- Internal link validation from the rendered page: passed for the internal routes checked.
+- Local asset validation: passed for the selected hero, warhead, linker, and recruiter images used on the page.
+- External URL validation: passed for Warhead Hunter, Warhead Hunter Science, Warhead Hunter Scout, Warhead Hunter Launch, Warhead Hunter Examples, E3 Ligandalyzer, E3 Ligandalyzer Explorer, E3 Ligandalyzer Scaffolds, V-LiSEMOD, and Schürer Lab.
+- Local app startup and live route check: passed with HTTP `200` for `/component-hubs`.
 
 ## Known Issues
-- The `static/images/Warhead_Hunter/` directory is currently untracked in this working tree (`git status` shows it as `??`). I used those local files successfully, but they are not currently recorded as tracked repository files in this environment.
-- I validated the page structure, links, and assets programmatically and via a live local HTTP request, but I did not complete a manual browser resize pass with a visual mobile viewport in this turn.
+- I validated the page programmatically and via a live local HTTP request, but I did not complete a manual browser resize pass with a true mobile viewport in this turn.
+- Some asset directories in this repository have mixed naming history, such as both `CoverImage.jpg` and `CoverImage.png.jpg`. I used the cleaner `CoverImage.jpg` path that exists locally and rendered successfully.
 - The page should still be reviewed by the project or domain owner before public release.
 
 ## Manual Verification
 1. Start the local app using the documented project command.
-2. Open `/warheads`.
-3. Confirm the hero and expanded warhead discovery content render.
-4. Confirm all Warhead Hunter screenshots load and are readable.
-5. Click “View larger” links for screenshots.
-6. Confirm buttons open the correct Warhead Hunter pages.
-7. Confirm internal PROTAC Builder links work.
+2. Open `/component-hubs`.
+3. Confirm the hero, component cards, workflow map, warhead/linker/E3 sections, checklist, and tool cards render.
+4. Confirm selected images load and are readable.
+5. Click “View larger” links where present.
+6. Confirm internal PROTAC Builder links work.
+7. Confirm external Warhead Hunter, E3 Ligandalyzer, and V-LiSEMOD links work.
 8. Resize to mobile width and confirm the page remains readable without horizontal overflow.
 
 ## Suggested Next Prompt
-Expand `/component-hubs` into a unified visual map that connects warheads, linkers, recruiters, PROTAC Builder, and downstream modeling into one guided workflow page.
+Expand `/examples` into end-to-end workflow case studies that start from component discovery and end with PROTAC Builder export and downstream modeling.

@@ -93,8 +93,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "component_hubs": {
         "slug": "component-hubs",
         "template": "pages/component_hubs.html",
-        "meta_title": "PROTAC Component Hubs | PROTAC Builder",
-        "meta_description": "Browse PROTAC component hubs for warheads, linkers, and E3 ligase recruiters, with links into Warhead Hunter, E3 Ligandalyzer, V-LiSEMOD, and the PROTAC Builder assembly workflow.",
+        "meta_title": "PROTAC Component Hubs | Warheads, Linkers, and E3 Recruiters",
+        "meta_description": "Explore the core PROTAC component workflow: target-binding warheads, linker design, E3 ligase recruiters, attachment vectors, bridgeability, and handoff into PROTAC Builder.",
         "software_app_schema": False,
         "article_schema": True,
     },

@@ -1,30 +1,403 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import info_card %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What are PROTAC component hubs?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PROTAC component hubs are workflow pages that help users inspect and prepare the three core degrader building blocks: the protein-of-interest-binding warhead, the linker, and the E3 recruiter. Each hub focuses on what should be understood before assembly."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why should users inspect components before assembly?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Component inspection matters because bound pose, attachment atoms, linker reach, recruiter geometry, and downstream modeling readiness all affect whether an assembled degrader hypothesis is even plausible."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Warhead Hunter support PROTAC design?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Warhead Hunter helps users inspect ligand-bound protein structures, map atom-level solvent exposure, identify candidate attachment atoms, and carry target-aware warhead ideas back into PROTAC Builder."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does linker design fit into the component workflow?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Linker design connects the warhead and the recruiter, and it controls reach, flexibility, rigidity, polarity, bridgeability, and much of the degrader's ternary-complex feasibility."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does E3 Ligandalyzer support recruiter discovery?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "E3 Ligandalyzer supports structure-first recruiter selection by helping users compare recruiter ligands, scaffold diversity, solvent exposure, bound poses, and ligase context before assembly."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What happens after component assembly?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "After component assembly in PROTAC Builder, users should carry structured candidates into downstream modeling, scoring, and experimental validation rather than assuming assembly alone is enough."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Discovery Hubs</span>
-  <h1>PROTAC Component Hubs</h1>
-  <p class="protac-hero-copy">PROTAC Builder connects the three core component classes used in degrader design, but deeper component-specific exploration often lives in sister tools.</p>
-  <p class="protac-hero-copy">These pages are discovery hubs and guides, not blanket claims of complete molecular libraries.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Discovery Hubs</span>
+    <h1>PROTAC Component Hubs</h1>
+    <p class="protac-hero-copy">
+      PROTAC design starts with three component decisions: a target-binding warhead, a linker, and an E3 ligase
+      recruiter. Each component defines a different part of the final degrader’s geometry, physicochemical burden, and
+      downstream modeling feasibility.
+    </p>
+    <p class="protac-hero-copy">
+      This page is meant to feel like a component map rather than a link list. It shows where each discovery question
+      lives, which sister tool supports it best, and how users should move from component inspection into PROTAC
+      Builder assembly and then into downstream modeling and validation.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Warhead pose</span>
+      <span class="protac-pill">Linker bridgeability</span>
+      <span class="protac-pill">Recruiter geometry</span>
+      <span class="protac-pill">Assembly-ready components</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/warheads', 'Start with Warheads', primary=True) }}
+      {{ action_link('/linkers', 'Explore Linkers') }}
+      {{ action_link('/e3-ligase-recruiters', 'Explore E3 Recruiters') }}
+      {{ action_link('/builder', 'Launch PROTAC Builder') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero science-figure science-figure--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper2/Figure1.png') }}"
+      alt="Mechanism overview showing a PROTAC bringing a protein of interest together with an E3 ligase, leading to ternary complex formation, ubiquitination, and proteasomal degradation."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Component logic in context.</strong> A PROTAC only works as a system when the warhead, linker, and E3
+      recruiter together support a productive ternary complex and downstream degradation pathway.
+      Source: Osman, Thompson, Jörg, and Scanlon, <em>Biochemical Journal</em> (2025),
+      <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+    </figcaption>
+    <div class="protac-figure-card__actions">
+      <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper2/Figure1.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the PROTAC mechanism overview figure">View larger figure</a>
+    </div>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="components">
-  <div class="protac-section-head"><h2>Three component areas</h2></div>
-  <div class="protac-card-grid">
-    {{ info_card('Warhead discovery', 'Target-binding chemistry, attachment-aware design, and target context.', '/warheads', kicker='Hub', cta='Explore warheads') }}
-    {{ info_card('Linker design', 'Geometry, bridgeability, polarity, and feasibility considerations.', '/linkers', kicker='Hub', cta='Explore linkers') }}
-    {{ info_card('E3 recruiter discovery', 'Recruiter classes, scaffolds, attachment vectors, and recruiter-side fit.', '/e3-ligase-recruiters', kicker='Hub', cta='Explore recruiters') }}
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: what are PROTAC component hubs?</h2></div>
+  <p class="protac-section-copy">
+    PROTAC component hubs are workflow pages that help users inspect and prepare the three core degrader building
+    blocks: the POI-binding warhead, the linker, and the E3 recruiter. Each hub focuses on the information needed
+    before assembly, including binding pose, attachment atoms, linker reach, geometry, scaffold context, and
+    downstream modeling readiness.
+  </p>
+</section>
+
+<section class="protac-section-card" id="three-components">
+  <div class="protac-section-head"><h2>The three core PROTAC components</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--three">
+    <article class="protac-detail-card">
+      <h3>Warhead / POI ligand</h3>
+      <p>The warhead binds the protein of interest and defines the target-facing anchor. It needs binding-pose context, a plausible solvent-exposed attachment vector, and enough chemical tolerance to support derivatization.</p>
+      <p>Strong binding alone does not guarantee a useful degrader warhead if the editable atoms are buried or geometry-breaking.</p>
+      <div class="protac-action-row">
+        {{ action_link('/warheads', 'Warhead discovery') }}
+        {{ action_link('https://warheadhunter.com', 'Warhead Hunter', external=True) }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Linker</h3>
+      <p>The linker connects the warhead and recruiter and controls distance, flexibility, rigidity, polarity, geometry, and bridgeability.</p>
+      <p>It should be treated as a design hypothesis rather than a passive spacer because it can make or break ternary-complex formation.</p>
+      <div class="protac-action-row">
+        {{ action_link('/linkers', 'Linker design') }}
+        {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>E3 recruiter</h3>
+      <p>The recruiter binds an E3 ligase and defines the ligase-facing anchor and exit vector. Recruiter choice affects ternary geometry, selectivity, cell context, and off-target risk.</p>
+      <p>CRBN and VHL are common examples, but recruiter selection should still be structure-aware and context-aware.</p>
+      <div class="protac-action-row">
+        {{ action_link('/e3-ligase-recruiters', 'E3 recruiter discovery') }}
+        {{ action_link('https://e3ligandalyzer.com/explorer', 'E3 Ligandalyzer', external=True) }}
+      </div>
+    </article>
   </div>
 </section>
 
-<section class="protac-section-card" id="ecosystem">
-  <div class="protac-section-head"><h2>Related component resources</h2></div>
+<section class="protac-section-card" id="workflow-map">
+  <div class="protac-section-head"><h2>From component selection to PROTAC assembly</h2></div>
+  <ol class="protac-step-list">
+    <li>Define the biological target and the question degradation should answer.</li>
+    <li>Identify or inspect target-binding warheads in <a href="https://warheadhunter.com" target="_blank" rel="noopener noreferrer">Warhead Hunter</a>.</li>
+    <li>Confirm at least one plausible solvent-exposed attachment atom.</li>
+    <li>Select an E3 ligase recruiter and inspect recruiter-bound context in <a href="https://e3ligandalyzer.com/explorer" target="_blank" rel="noopener noreferrer">E3 Ligandalyzer</a>.</li>
+    <li>Confirm recruiter attachment vector, scaffold context, and if relevant, expression context.</li>
+    <li>Choose a linker panel guided by bridgeability hypotheses and the <a href="/linkers">Linker Design</a> hub.</li>
+    <li>Assemble candidate degraders in <a href="/builder">PROTAC Builder</a>.</li>
+    <li>Export to <a href="/downstream-modeling">Downstream Modeling</a> for geometry checks, ternary modeling, and prioritization.</li>
+    <li>Use <a href="/benchmarking">Benchmarking</a> and experiments to validate conclusions instead of relying on assembly alone.</li>
+  </ol>
+</section>
+
+<section class="protac-section-card" id="warhead-hub">
+  <div class="protac-section-head"><h2>Warhead discovery</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Warhead Hunter is the upstream discovery layer for target-binding ligands. It maps atom-level ligand solvent
+        exposure in protein-bound structures, helps users search RCSB by PDB ID or by protein and keyword query, and
+        returns synchronized 2D and 3D views that support attachment-site inspection.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Bound-pose context helps users understand which atoms are buried and which remain solvent-facing.</li>
+        <li>RCSB Scout supports both known-PDB and protein or keyword search modes.</li>
+        <li>Exposure mapping is useful design evidence, but not a guarantee of a successful PROTAC warhead.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('https://warheadhunter.com', 'Open Warhead Hunter', primary=True, external=True) }}
+        {{ action_link('https://warheadhunter.com/scout', 'Search RCSB Scout', external=True) }}
+        {{ action_link('https://warheadhunter.com/hunter', 'Launch a Warhead Hunt', external=True) }}
+        {{ action_link('https://warheadhunter.com/examples', 'View Warhead Examples', external=True) }}
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Home.png') }}"
+        alt="Warhead Hunter homepage showing structure-guided warhead discovery, atom-level solvent exposure mapping, result outputs, and launch options."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Warhead Hunter hub.</strong> Warhead Hunter converts ligand-bound protein structures into atom-level
+        solvent exposure maps and downloadable results that can support target-aware warhead planning.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Home.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the Warhead Hunter home page screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/scout" target="_blank" rel="noopener noreferrer" aria-label="Open the live Warhead Hunter RCSB Scout page">Open Scout</a>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="linker-hub">
+  <div class="protac-section-head"><h2>Linker design</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Figures/Figure2.jpg') }}"
+        alt="Figure summarizing PROTAC linker classes and the diversity of flexible and more rigid linker strategies."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Linker classes.</strong> Linker strategy influences reach, conformational freedom, polarity, and much
+        of the geometric feasibility that connects warheads and recruiters into one degrader hypothesis.
+        Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+        <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Figures/Figure2.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the linker classes figure">View larger figure</a>
+      </div>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        Linker design is the bridge between component discovery and ternary-complex modeling. Flexible linkers can
+        sample productive conformations but may pay entropic or permeability costs. Rigid linkers can preserve geometry
+        but may fail quickly when exit vectors are wrong.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Length should usually be tested systematically instead of guessed once.</li>
+        <li>Polarity and molecular burden still matter because PROTACs are already large molecules.</li>
+        <li>Bridgeability should be documented before expensive downstream modeling begins.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('/linkers', 'Read Linker Design Guide', primary=True) }}
+        {{ action_link('/constraint-driven-protac-design', 'Constraint-Driven Design') }}
+        {{ action_link('/downstream-modeling', 'Downstream Modeling') }}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="e3-hub">
+  <div class="protac-section-head"><h2>E3 ligase recruiter discovery</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        E3 Ligandalyzer is the structure-first discovery layer for ligase-side selection. It helps users compare
+        recruiter ligands, scaffold diversity, solvent exposure, bound poses, and expression-aware context before
+        recruiter structures are carried into PROTAC Builder.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Recruiter selection should not be made only by habit or by the popularity of CRBN or VHL.</li>
+        <li>Bound structures and recruiter-side attachment vectors matter because they shape ternary geometry.</li>
+        <li>Export workflows support handoff into PROTAC Builder with selected attachment atoms.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('https://e3ligandalyzer.com', 'Open E3 Ligandalyzer', primary=True, external=True) }}
+        {{ action_link('https://e3ligandalyzer.com/explorer', 'Explore Recruiters', external=True) }}
+        {{ action_link('https://e3ligandalyzer.com/scaffolds', 'View Scaffold Dashboard', external=True) }}
+        {{ action_link('/e3-ligase-recruiters', 'Read E3 Recruiter Guide') }}
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/CoverImage.jpg') }}"
+        alt="E3 Ligandalyzer cover image showing structure-first E3 recruiter selection and geometry-aware recruiter analysis for PROTAC design."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Recruiter-side context.</strong> E3 Ligandalyzer supports structure-first recruiter inspection,
+        scaffold review, solvent exposure awareness, and recruiter export planning before final degrader assembly.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper3/CoverImage.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the E3 Ligandalyzer cover image">View larger image</a>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="viral-warheads">
+  <div class="protac-section-head"><h2>Viral warhead discovery with V-LiSEMOD</h2></div>
+  <p class="protac-section-copy">
+    V-LiSEMOD supports viral protein-ligand structure exploration and can help users find viral target-bound ligands
+    and solvent-exposed moieties relevant to warhead discovery. It is especially useful upstream of PROTAC Builder
+    when the target is viral and users need target-binding structural evidence before assembly.
+  </p>
+  <div class="protac-action-row">
+    {{ action_link('https://vlisemod.com', 'Open V-LiSEMOD', primary=True, external=True) }}
+    {{ action_link('/warheads', 'Read Warhead Discovery') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="assembly">
+  <div class="protac-section-head"><h2>From components to assembly</h2></div>
+  <p class="protac-section-copy">
+    PROTAC Builder is where selected components become candidate degrader structures. It helps users select or import a
+    warhead, select or import an E3 recruiter, choose or enumerate linkers, define attachment atoms, assemble
+    candidates, and export structures for downstream modeling or batch workflows.
+  </p>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What it helps organize</span>
+      <p>Component boundaries, attachment atoms, assembled candidate structures, linker alternatives, and workflow handoff into modeling or API-based pipelines.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What it does not guarantee</span>
+      <p>Assembly is a design hypothesis. Productive degradation still requires geometry, downstream modeling where useful, and experimental validation.</p>
+    </article>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+    {{ action_link('/how-to-build-a-protac', 'How to Build a PROTAC') }}
+    {{ action_link('/api-builder', 'Open API Builder') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="checklist">
+  <div class="protac-section-head"><h2>Component readiness checklist</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Warhead</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Target is biologically justified.</div>
+        <div class="protac-checklist-item">Bound pose is known or modeled.</div>
+        <div class="protac-checklist-item">Attachment atom is solvent-exposed.</div>
+        <div class="protac-checklist-item">Key binding interactions are preserved.</div>
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Linker</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Length range is reasonable.</div>
+        <div class="protac-checklist-item">Flexible and rigid alternatives are considered.</div>
+        <div class="protac-checklist-item">Polarity and molecular burden are considered.</div>
+        <div class="protac-checklist-item">Bridgeability hypothesis is documented.</div>
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>E3 recruiter</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">E3 ligase is relevant to the cellular context.</div>
+        <div class="protac-checklist-item">Recruiter-bound structure or pose is available.</div>
+        <div class="protac-checklist-item">Recruiter attachment atom is plausible.</div>
+        <div class="protac-checklist-item">Scaffold and expression context have been reviewed.</div>
+      </div>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Assembly</h3>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Components have defined boundaries.</div>
+        <div class="protac-checklist-item">Anchor atoms are documented.</div>
+        <div class="protac-checklist-item">Stereochemistry and protonation assumptions are preserved.</div>
+        <div class="protac-checklist-item">Downstream modeling and validation plan exists.</div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="mistakes">
+  <div class="protac-section-head"><h2>Common component selection mistakes</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Warhead-side mistakes</h3>
+      <p>Choosing a warhead only because it binds strongly, selecting a linker attachment atom from 2D alone, or losing attachment-atom context before assembly can undermine the whole degrader hypothesis.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Linker-side mistakes</h3>
+      <p>Treating the linker as a passive spacer, using only one length, or ignoring polarity and bridgeability can make a plausible-looking design impossible in 3D.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Recruiter-side mistakes</h3>
+      <p>Choosing CRBN or VHL only by habit, ignoring E3 expression, and skipping recruiter-side geometry or scaffold review can narrow the design space too early.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Workflow mistakes</h3>
+      <p>Assuming assembled candidates will degrade, skipping downstream modeling, or treating component selection alone as proof of success can create false confidence.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="tool-cards">
+  <div class="protac-section-head"><h2>Connected discovery tools</h2></div>
   <div class="protac-card-grid">
-    {{ info_card('Warhead Hunter', 'Explore target-binding warheads, example jobs, and warhead-focused discovery workflows.', 'https://warheadhunter.com/examples', kicker='External', cta='Explore warheads in Warhead Hunter', external=True) }}
-    {{ info_card('E3 Ligandalyzer', 'Browse recruiter chemotypes and scaffold-level organization.', 'https://e3ligandalyzer.com/scaffolds', kicker='External', cta='Inspect E3 recruiters in Ligandalyzer', external=True) }}
-    {{ info_card('V-LiSEMOD', 'Explore viral protein-ligand structures and solvent-exposed moieties for viral-target warhead discovery.', 'https://vlisemod.com', kicker='External', cta='Explore viral warhead leads in V-LiSEMOD', external=True) }}
-    {{ info_card('PROTAC Builder', 'Return here to assemble chosen components into candidate degraders.', '/builder', kicker='Assembly', cta='Open builder') }}
+    {{ info_card('Warhead Hunter', 'Find and inspect target-bound warheads using ligand solvent exposure maps.', 'https://warheadhunter.com', kicker='External', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('Warhead Hunter RCSB Scout', 'Search RCSB by PDB ID or protein or keyword query before launching a warhead hunt.', 'https://warheadhunter.com/scout', kicker='External', cta='Open RCSB Scout', external=True) }}
+    {{ info_card('E3 Ligandalyzer', 'Compare recruiter ligands, scaffolds, structures, and attachment vectors.', 'https://e3ligandalyzer.com', kicker='External', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('E3 Ligandalyzer Explorer', 'Explore recruiter chemical space and ligand-level context.', 'https://e3ligandalyzer.com/explorer', kicker='External', cta='Open Explorer', external=True) }}
+    {{ info_card('E3 Ligandalyzer Scaffolds', 'Analyze scaffold diversity across E3 ligases.', 'https://e3ligandalyzer.com/scaffolds', kicker='External', cta='Open Scaffold Dashboard', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Explore viral protein-ligand structures and solvent-exposed moieties for viral-target warhead discovery.', 'https://vlisemod.com', kicker='External', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('PROTAC Builder', 'Assemble selected components into candidate degraders.', '/builder', kicker='Assembly', cta='Launch PROTAC Builder') }}
+    {{ info_card('Downstream Modeling', 'Move assembled candidates into modeling, scoring, and prioritization.', '/downstream-modeling', kicker='Internal Guide', cta='Open Downstream Modeling') }}
+  </div>
+  <div class="protac-reference-block">
+    <p>
+      This page is educational and workflow-oriented. It is meant to connect the discovery ecosystem into one clear
+      path, but it should still be reviewed by the project or domain owner before public release.
+    </p>
   </div>
 </section>
 {% endblock %}
