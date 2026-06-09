@@ -77,8 +77,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "how_to_build_a_protac": {
         "slug": "how-to-build-a-protac",
         "template": "pages/how_to_build_a_protac.html",
-        "meta_title": "How to Build a PROTAC | PROTAC Builder",
-        "meta_description": "Follow a practical PROTAC design workflow covering warheads, E3 recruiters, linkers, attachment points, API generation, and downstream modeling handoff.",
+        "meta_title": "How to Build a PROTAC | Practical PROTAC Design Workflow",
+        "meta_description": "Learn how to build a PROTAC by selecting a POI warhead, E3 recruiter, linker, attachment vectors, assembly strategy, and validation workflow.",
         "software_app_schema": False,
         "article_schema": True,
     },

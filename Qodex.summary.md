@@ -1,105 +1,113 @@
 # Qodex.summary
 
 ## Task
-Expand PROTAC Linker Design page.
+Expand How to Build a PROTAC page.
 
 ## Original Goal
-Make the `/linkers` page more detailed, informative, and useful by explaining rigid linkers, flexible linkers, benefits, cautions, linker characteristics, and design workflows, grounded in the uploaded review paper and using selected extracted figures with attribution.
+Make `/how-to-build-a-protac` more detailed, informative, SEO-friendly, and useful by turning it into a practical PROTAC design workflow grounded in the paper “Methods to accelerate PROTAC drug discovery” and using the extracted figures in `static/images/Paper2/`.
 
 ## Assumptions
-- The existing `/linkers` route in Flask should remain unchanged and only the rendered page content should be expanded.
-- The uploaded figure JPGs in `static/images/Figures/` are approved for local educational display on the page with visible paper attribution.
-- The requested internal guide link should use the actual existing route `/how-to-build-a-protac` rather than inventing `/how-to-build`.
-- The requested downstream modeling link should use the actual existing route `/downstream-modeling-tools`.
-- The review paper should be paraphrased rather than copied, with Table 1 linked externally instead of recreated.
-- Manual browser-based responsive verification could be approximated with local HTTP checks because no dedicated in-app browser automation tool was callable in this session.
+- The existing Flask route `/how-to-build-a-protac` should remain the canonical internal route for this guide.
+- Because there was no existing `/how-to-build` route or alias, internal links should continue pointing to the existing canonical route rather than inventing a new one.
+- The extracted Paper2 figures are approved for local educational display on the page when paired with visible attribution to the cited review and DOI.
+- Creating a non-destructive copy `static/images/Paper2/Figure2.png` from the existing misspelled `Fiugre2.png` is acceptable because the original file remains untouched and available.
+- The guide should emphasize educational workflow logic rather than detailed wet-lab protocol steps.
+- Existing content-page CSS utilities from the newly expanded `/linkers` page are appropriate to reuse here without adding a separate design system.
 
 ## Files Inspected
-- `protac_builder/routes.py` to confirm the `/linkers` route and neighboring page routes.
-- `protac_builder/site_content.py` to confirm the template mapped to the `linkers` page and its metadata.
-- `templates/pages/linkers.html` to inspect the existing page content being replaced.
-- `templates/pages/_page_base.html` to confirm the shared Jinja page wrapper.
-- `templates/pages/_macros.html` to reuse existing CTA and info card patterns.
-- `templates/pages/what_is_a_protac.html` to match content-page conventions and tone.
-- `templates/pages/how_to_build_a_protac.html` to match practical guide patterns and internal link conventions.
-- `templates/partials/_nav.html` to confirm naming and navigation labels for related pages.
-- `static/css/protac-content.css` to inspect the shared content-page styling system.
-- `static/images/Figures/Figure1.jpg` through `Figure8.jpg` to confirm existence and inspect content for figure placement and captions.
-- `README.md` to find the documented local run command and local URL.
-- `app.py` to confirm the Flask entrypoint and local runtime behavior.
+- `protac_builder/routes.py` to confirm the `/how-to-build-a-protac` route and check whether `/how-to-build` already existed.
+- `protac_builder/site_content.py` to inspect and update page-level metadata.
+- `templates/pages/how_to_build_a_protac.html` to review the existing short guide before replacing it.
+- `templates/pages/linkers.html` to mirror the richer style and content-page structure.
+- `templates/pages/faq.html` to reuse the project’s existing FAQ structured-data pattern.
+- `templates/pages/_page_base.html` indirectly through existing page conventions to confirm structured-data support.
+- `static/css/protac-content.css` indirectly through the current shared class system already in use by the content pages.
+- `static/images/Paper2/Figure1.png`
+- `static/images/Paper2/Fiugre2.png`
+- `static/images/Paper2/Figure3.png`
+- `static/images/Paper2/Figure4.png`
+- `static/images/Paper2/Figure5.png`
+- `static/images/Paper2/Figure6.png`
+- `static/images/Paper2/Figure7.png`
+- `static/images/Paper2/Figure8.png`
+  to confirm file presence and inspect the figure content for accurate placement and captioning.
+- `README.md` to confirm the documented local run command and local development URL.
 
 ## Files Changed
-- `templates/pages/linkers.html`
-  Expanded the page into a structured educational guide with hero content, design-dimension sections, flexible versus rigid linker guidance, length and permeability discussions, linkage-site guidance, workflow steps, checklist, cautions, CTA cards, and a visible references section.
-- `static/css/protac-content.css`
-  Added scoped layout and component styles for the richer linker page, including figure cards, detail grids, callouts, checklist items, numbered workflow steps, and responsive hero/figure layouts.
+- `templates/pages/how_to_build_a_protac.html`
+  Rewrote the page into a longer practical guide with SEO-friendly structure, a quick-answer section, staged workflow sections, all eight Paper2 figure integrations, checklists, cautions, tool cards, and references.
+- `protac_builder/site_content.py`
+  Updated the page meta title and meta description to better target “how to build a PROTAC” naturally.
+- `Qodex.summary.md`
+  Replaced the previous task summary with this task’s inspection, implementation, commands, and validation notes.
 
 ## Files Created
-- `Qodex.summary.md`
-  Added task summary, assumptions, inspected files, changed files, commands, validation, and follow-up guidance.
+- `static/images/Paper2/Figure2.png`
+  Created as a non-destructive correctly spelled copy of `static/images/Paper2/Fiugre2.png` so the template can use a clean filename while preserving the original asset.
 
 ## Implementation Summary
-The `/linkers` page was rewritten from a short placeholder into a fuller scientific guide aimed at both medicinal chemistry and computational users. It now explains why linkers matter, how to think about length, group type, flexibility versus rigidity, and linkage site, and how those choices affect ternary complex formation, selectivity, permeability, physicochemical burden, and degradation outcomes.
+The `/how-to-build-a-protac` page was expanded from a short generic guide into a practical PROTAC design workflow aimed at both new users and more computationally oriented users. It now walks through target selection, warhead choice, recruiter selection, attachment vectors, linker-panel design, modular assembly, library-scale exploration, candidate prioritization, degradation metrics, and direct-to-biology workflows.
 
-The page now also uses all eight extracted figures from the review paper as responsive figure cards with nearby explanatory captions and visible attribution to Dong et al. and the DOI. A practical workflow, design checklist, failure-mode section, and direct links into the builder, guide, modeling tools, API Builder, and ScienceDirect Table 1 were added.
+The page now uses all eight local Paper2 figures with responsive image cards, visible captions, and DOI attribution to the 2025 Biochemical Journal review. It also includes a short SEO-friendly “quick answer” section near the top, FAQ-style structured data, stronger CTA coverage, and a clear references block that links to the Portland Press article and DOI.
 
 ## Key Decisions
-- Kept the existing Flask route and page metadata unchanged to avoid unrelated routing changes.
-- Paraphrased scientific content from the review rather than copying large passages verbatim.
-- Linked to ScienceDirect Table 1 instead of recreating the table locally.
-- Used the actual site routes already present in the codebase: `/builder`, `/how-to-build-a-protac`, `/downstream-modeling-tools`, `/what-is-a-protac`, and `/api-builder`.
-- Added DOI attribution in every figure caption because the user explicitly asked for it to help readers find the full paper.
-- Reused the existing content-page visual system and added only a small set of page-compatible CSS utilities instead of introducing a new style framework.
+- Kept `/how-to-build-a-protac` as the canonical route because that is the only existing internal route.
+- Did not add a new `/how-to-build` alias because the task asked to inspect existing routing, not necessarily create a new route, and the current route structure is already established.
+- Reused the richer card, figure, checklist, and callout styling already supported by the shared content CSS from the recent `/linkers` page work.
+- Added FAQ structured data because the project already has an accepted JSON-LD pattern for FAQ pages and the user explicitly requested SEO-friendly improvements if consistent with the codebase.
+- Created `Figure2.png` as a copy rather than renaming `Fiugre2.png`, preserving the original asset and documenting the decision.
+- Used careful workflow language throughout: candidate, may improve, can support, should be validated, and similar non-guarantee phrasing.
 
 ## Commands Run
-- `pwd`
-  Confirmed working directory.
-- `rg -n "linkers|what-is-a-protac|how-to-build|downstream-modeling|builder|api-builder" app.py protac_builder templates -S`
-  Located routes, templates, and related internal links.
-- `rg --files templates static | sort`
-  Listed project templates and static assets.
-- `ls -l static/images/Figures`
-  Confirmed all eight extracted review figures exist locally.
-- `rg -n "citation|reference|doi|ScienceDirect|Acta Pharmaceutica|Figure" templates static -S`
-  Checked for existing citation patterns.
-- `rg -n "pytest|flask|uvicorn|gunicorn|requirements|package.json|README|make|lint|format" -S .`
-  Looked for documented validation and run commands.
+- `rg -n "how-to-build|how_to_build_a_protac|downstream-modeling|benchmarking|linkers|warheads|e3-ligase-recruiters" app.py protac_builder templates -S`
+  Confirmed route names, nearby pages, and internal link targets.
 - `sed -n ...`
-  Read the route, template, macro, CSS, nav, README, and app files listed above.
-- `python - <<'PY' ...`
-  Checked whether local PDF text-extraction libraries were available; they were not.
-- `strings /Users/jxs794/Downloads/1-s2.0-S2211383524001357-main.pdf | rg ...`
-  Tried a lightweight fallback extraction from the uploaded PDF; results were not sufficient for clean captioning.
-- `md5 static/images/Figures/Figure7.jpg static/images/Figures/Figure8.jpg && file ...`
-  Verified the two similarly themed figures were distinct files.
+  Read the current page template, updated metadata section, FAQ structured-data example, the expanded linker page, and README run instructions.
+- `ls -l static/images/Paper2`
+  Confirmed all Paper2 assets existed, including the misspelled `Fiugre2.png`.
+- `cp -n static/images/Paper2/Fiugre2.png static/images/Paper2/Figure2.png`
+  Created a non-destructive correctly spelled copy.
+- `md5 static/images/Paper2/Figure2.png static/images/Paper2/Fiugre2.png`
+  Verified the copied file matches the original exactly.
 - Local image inspection via `view_image`
-  Reviewed all eight extracted figures to place them accurately and write grounded captions.
+  Reviewed all eight Paper2 figures to place them accurately and write grounded captions.
 - `python -m compileall app.py protac_builder`
-  Validated Python files still compile after the page update.
-- `python app.py` and HTTP checks with `curl`
-  Started the local server and confirmed `/linkers` renders successfully.
+  Validated Python compilation after metadata updates.
+- `python - <<'PY' ...`
+  Rendered `/how-to-build-a-protac` through Flask’s test client and checked for expected markers.
+- `python app.py`
+  Started the local development server.
+- `curl -I http://127.0.0.1:5069/how-to-build-a-protac`
+  Confirmed live HTTP `200` for the page.
+- `curl -s http://127.0.0.1:5069/how-to-build-a-protac | rg ...`
+  Confirmed the rendered HTML contains the expected guide title, figure references, API Builder CTA, and DOI text.
 
 ## Validation Results
-- Template rendering: passed via local page request to `/linkers`.
-- Python compilation: passed for `app.py` and `protac_builder/`.
-- Local server startup: passed using the documented `python app.py` entrypoint.
-- `/linkers` HTTP load: passed with status `200`.
-- Local figure paths: passed by confirming all referenced files exist and by visual inspection.
-- External link correctness: article URL, DOI URL, and Table 1 URL were added exactly as requested.
-- Responsive/manual layout: partially validated through stylesheet review and content structure; no dedicated browser automation tool was callable here for a richer mobile visual pass.
+- Template rendering: passed via Flask test-client request to `/how-to-build-a-protac`.
+- Python compile check: passed for `app.py` and `protac_builder/`.
+- Local app startup: passed with the documented `python app.py` command.
+- Live page load: passed with HTTP `200` for `/how-to-build-a-protac`.
+- Paper2 image paths: passed for all eight figures.
+- Misspelled image handling: passed; `Fiugre2.png` still exists, and a matching `Figure2.png` copy was created and used.
+- Internal link targets: checked against existing routes for Builder, Examples, Linkers, API Builder, Downstream Modeling Tools, Benchmarking, Warheads, and E3 Recruiters.
+- External paper links: the Portland Press article URL and DOI URL were added exactly as requested.
+- Responsive design: supported by existing shared responsive CSS classes; no separate browser automation pass was available in this session.
+- Unrelated code changes: no unrelated Python or route behavior was modified beyond the page metadata update and the new non-destructive image copy.
 
 ## Known Issues
-- No dedicated PDF text extraction utility or Python PDF package was available locally, so figure captions were grounded through the article snippet, the figure images themselves, and the user-provided scientific points rather than full local text extraction.
-- I could not run a true visual mobile-browser verification with in-app browser automation in this session.
-- The page is grounded in the uploaded review and common PROTAC design principles, but it should still be reviewed by a domain expert before being treated as publication-grade scientific guidance.
+- There is still no `/how-to-build` alias route in the app; the canonical route remains `/how-to-build-a-protac`.
+- I could not run a richer automated desktop/mobile browser-visual pass because no dedicated browser automation capability was callable in this session.
+- The page is grounded in the cited review and standard PROTAC design principles, but it should still be reviewed by a domain expert before being treated as publication-quality scientific guidance.
 
 ## Manual Verification
-1. Start the local server using the project’s documented command: `python app.py`.
-2. Open `http://127.0.0.1:5069/linkers`.
-3. Confirm the expanded sections render correctly.
-4. Confirm all eight figures load and captions are visible.
-5. Confirm the ScienceDirect article link, DOI link, and Table 1 link open correctly.
-6. Resize the browser to mobile width and confirm the hero, figure cards, checklist, and CTA grid remain readable.
+1. Start the local app using the documented project command: `python app.py`.
+2. Open `/how-to-build-a-protac`.
+3. Confirm the expanded guide renders.
+4. Confirm all eight Paper2 images load.
+5. Confirm figure captions and attribution are visible.
+6. Confirm internal CTA links work.
+7. Confirm the external paper link opens.
+8. Resize to mobile width and confirm the page remains readable.
 
 ## Suggested Next Prompt
-Improve the `/warheads` or `/e3-ligase-recruiters` science page to match the new depth and citation style used on `/linkers`.
+Add a downloadable one-page PROTAC design checklist or worksheet that matches the new `/how-to-build-a-protac` workflow and can be linked from both the guide and the builder.

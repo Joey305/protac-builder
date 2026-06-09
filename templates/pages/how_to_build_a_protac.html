@@ -1,41 +1,518 @@
 {% extends "pages/_page_base.html" %}
 {% from "pages/_macros.html" import action_link, info_card %}
 
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do you build a PROTAC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A practical PROTAC workflow starts with a biologically meaningful protein of interest, then selects a target-binding warhead, an E3 recruiter, plausible solvent-exposed attachment vectors, and a small linker panel before assembly, prioritization, and experimental degradation testing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What components are needed to build a PROTAC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A PROTAC typically contains a protein-of-interest ligand, an E3 ligase recruiter, and a linker that bridges the two while supporting a productive ternary complex."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do strong binders always make good PROTACs?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Strong binary binding alone does not guarantee degradation because ternary complex geometry, ubiquitination context, permeability, and cellular exposure also matter."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What do DC50, Dmax, and hook effect mean?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "DC50 is the concentration associated with half-maximal degradation, Dmax is the maximum observed degradation, and hook effect describes reduced degradation at high concentrations when excess binary complexes compete against productive ternary complex formation."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
+
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Practical Guide</span>
-  <h1>How to Build a PROTAC</h1>
-  <p class="protac-hero-copy">A practical PROTAC workflow starts by clarifying the target-binding warhead and the E3 recruiter before worrying about linker enumeration.</p>
-  <p class="protac-hero-copy">The goal is not to claim guaranteed degradation, but to standardize components, choose sensible anchor points, and prepare structures for additional computational and experimental validation.</p>
-  <div class="protac-action-row">
-    {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
-    {{ action_link('/examples', 'Open examples') }}
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Practical Guide</span>
+    <h1>How to Build a PROTAC</h1>
+    <p class="protac-hero-copy">
+      Building a PROTAC is not just joining two ligands with a spacer. The molecule must engage the protein of interest,
+      recruit an E3 ligase, support a productive ternary complex, position the target for ubiquitination, enter cells,
+      and avoid an unmanageable physicochemical burden.
+    </p>
+    <p class="protac-hero-copy">
+      This guide turns that challenge into a staged workflow for designing, assembling, prioritizing, and validating
+      candidate degraders without overstating what any single computational step can prove.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">PROTAC design workflow</span>
+      <span class="protac-pill">Attachment-aware design</span>
+      <span class="protac-pill">Ternary-complex focused</span>
+      <span class="protac-pill">Validation still required</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+      {{ action_link('/examples', 'Open examples') }}
+      {{ action_link('/warheads', 'Explore warheads') }}
+      {{ action_link('/e3-ligase-recruiters', 'Explore E3 recruiters') }}
+      {{ action_link('/linkers', 'Linker design guide') }}
+      {{ action_link('/downstream-modeling-tools', 'Downstream modeling') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper2/Figure1.png') }}"
+      alt="Schematic showing a PROTAC engaging a protein of interest and an E3 ligase, driving ternary complex formation, ubiquitination, proteasomal degradation, and PROTAC recycling."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 1.</strong> Mechanistic overview: a PROTAC brings a POI into proximity with an E3 ligase, enabling ubiquitin transfer, proteasomal degradation, and potential PROTAC recycling.
+      Source: Osman, Thompson, Jörg, and Scanlon, <em>Biochemical Journal</em> (2025),
+      <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+    </figcaption>
+  </figure>
+</section>
+
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: how do you build a PROTAC?</h2></div>
+  <ol class="protac-step-list">
+    <li>Pick a protein of interest and confirm that degradation is biologically meaningful.</li>
+    <li>Choose or discover a target-binding warhead.</li>
+    <li>Select an E3 ligase recruiter, often starting with VHL or CRBN when appropriate.</li>
+    <li>Identify solvent-exposed attachment vectors on both ligands.</li>
+    <li>Choose a linker panel that varies length, polarity, and rigidity.</li>
+    <li>Assemble candidate PROTACs.</li>
+    <li>Prioritize candidates with descriptor checks, structural review, and downstream modeling where useful.</li>
+    <li>Test degradation in cells and interpret DC50, Dmax, selectivity, and hook effect.</li>
+  </ol>
+</section>
+
+<section class="protac-section-card" id="mechanism">
+  <div class="protac-section-head"><h2>Step 1: understand the PROTAC mechanism</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        A PROTAC usually contains three modular parts: a ligand for the protein of interest, a linker, and an E3 ligase recruiter.
+        The degrader works only if those parts support a productive ternary complex rather than two disconnected binary interactions.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>The POI ligand binds the target protein.</li>
+        <li>The E3 recruiter binds an endogenous E3 ligase.</li>
+        <li>The ternary complex enables E2 or E3-mediated ubiquitin transfer to the POI.</li>
+        <li>Polyubiquitinated POI is sent to the proteasome for degradation.</li>
+        <li>The PROTAC may then dissociate and engage another target molecule.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Why this matters:</strong> strong occupancy alone is not the end goal. The real objective is productive target degradation in a relevant cellular setting.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure1.png') }}"
+        alt="Mechanism-of-action figure for PROTAC-induced ternary complex formation and proteasomal degradation."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 1.</strong> The workflow begins with ternary complex formation and ends with degradation rather than simple target occupancy.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
   </div>
 </section>
 
-<section class="protac-section-card" id="steps">
-  <div class="protac-section-head"><h2>Recommended staged workflow</h2></div>
+<section class="protac-section-card" id="target-selection">
+  <div class="protac-section-head"><h2>Step 2: choose the right protein of interest</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure2.png') }}"
+        alt="Concept figure showing mutant- or disease-selective PROTAC degradation using a mutant-protein binder and E3 recruiter."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 2.</strong> Disease-context or mutant-selective degradation can be valuable when the biology calls for precision beyond broad target occupancy.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        A good PROTAC project starts with target selection, not linker shopping. The POI should have a strong biological rationale and a reason why degradation may be more informative or more therapeutic than inhibition alone.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Degradation can remove scaffolding or non-enzymatic functions that inhibitors do not fully address.</li>
+        <li>Mutant-selective or disease-selective contexts may matter for safety, selectivity, or therapeutic rationale.</li>
+        <li>The best binder does not always need to hit an active site if it can support productive ternary geometry.</li>
+        <li>Cellular localization, expression level, turnover rate, lysine accessibility, and assay availability all influence feasibility.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Sanity check:</strong> before designing chemistry, ask whether losing the entire protein is actually the desired biological intervention.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="warhead">
+  <div class="protac-section-head"><h2>Step 3: choose a protein-of-interest ligand or warhead</h2></div>
+  <p class="protac-section-copy">
+    Warhead selection usually starts from known ligands, inhibitors, fragments, covalent binders, literature probes, or structure-enabled hits that already engage the POI. The goal is not just affinity, but a ligand that can tolerate derivatization without losing the interactions that matter.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Is the binding affinity or engagement quality sufficient for a starting point?</div>
+    <div class="protac-checklist-item">Is the binding site compatible with a degradation mechanism rather than only inhibition?</div>
+    <div class="protac-checklist-item">Is there a solvent-exposed exit vector or derivatization handle?</div>
+    <div class="protac-checklist-item">Could derivatization damage key hydrogen bonds, hydrophobic contacts, or selectivity features?</div>
+    <div class="protac-checklist-item">Is the target intracellular and compatible with proteasome-dependent degradation workflows?</div>
+    <div class="protac-checklist-item">Are there selectivity liabilities you should understand before making a degrader series?</div>
+  </div>
+  <div class="protac-card-grid">
+    {{ info_card('Warhead Hunter', 'Use the sister platform when the target-binding ligand is still under exploration or needs more target-context analysis.', 'https://warheadhunter.com/examples', kicker='Upstream Discovery', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Use viral protein-ligand structures and solvent-exposed moiety evidence when working on viral targets.', 'https://vlisemod.com', kicker='Viral Targets', cta='Open V-LiSEMOD', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="recruiter">
+  <div class="protac-section-head"><h2>Step 4: choose an E3 ligase recruiter</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        The E3 recruiter determines which ligase you bring into the ternary complex and therefore influences geometry, cooperativity, degradation profile, and tissue or cell-context suitability.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>VHL and CRBN are common starting points, but not universal answers.</li>
+        <li>E3 choice should be considered alongside cell type, tissue expression, biology, and known off-target liabilities.</li>
+        <li>Recruiter geometry can strongly reshape which ternary complexes are accessible.</li>
+      </ul>
+      <p class="protac-section-copy">
+        If recruiter-side uncertainty is high, inspect recruiter scaffold context and ligase-side attachment options before you spend too much effort on linker enumeration.
+      </p>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure3.png') }}"
+        alt="Examples of common PROTAC components and likely attachment vectors, including CRBN and VHL recruiters and representative target ligands."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 3.</strong> Representative recruiter and warhead building blocks, along with plausible attachment-vector positions, illustrate how component choice and derivatization strategy are linked.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+  </div>
+  <div class="protac-card-grid">
+    {{ info_card('E3 Ligandalyzer', 'Inspect recruiter scaffolds, ligase context, and recruiter-side attachment ideas before assembly.', 'https://e3ligandalyzer.com/explorer', kicker='Recruiter Discovery', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('E3 recruiter discovery', 'Review recruiter classes and recruiter-side design considerations inside PROTAC Builder.', '/e3-ligase-recruiters', kicker='Guide', cta='Explore E3 recruiters') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="exit-vectors">
+  <div class="protac-section-head"><h2>Step 5: identify attachment vectors</h2></div>
+  <p class="protac-section-copy">
+    Both the POI ligand and the E3 recruiter need plausible attachment atoms or exit vectors. A bad exit-vector choice can preserve binary binding and still fail because the resulting ternary geometry is unproductive.
+  </p>
   <ul class="protac-bullet-list">
-    <li>Choose a target-binding warhead and confirm the intended protein-of-interest context.</li>
-    <li>Use Warhead Hunter when you need deeper warhead discovery or target-binding exploration.</li>
-    <li>Choose an E3 ligase recruiter and inspect recruiter/scaffold context in E3 Ligandalyzer when helpful.</li>
-    <li>Use V-LiSEMOD when the target is viral and you need bound-ligand or solvent-exposed moiety evidence to guide warhead selection.</li>
-    <li>Choose a linker with realistic length, polarity, flexibility, and attachment geometry.</li>
-    <li>Define attachment atoms or anchor points on both ends before assembly.</li>
-    <li>Generate or load SMILES, MOL, or SDF representations where supported.</li>
-    <li>Run descriptor, ADMET, or DeepPK-related workflows where those outputs help downstream prioritization.</li>
-    <li>Export candidates into restrained ternary modeling, docking, or batch workflows.</li>
-    <li>Use API and batch tooling when screening larger enumerations.</li>
+    <li>Prefer solvent-exposed positions supported by structures, SAR, docking hypotheses, or prior literature.</li>
+    <li>Preserve pharmacophore-defining interactions whenever possible.</li>
+    <li>If uncertainty is high, test more than one attachment vector instead of assuming a single best exit point.</li>
+    <li>Document why each vector was selected so the design logic survives later rounds of iteration.</li>
   </ul>
+  <div class="protac-callout">
+    <strong>Practical rule:</strong> treat exit-vector selection as part of the degrader hypothesis, not as a small medicinal-chemistry detail to postpone.
+  </div>
+</section>
+
+<section class="protac-section-card" id="linker-panel">
+  <div class="protac-section-head"><h2>Step 6: select linker length and exit vectors carefully</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Do not assume one linker is best. Start with a small panel that varies length, flexibility, polarity, rigidity, and attachment chemistry so you can learn how the POI and recruiter tolerate different bridge geometries.
+      </p>
+      <div class="protac-note-grid">
+        <article class="protac-note">
+          <h3>Flexible linkers</h3>
+          <p>Useful early because they are easy to vary, but can add entropy and metabolic liability.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Rigid linkers</h3>
+          <p>May preserve geometry and lower entropic cost, but can fail quickly when vectors are misaligned.</p>
+        </article>
+        <article class="protac-note">
+          <h3>PEG-rich linkers</h3>
+          <p>Can improve solubility but may increase polarity and limit permeability.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Alkyl and triazole motifs</h3>
+          <p>Alkyl motifs are simple and tunable; triazole or click-enabled motifs are useful for modular assembly and geometric control.</p>
+        </article>
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure3.png') }}"
+        alt="Component figure emphasizing where recruiters and target ligands can be functionalized for linker attachment."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 3.</strong> The same component view is also an attachment-vector reminder: recruiter and POI ligands need derivatization sites that support a productive bridge.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+  </div>
+  <div class="protac-card-grid">
+    {{ info_card('Linker design guide', 'Read the deeper linker-design hub before committing to a narrow linker strategy.', '/linkers', kicker='Component Guide', cta='Explore linkers') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="assembly">
+  <div class="protac-section-head"><h2>Step 7: assemble candidate PROTACs</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure4.png') }}"
+        alt="Figure comparing modular PROTAC synthesis acceleration approaches including click chemistry, CuAAC, SuFEx, and solid-phase organic synthesis."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 4.</strong> Modular assembly strategies such as click-enabled workflows, CuAAC, SuFEx, and solid-phase iteration can accelerate analogue generation when compatible handles are available.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure7.png') }}"
+        alt="Figure showing representative PROTAC coupling and reaction strategies used to elaborate candidate degraders."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 7.</strong> Representative coupling schemes reinforce the idea that chemistry strategy should match the available handles, stability constraints, purification needs, and desired iteration speed.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+  </div>
+  <p class="protac-section-copy">
+    From a workflow perspective, PROTAC synthesis is usually easier to scale when the design is modular. High-level choices like click chemistry, CuAAC, SuFEx, or solid-phase iterations can help accelerate analogue generation, but the right route depends on the available functional handles and downstream purification realities.
+  </p>
+  <p class="protac-section-copy">
+    PROTAC Builder fits here by standardizing component selection, candidate assembly, linker choice, and exportable representations for later modeling or batch workflows. It does not replace chemistry development, but it does make the design space easier to organize and compare.
+  </p>
+</section>
+
+<section class="protac-section-card" id="libraries">
+  <div class="protac-section-head"><h2>Step 8: scale exploration with libraries and batch workflows</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure5.png') }}"
+        alt="Figure showing DNA-encoded library approaches and parallel binary or ternary screening workflows for degrader discovery."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 5.</strong> DNA-encoded and parallel screening workflows can explore very large degrader spaces, and binary versus ternary screens answer different questions about what a candidate is doing.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        Acceleration often comes from scale. DNA-encoded libraries, connector libraries, and batch workflows can help probe many POI or recruiter combinations much faster than serial one-off chemistry.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Binary binding screens tell you whether one side of the molecule still engages.</li>
+        <li>Ternary complex screens ask a different, often more relevant, question.</li>
+        <li>Batch or API workflows help standardize larger candidate enumerations before synthesis or testing.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="protac-card-grid">
+    {{ info_card('API Builder', 'Operationalize larger candidate sets once you know what component combinations are worth exploring.', '/api-builder', kicker='Scale Up', cta='Open API Builder') }}
+    {{ info_card('Batch workflows', 'Review the existing batch-oriented PROTAC Builder routes and file templates.', '/batch-workflows', kicker='Workflow', cta='View batch workflows') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="prioritize">
+  <div class="protac-section-head"><h2>Step 9: assemble and prioritize PROTAC candidates</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <ul class="protac-bullet-list">
+      <li>Check structural validity and attachment-vector sanity first.</li>
+      <li>Review molecular weight, cLogP or logD, HBD/HBA count, TPSA, and rotatable bonds.</li>
+      <li>Flag permeability and solubility risk early, especially for large or highly polar scaffolds.</li>
+      <li>Think about synthetic feasibility, not just model quality.</li>
+      <li>Avoid over-filtering by classic small-molecule rules alone because PROTACs often sit beyond Rule-of-Five space.</li>
+    </ul>
+    <div>
+      <p class="protac-section-copy">
+        Computational prioritization can help, especially when you have too many candidates to test immediately. Useful downstream methods include docking, restrained ternary modeling, molecular dynamics, and structure-guided refinement, but they should rank hypotheses rather than declare biological truth.
+      </p>
+      <div class="protac-callout">
+        <strong>Caution:</strong> a visually convincing ternary pose is still only a model until degradation data, selectivity data, and exposure-aware interpretation support it.
+      </div>
+    </div>
+  </div>
+  <div class="protac-card-grid">
+    {{ info_card('Downstream modeling tools', 'See how assembled candidates can move into restrained ternary modeling, docking, and scoring workflows.', '/downstream-modeling-tools', kicker='Modeling', cta='Open downstream tools') }}
+    {{ info_card('In silico PROTAC modeling', 'Review where docking, refinement, and hybrid modeling fit in the degrader workflow.', '/in-silico-protac-modeling', kicker='Modeling Guide', cta='Read modeling guide') }}
+    {{ info_card('Benchmarking', 'Use the benchmarking page when comparing computational ranking or predictive workflows.', '/benchmarking', kicker='Evaluation', cta='Open benchmarking') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="degradation-metrics">
+  <div class="protac-section-head"><h2>Step 10: measure degradation: DC50, Dmax, and hook effect</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        PROTACs are evaluated by degradation behavior, not only by occupancy. A useful degrader needs enough cellular engagement to produce degradation, enough maximal effect to matter biologically, and enough selectivity to support interpretation.
+      </p>
+      <ul class="protac-bullet-list">
+        <li><strong>DC50:</strong> concentration associated with half-maximal degradation.</li>
+        <li><strong>Dmax:</strong> maximum observed degradation.</li>
+        <li><strong>Hook effect:</strong> reduced degradation at high PROTAC concentrations when excess binary complexes compete with productive ternary complex formation.</li>
+      </ul>
+      <p class="protac-section-copy">
+        At a high level, degradation can be followed by Western blot, targeted proteomics, reporter systems, luminescence-style readouts, or broader cellular degradation assays depending on the project.
+      </p>
+      <div class="protac-callout">
+        <strong>Interpret carefully:</strong> strong POI binding does not guarantee degradation, and modest binary binding can still work if ternary cooperativity is favorable.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure8.png') }}"
+        alt="Example degradation-response curve showing DC50, Dmax, and hook effect across PROTAC concentration."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 8.</strong> Degradation-response curves should be read in terms of potency, maximal degradation, and high-dose behavior rather than a single concentration or a single headline number.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="direct-to-biology">
+  <div class="protac-section-head"><h2>Step 11: use direct-to-biology carefully to shorten design cycles</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper2/Figure6.png') }}"
+        alt="Direct-to-biology workflow showing parallel chemistry, direct bioassay of unpurified PROTACs, linker exit-vector identification, and hit selection."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 6.</strong> Direct-to-biology can speed trend-finding by testing many crude or minimally purified analogues in parallel when the chemistry and assay format are compatible.
+        Source: Osman et al., <em>Biochemical Journal</em> (2025),
+        <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">doi:10.1042/BCJ20243018</a>.
+      </figcaption>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        Direct-to-biology is best thought of as a discovery accelerator. It can reveal exit-vector trends, linker trends, and promising hit PROTACs faster by coupling parallel chemistry with rapid biological readouts.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>It is useful for trend detection, not final proof.</li>
+        <li>Assays must be robust enough to tolerate mixtures and impurity-related noise.</li>
+        <li>Purified compound confirmation is still required before strong conclusions are drawn.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="checklist">
+  <div class="protac-section-head"><h2>Practical design checklist</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">POI is biologically justified.</div>
+    <div class="protac-checklist-item">POI has a ligand or warhead worth elaborating.</div>
+    <div class="protac-checklist-item">E3 recruiter is selected with cell context in mind.</div>
+    <div class="protac-checklist-item">POI-side attachment vector is plausible.</div>
+    <div class="protac-checklist-item">Recruiter-side attachment vector is plausible.</div>
+    <div class="protac-checklist-item">Linker panel varies length and properties instead of relying on one guess.</div>
+    <div class="protac-checklist-item">Candidate structures are chemically valid.</div>
+    <div class="protac-checklist-item">Physicochemical burden is being watched, not ignored.</div>
+    <div class="protac-checklist-item">A degradation assay plan exists.</div>
+    <div class="protac-checklist-item">DC50, Dmax, selectivity, and hook effect will all be evaluated.</div>
+    <div class="protac-checklist-item">A downstream export or modeling path is clear.</div>
+    <div class="protac-checklist-item">Computational prioritization will be confirmed experimentally.</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="mistakes">
+  <div class="protac-section-head"><h2>Common mistakes to avoid</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <ul class="protac-bullet-list">
+      <li>Treating the linker as a passive spacer.</li>
+      <li>Optimizing binary affinity only.</li>
+      <li>Ignoring ternary complex geometry.</li>
+      <li>Choosing attachment atoms that disrupt binding.</li>
+      <li>Testing too few linker lengths.</li>
+    </ul>
+    <ul class="protac-bullet-list">
+      <li>Ignoring permeability and solubility risks.</li>
+      <li>Over-trusting docking without experiments.</li>
+      <li>Ignoring E3 expression and biology.</li>
+      <li>Misreading hook effect as simple inactivity.</li>
+      <li>Comparing compounds only by DC50 without Dmax and selectivity context.</li>
+    </ul>
+  </div>
 </section>
 
 <section class="protac-section-card" id="tools">
-  <div class="protac-section-head"><h2>Recommended tools for each stage</h2></div>
+  <div class="protac-section-head"><h2>Recommended tool path</h2></div>
   <div class="protac-card-grid">
-    {{ info_card('Warhead Hunter', 'Deeper warhead and target-context discovery before degrader assembly.', 'https://warheadhunter.com/examples', kicker='Upstream', cta='Use Warhead Hunter', external=True) }}
-    {{ info_card('E3 Ligandalyzer', 'Recruiter, scaffold, attachment-vector, and ligase-oriented exploration.', 'https://e3ligandalyzer.com/explorer', kicker='Upstream', cta='Use E3 Ligandalyzer', external=True) }}
-    {{ info_card('V-LiSEMOD', 'Viral protein-ligand structures and solvent-exposed moieties for viral-target warhead discovery.', 'https://vlisemod.com', kicker='Upstream', cta='Use V-LiSEMOD', external=True) }}
-    {{ info_card('API Builder', 'Generate batch-friendly payloads for larger screens and scripted workflows.', '/api-builder', kicker='Operationalize', cta='Open API Builder') }}
+    {{ info_card('Warhead Hunter', 'Upstream POI ligand discovery and target-context exploration.', 'https://warheadhunter.com/examples', kicker='Upstream Discovery', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('E3 Ligandalyzer', 'Recruiter, scaffold, and ligase-side exploration before final assembly.', 'https://e3ligandalyzer.com/explorer', kicker='Recruiter Discovery', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Viral target support through protein-ligand structures and solvent-exposed moiety evidence.', 'https://vlisemod.com', kicker='Viral Targets', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('PROTAC Builder', 'Interactive degrader assembly once the component choices are ready.', '/builder', kicker='Assembly', cta='Launch builder') }}
+    {{ info_card('API Builder', 'Batch-ready payload preparation for larger screens or scripted workflows.', '/api-builder', kicker='Scale Up', cta='Open API Builder') }}
+    {{ info_card('Downstream modeling', 'Where restrained ternary modeling, docking, and scoring fit after assembly.', '/downstream-modeling-tools', kicker='Modeling', cta='Open downstream tools') }}
+    {{ info_card('Benchmarking', 'Evaluation context for computational ranking, prediction, and reporting workflows.', '/benchmarking', kicker='Evaluation', cta='Open benchmarking') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="references">
+  <div class="protac-section-head"><h2>References and attribution</h2></div>
+  <div class="protac-reference-block">
+    <p>
+      Primary review used to ground this page:
+      <strong>Osman J, Thompson PE, Jörg M, Scanlon MJ.</strong>
+      “Methods to accelerate PROTAC drug discovery.”
+      <em>Biochemical Journal</em>, 2025; 482(13): 921-937.
+    </p>
+    <p>
+      Full article:
+      <a href="https://portlandpress.com/biochemj/article/482/13/921/236245/Methods-to-accelerate-PROTAC-drug-discovery" target="_blank" rel="noopener noreferrer">
+        Portland Press article
+      </a>
+      and
+      <a href="https://doi.org/10.1042/BCJ20243018" target="_blank" rel="noopener noreferrer">
+        DOI: 10.1042/BCJ20243018
+      </a>.
+    </p>
+    <p>
+      Figures on this page are local copies derived from the cited review and are shown with visible attribution so readers can find the original paper for full context and license terms.
+    </p>
+    <p>
+      This guide is educational and workflow-oriented. It is grounded in the cited review and established PROTAC design principles, but it should still be reviewed by a domain expert before being used as publication-quality scientific guidance.
+    </p>
   </div>
 </section>
 {% endblock %}
