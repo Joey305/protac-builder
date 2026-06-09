@@ -3839,6 +3839,13 @@ function clearLigaseOnly() {
             stored ||
             "";
 
+        resolved.warheadSource =
+            resolved.lig_smi ? "lig_smi" :
+            resolved.smiles ? "smiles" :
+            resolved.ligand ? "ligand" :
+            stored ? "storageSmiles" :
+            "";
+
         console.log("🌐 PROTAC Builder handoff debug:", resolved);
 
         return resolved;
@@ -3997,8 +4004,9 @@ function clearLigaseOnly() {
     // ------------------------------------------------------------------------
     // 3) Warhead handoff loader
     // ------------------------------------------------------------------------
-    async function loadIncomingWarhead(rawValue) {
+    async function loadIncomingWarhead(rawValue, options = {}) {
         const value = safeDecode(rawValue);
+        const source = String(options.source || "").trim();
 
         if (!value) {
             console.log("ℹ️ No incoming warhead value detected.");
@@ -4021,10 +4029,15 @@ function clearLigaseOnly() {
 
         console.log("🧬 Incoming warhead handoff detected:", value);
 
-        // Preserve older system:
-        // ?lig_smi=HFY or ?lig_smi=A1A00 should behave as a ligand code.
-        // ?lig_smi=c1ccc... should behave as raw SMILES.
-        if (isLikelyLigandCode(value) && !isProbablySmiles(value)) {
+        const forceLigandCode = source === "ligand";
+        const forceSmiles = source === "smiles" || source === "storageSmiles" || source === "direct";
+        const shouldTreatAsLigandCode =
+            forceLigandCode ||
+            (!forceSmiles && isLikelyLigandCode(value) && !isProbablySmiles(value));
+
+        // Preserve older mixed-input behavior for ?lig_smi while making ?smiles
+        // and direct handoff payloads unambiguously load as raw SMILES.
+        if (shouldTreatAsLigandCode) {
             console.log("✅ Incoming warhead treated as ligand code:", value);
 
             if (typeof window.loadLigandFromCode === "function") {
@@ -4136,7 +4149,7 @@ function clearLigaseOnly() {
             // Allow replacing/updating the warhead in the same builder page.
             window.__WARHEAD_HANDOFF_LOADED = false;
 
-            await loadIncomingWarhead(cleanSmiles);
+            await loadIncomingWarhead(cleanSmiles, { source: "direct" });
         });
     };
 
@@ -4162,7 +4175,7 @@ function clearLigaseOnly() {
         waitForChemDoodleReady(async () => {
             console.log("🚦 ChemDoodle ready → running handoff loader.");
 
-            await loadIncomingWarhead(incoming.warheadValue);
+            await loadIncomingWarhead(incoming.warheadValue, { source: incoming.warheadSource });
 
             if (incoming.linker) {
                 loadOptionalLinker(incoming.linker);
