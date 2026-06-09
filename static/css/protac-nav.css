@@ -170,6 +170,8 @@ body.protac-nav-open {
 
 .protac-site-nav__item--menu {
   position: relative;
+  padding-bottom: 0.75rem;
+  margin-bottom: -0.75rem;
 }
 
 .protac-site-nav__link,
@@ -272,7 +274,7 @@ body.protac-nav-open {
 
 .protac-nav-menu {
   position: absolute;
-  top: calc(100% + 0.7rem);
+  top: calc(100% + 0.12rem);
   left: 0;
   width: min(360px, 42vw);
   display: grid;

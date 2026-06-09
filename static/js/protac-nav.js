@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastFocusedElement = null;
   let savedScrollY = 0;
   let bodyLockStyles = null;
+  const desktopMenuCloseTimers = new WeakMap();
 
   if (year) year.textContent = new Date().getFullYear();
 
@@ -115,6 +116,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeDesktopMenus() {
     desktopMenus.forEach((menu) => {
       const trigger = menu.querySelector(".protac-site-nav__menu-trigger");
+      const closeTimer = desktopMenuCloseTimers.get(menu);
+      if (closeTimer) {
+        window.clearTimeout(closeTimer);
+        desktopMenuCloseTimers.delete(menu);
+      }
       menu.classList.remove("is-open");
       if (trigger) {
         trigger.setAttribute("aria-expanded", "false");
@@ -122,11 +128,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function clearDesktopMenuCloseTimer(menu) {
+    const closeTimer = desktopMenuCloseTimers.get(menu);
+    if (closeTimer) {
+      window.clearTimeout(closeTimer);
+      desktopMenuCloseTimers.delete(menu);
+    }
+  }
+
+  function scheduleDesktopMenuClose(menu) {
+    clearDesktopMenuCloseTimer(menu);
+    const closeTimer = window.setTimeout(() => {
+      const trigger = menu.querySelector(".protac-site-nav__menu-trigger");
+      menu.classList.remove("is-open");
+      if (trigger) {
+        trigger.setAttribute("aria-expanded", "false");
+      }
+      desktopMenuCloseTimers.delete(menu);
+    }, 140);
+    desktopMenuCloseTimers.set(menu, closeTimer);
+  }
+
   function toggleDesktopMenu(menu) {
     const trigger = menu.querySelector(".protac-site-nav__menu-trigger");
     const willOpen = !menu.classList.contains("is-open");
     closeDesktopMenus();
     if (willOpen) {
+      clearDesktopMenuCloseTimer(menu);
       menu.classList.add("is-open");
       if (trigger) {
         trigger.setAttribute("aria-expanded", "true");
@@ -218,9 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleDesktopMenu(menu);
     });
 
+    menu.addEventListener("mouseenter", () => {
+      if (!mobileQuery.matches) {
+        clearDesktopMenuCloseTimer(menu);
+      }
+    });
+
     menu.addEventListener("mouseleave", () => {
       if (!mobileQuery.matches) {
-        closeDesktopMenus();
+        scheduleDesktopMenuClose(menu);
       }
     });
   });
