@@ -292,6 +292,11 @@ body.protac-nav-open {
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
+.protac-site-nav__item--menu:last-child .protac-nav-menu {
+  left: auto;
+  right: 0;
+}
+
 .protac-site-nav__item--menu.is-open .protac-nav-menu,
 .protac-site-nav__item--menu:hover .protac-nav-menu,
 .protac-site-nav__item--menu:focus-within .protac-nav-menu {
