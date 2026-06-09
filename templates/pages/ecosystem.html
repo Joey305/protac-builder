@@ -1,32 +1,1061 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import info_card %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Connected Tools</span>
-  <h1>Schurer Lab PROTAC Design Ecosystem</h1>
-  <p class="protac-hero-copy">The degrader design workflow spans multiple questions, so the ecosystem is intentionally distributed across tools instead of forcing every function into one interface.</p>
-  <p class="protac-hero-copy">PROTAC Builder is the assembly layer that connects upstream warhead, recruiter, and viral-target discovery work to downstream modeling handoff.</p>
-</section>
 
-<section class="protac-section-card" id="tools">
-  <div class="protac-section-head"><h2>Tool roles</h2></div>
-  <div class="protac-card-grid">
-    {{ info_card('PROTAC Builder', 'Assemble warhead, linker, and E3 recruiter components into candidate degraders.', '/builder', kicker='Assembly', cta='Open PROTAC Builder') }}
-    {{ info_card('Warhead Hunter', 'Explore target-binding warheads and warhead-focused discovery context.', 'https://warheadhunter.com', kicker='Discovery', cta='Open Warhead Hunter', external=True) }}
-    {{ info_card('E3 Ligandalyzer', 'Inspect E3 recruiters, ligase scaffolds, ligand pages, and attachment context.', 'https://e3ligandalyzer.com/explorer', kicker='Recruiters', cta='Open E3 Ligandalyzer', external=True) }}
-    {{ info_card('V-LiSEMOD', 'Viral-Ligand Solvent Exposed Moiety Database for viral protein structures, bound ligands, and solvent-exposed warhead starting points.', 'https://vlisemod.com', kicker='Viral Targets', cta='Open V-LiSEMOD', external=True) }}
-    {{ info_card('API Builder And Docs', 'Move from interactive design into scripted, notebook, or batch-oriented workflows.', '/api-builder', kicker='Developer', cta='Open API Builder') }}
-  </div>
-</section>
+<style>
+  .eco-tron {
+    --eco-bg: #030814;
+    --eco-panel: rgba(7, 14, 31, 0.82);
+    --eco-panel-strong: rgba(12, 20, 45, 0.92);
+    --eco-border: rgba(99, 255, 246, 0.22);
+    --eco-text: #eaf7ff;
+    --eco-muted: #9fb4d0;
+    --eco-cyan: #41f6ff;
+    --eco-blue: #3485ff;
+    --eco-green: #45ff9a;
+    --eco-yellow: #ffe85a;
+    --eco-red: #ff4b6e;
+    --eco-purple: #a66bff;
+    --eco-orange: #ff9c42;
 
-<section class="protac-section-card" id="journey">
-  <div class="protac-section-head"><h2>Typical user journey</h2></div>
-  <ul class="protac-bullet-list">
-    <li>Explore target-binding chemistry in Warhead Hunter when the warhead decision is still open.</li>
-    <li>Inspect recruiter or scaffold context in E3 Ligandalyzer when the recruiter choice is still open.</li>
-    <li>Use V-LiSEMOD when the target is viral and you need target-bound ligand or solvent-exposed moiety evidence to guide warhead selection.</li>
-    <li>Return to PROTAC Builder to assemble the degrader and prepare outputs for downstream modeling or batch workflows.</li>
-  </ul>
-</section>
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: -1rem auto 0;
+    padding: clamp(1.2rem, 2vw, 2rem);
+    color: var(--eco-text);
+    background:
+      radial-gradient(circle at 12% 10%, rgba(65, 246, 255, 0.18), transparent 30%),
+      radial-gradient(circle at 85% 18%, rgba(255, 232, 90, 0.16), transparent 25%),
+      radial-gradient(circle at 75% 70%, rgba(255, 75, 110, 0.13), transparent 28%),
+      radial-gradient(circle at 18% 78%, rgba(69, 255, 154, 0.12), transparent 28%),
+      linear-gradient(135deg, #030814 0%, #071124 48%, #020611 100%);
+    border: 1px solid rgba(65, 246, 255, 0.18);
+    border-radius: 34px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 0 80px rgba(65, 246, 255, 0.08),
+      0 0 140px rgba(52, 133, 255, 0.07);
+  }
+
+  .eco-tron::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image:
+      linear-gradient(rgba(65, 246, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(65, 246, 255, 0.08) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), transparent 82%);
+    opacity: 0.55;
+  }
+
+  .eco-tron::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -42% -20%;
+    z-index: -1;
+    height: 52%;
+    background:
+      linear-gradient(to bottom, rgba(65, 246, 255, 0.16), transparent 28%),
+      repeating-linear-gradient(
+        90deg,
+        rgba(65, 246, 255, 0.16) 0 1px,
+        transparent 1px 90px
+      );
+    transform: perspective(780px) rotateX(64deg);
+    transform-origin: top;
+    opacity: 0.65;
+  }
+
+  .eco-scanline {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(65, 246, 255, 0.08),
+      transparent
+    );
+    height: 180px;
+    animation: eco-scan 8s linear infinite;
+    opacity: 0.65;
+  }
+
+  @keyframes eco-scan {
+    from { transform: translateY(-220px); }
+    to { transform: translateY(calc(100% + 220px)); }
+  }
+
+  .eco-hero,
+  .eco-section,
+  .eco-cta-panel {
+    position: relative;
+    z-index: 1;
+  }
+
+  .eco-hero {
+    min-height: 520px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.03fr) minmax(320px, 0.97fr);
+    gap: clamp(1.5rem, 4vw, 3.4rem);
+    align-items: center;
+    padding: clamp(2rem, 5vw, 4.8rem);
+    border: 1px solid rgba(65, 246, 255, 0.24);
+    border-radius: 30px;
+    background:
+      linear-gradient(135deg, rgba(8, 18, 42, 0.92), rgba(4, 8, 22, 0.72)),
+      radial-gradient(circle at top right, rgba(166, 107, 255, 0.18), transparent 38%);
+    box-shadow:
+      0 24px 90px rgba(0, 0, 0, 0.45),
+      0 0 65px rgba(65, 246, 255, 0.08) inset;
+    overflow: hidden;
+  }
+
+  .eco-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg, transparent 0 38%, rgba(65, 246, 255, 0.12) 39%, transparent 42%),
+      linear-gradient(295deg, transparent 0 58%, rgba(255, 232, 90, 0.11) 59%, transparent 62%);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .eco-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    margin-bottom: 1.15rem;
+    padding: 0.55rem 0.85rem;
+    color: #061018;
+    font-weight: 950;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    font-size: 0.76rem;
+    background: linear-gradient(90deg, var(--eco-green), var(--eco-cyan), var(--eco-yellow));
+    border-radius: 999px;
+    box-shadow:
+      0 0 24px rgba(65, 246, 255, 0.38),
+      0 0 34px rgba(69, 255, 154, 0.18);
+  }
+
+  .eco-hero h1 {
+    margin: 0;
+    max-width: 940px;
+    font-size: clamp(3rem, 7vw, 6.9rem);
+    line-height: 0.89;
+    letter-spacing: -0.08em;
+    text-wrap: balance;
+    text-shadow:
+      0 0 18px rgba(65, 246, 255, 0.35),
+      0 0 60px rgba(52, 133, 255, 0.18);
+  }
+
+  .eco-hero h1 .eco-gradient-text {
+    display: inline-block;
+    background: linear-gradient(
+      92deg,
+      #ffffff 0%,
+      var(--eco-cyan) 22%,
+      var(--eco-green) 43%,
+      var(--eco-yellow) 62%,
+      var(--eco-red) 81%,
+      var(--eco-purple) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(65, 246, 255, 0.26));
+  }
+
+  .eco-hero-copy {
+    max-width: 790px;
+    margin: 1.35rem 0 0;
+    color: var(--eco-muted);
+    font-size: clamp(1.05rem, 1.4vw, 1.28rem);
+    line-height: 1.75;
+  }
+
+  .eco-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 2rem;
+  }
+
+  .eco-btn {
+    --btn-color: var(--eco-cyan);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 48px;
+    padding: 0.88rem 1.15rem;
+    color: #effcff;
+    font-weight: 950;
+    text-decoration: none;
+    border: 1px solid color-mix(in srgb, var(--btn-color), transparent 32%);
+    border-radius: 999px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--btn-color), transparent 84%), rgba(255, 255, 255, 0.03));
+    box-shadow:
+      0 0 22px color-mix(in srgb, var(--btn-color), transparent 74%),
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  }
+
+  .eco-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--btn-color);
+    box-shadow:
+      0 0 28px color-mix(in srgb, var(--btn-color), transparent 48%),
+      0 16px 35px rgba(0, 0, 0, 0.3);
+  }
+
+  .eco-btn--primary {
+    --btn-color: var(--eco-green);
+    color: #03100a;
+    background: linear-gradient(90deg, var(--eco-green), var(--eco-cyan));
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .eco-btn--yellow { --btn-color: var(--eco-yellow); }
+  .eco-btn--red { --btn-color: var(--eco-red); }
+  .eco-btn--blue { --btn-color: var(--eco-blue); }
+
+  .eco-orbit-wrap {
+    position: relative;
+    min-height: 420px;
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at center, rgba(65, 246, 255, 0.17), transparent 34%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+    border: 1px solid rgba(65, 246, 255, 0.2);
+    box-shadow:
+      0 0 60px rgba(65, 246, 255, 0.1) inset,
+      0 0 30px rgba(166, 107, 255, 0.12);
+    overflow: hidden;
+  }
+
+  .eco-orbit-wrap::before,
+  .eco-orbit-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    border: 1px solid rgba(65, 246, 255, 0.2);
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(65, 246, 255, 0.16);
+  }
+
+  .eco-orbit-wrap::after {
+    inset: 24%;
+    border-color: rgba(255, 232, 90, 0.18);
+    transform: rotate(28deg);
+  }
+
+  .eco-core {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    width: min(250px, 58%);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 1.2rem;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, rgba(69, 255, 154, 0.95), rgba(65, 246, 255, 0.78) 45%, rgba(52, 133, 255, 0.22) 72%, transparent 73%);
+    color: #031018;
+    font-weight: 1000;
+    letter-spacing: -0.04em;
+    box-shadow:
+      0 0 34px rgba(69, 255, 154, 0.5),
+      0 0 90px rgba(65, 246, 255, 0.26);
+  }
+
+  .eco-node {
+    position: absolute;
+    display: grid;
+    gap: 0.12rem;
+    min-width: 142px;
+    padding: 0.75rem 0.82rem;
+    border-radius: 18px;
+    color: var(--eco-text);
+    background: rgba(6, 13, 30, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.28);
+  }
+
+  .eco-node strong {
+    font-size: 0.88rem;
+  }
+
+  .eco-node span {
+    color: var(--eco-muted);
+    font-size: 0.72rem;
+  }
+
+  .eco-node--red {
+    top: 8%;
+    left: 7%;
+    border-color: rgba(255, 75, 110, 0.62);
+    box-shadow: 0 0 24px rgba(255, 75, 110, 0.24);
+  }
+
+  .eco-node--yellow {
+    top: 10%;
+    right: 7%;
+    border-color: rgba(255, 232, 90, 0.62);
+    box-shadow: 0 0 24px rgba(255, 232, 90, 0.22);
+  }
+
+  .eco-node--blue {
+    bottom: 12%;
+    left: 6%;
+    border-color: rgba(52, 133, 255, 0.68);
+    box-shadow: 0 0 24px rgba(52, 133, 255, 0.25);
+  }
+
+  .eco-node--purple {
+    bottom: 12%;
+    right: 6%;
+    border-color: rgba(166, 107, 255, 0.68);
+    box-shadow: 0 0 24px rgba(166, 107, 255, 0.25);
+  }
+
+  .eco-pulse-dot {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    border-radius: 999px;
+    background: var(--eco-yellow);
+    box-shadow:
+      0 0 16px var(--eco-yellow),
+      0 0 36px rgba(255, 232, 90, 0.45);
+    animation: eco-pulse 2.4s ease-in-out infinite;
+  }
+
+  .eco-pulse-dot:nth-of-type(1) { top: 27%; left: 48%; }
+  .eco-pulse-dot:nth-of-type(2) { top: 61%; left: 22%; background: var(--eco-red); box-shadow: 0 0 16px var(--eco-red), 0 0 36px rgba(255, 75, 110, 0.45); animation-delay: 0.4s; }
+  .eco-pulse-dot:nth-of-type(3) { top: 65%; right: 24%; background: var(--eco-green); box-shadow: 0 0 16px var(--eco-green), 0 0 36px rgba(69, 255, 154, 0.45); animation-delay: 0.8s; }
+
+  @keyframes eco-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.75; }
+    50% { transform: scale(1.45); opacity: 1; }
+  }
+
+  .eco-section {
+    margin-top: clamp(1.3rem, 3vw, 2.3rem);
+    padding: clamp(1.4rem, 3.5vw, 2.7rem);
+    border: 1px solid rgba(65, 246, 255, 0.17);
+    border-radius: 30px;
+    background:
+      linear-gradient(145deg, rgba(8, 16, 36, 0.88), rgba(3, 7, 18, 0.75)),
+      radial-gradient(circle at 88% 18%, rgba(255, 75, 110, 0.08), transparent 34%);
+    box-shadow:
+      0 20px 70px rgba(0, 0, 0, 0.32),
+      0 0 55px rgba(65, 246, 255, 0.05) inset;
+  }
+
+  .eco-section-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.2rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .eco-section h2 {
+    margin: 0;
+    font-size: clamp(1.75rem, 3vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.055em;
+  }
+
+  .eco-section-eyebrow {
+    color: var(--eco-cyan);
+    font-size: 0.78rem;
+    font-weight: 950;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-shadow: 0 0 16px rgba(65, 246, 255, 0.45);
+  }
+
+  .eco-section-note {
+    max-width: 520px;
+    margin: 0;
+    color: var(--eco-muted);
+    line-height: 1.65;
+  }
+
+  .eco-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .eco-tool-card {
+    --card-accent: var(--eco-cyan);
+    position: relative;
+    overflow: hidden;
+    min-height: 270px;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--card-accent), transparent 58%);
+    border-radius: 24px;
+    background:
+      linear-gradient(145deg, color-mix(in srgb, var(--card-accent), transparent 92%), rgba(255, 255, 255, 0.025)),
+      rgba(7, 14, 31, 0.82);
+    box-shadow:
+      0 0 34px color-mix(in srgb, var(--card-accent), transparent 88%),
+      0 0 0 1px rgba(255, 255, 255, 0.035) inset;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .eco-tool-card:hover {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--card-accent), white 12%);
+    box-shadow:
+      0 0 38px color-mix(in srgb, var(--card-accent), transparent 66%),
+      0 22px 42px rgba(0, 0, 0, 0.28);
+  }
+
+  .eco-tool-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg, transparent 0 45%, color-mix(in srgb, var(--card-accent), transparent 86%) 46%, transparent 54%),
+      radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--card-accent), transparent 72%), transparent 22%);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .eco-tool-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .eco-tool-card--green { --card-accent: var(--eco-green); }
+  .eco-tool-card--red { --card-accent: var(--eco-red); }
+  .eco-tool-card--yellow { --card-accent: var(--eco-yellow); }
+  .eco-tool-card--blue { --card-accent: var(--eco-blue); }
+  .eco-tool-card--purple { --card-accent: var(--eco-purple); }
+  .eco-tool-card--orange { --card-accent: var(--eco-orange); }
+
+  .eco-tool-kicker {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 1rem;
+    padding: 0.42rem 0.65rem;
+    color: #061018;
+    font-size: 0.72rem;
+    font-weight: 1000;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    background: var(--card-accent);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--card-accent), transparent 48%);
+  }
+
+  .eco-tool-card h3 {
+    margin: 0 0 0.72rem;
+    font-size: 1.28rem;
+    letter-spacing: -0.035em;
+  }
+
+  .eco-tool-card p {
+    margin: 0;
+    color: var(--eco-muted);
+    line-height: 1.68;
+  }
+
+  .eco-tool-card a {
+    margin-top: auto;
+    width: fit-content;
+    color: var(--eco-text);
+    font-weight: 950;
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--card-accent), transparent 10%);
+    padding-top: 1.2rem;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--card-accent), transparent 52%);
+  }
+
+  .eco-flow {
+    display: grid;
+    gap: 0.9rem;
+    counter-reset: eco-flow;
+  }
+
+  .eco-flow-step {
+    --flow-accent: var(--eco-cyan);
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--flow-accent), transparent 58%);
+    border-radius: 22px;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--flow-accent), transparent 91%), rgba(255, 255, 255, 0.02));
+    box-shadow: 0 0 24px color-mix(in srgb, var(--flow-accent), transparent 88%);
+  }
+
+  .eco-flow-step:nth-child(1) { --flow-accent: var(--eco-red); }
+  .eco-flow-step:nth-child(2) { --flow-accent: var(--eco-yellow); }
+  .eco-flow-step:nth-child(3) { --flow-accent: var(--eco-blue); }
+  .eco-flow-step:nth-child(4) { --flow-accent: var(--eco-green); }
+
+  .eco-flow-number {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    color: #061018;
+    font-weight: 1000;
+    border-radius: 16px;
+    background: var(--flow-accent);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--flow-accent), transparent 46%);
+  }
+
+  .eco-flow-step h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.05rem;
+  }
+
+  .eco-flow-step p {
+    margin: 0;
+    color: var(--eco-muted);
+    line-height: 1.55;
+  }
+
+  .eco-flow-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 0.48rem 0.7rem;
+    color: var(--flow-accent);
+    font-size: 0.76rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid color-mix(in srgb, var(--flow-accent), transparent 50%);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .eco-split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .eco-mini-panel {
+    padding: 1.2rem;
+    border: 1px solid rgba(65, 246, 255, 0.18);
+    border-radius: 24px;
+    background: rgba(4, 10, 24, 0.66);
+  }
+
+  .eco-mini-panel h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1.25rem;
+    letter-spacing: -0.035em;
+  }
+
+  .eco-mini-panel p {
+    margin: 0;
+    color: var(--eco-muted);
+    line-height: 1.65;
+  }
+
+  .eco-signal-list {
+    display: grid;
+    gap: 0.7rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .eco-signal-list li {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+    color: var(--eco-muted);
+    line-height: 1.5;
+  }
+
+  .eco-signal-list li::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    margin-top: 0.43rem;
+    border-radius: 999px;
+    background: var(--eco-green);
+    box-shadow: 0 0 14px var(--eco-green);
+  }
+
+  .eco-signal-list li:nth-child(2)::before {
+    background: var(--eco-yellow);
+    box-shadow: 0 0 14px var(--eco-yellow);
+  }
+
+  .eco-signal-list li:nth-child(3)::before {
+    background: var(--eco-red);
+    box-shadow: 0 0 14px var(--eco-red);
+  }
+
+  .eco-signal-list li:nth-child(4)::before {
+    background: var(--eco-blue);
+    box-shadow: 0 0 14px var(--eco-blue);
+  }
+
+  .eco-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 20px;
+    background: rgba(3, 8, 18, 0.68);
+  }
+
+  .eco-matrix th,
+  .eco-matrix td {
+    padding: 0.95rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(65, 246, 255, 0.12);
+  }
+
+  .eco-matrix th {
+    color: var(--eco-cyan);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    background: rgba(65, 246, 255, 0.05);
+  }
+
+  .eco-matrix td {
+    color: var(--eco-muted);
+    line-height: 1.5;
+  }
+
+  .eco-matrix strong {
+    color: var(--eco-text);
+  }
+
+  .eco-cta-panel {
+    margin-top: clamp(1.3rem, 3vw, 2.3rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 1px solid rgba(69, 255, 154, 0.26);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at 12% 15%, rgba(69, 255, 154, 0.2), transparent 28%),
+      radial-gradient(circle at 88% 20%, rgba(255, 232, 90, 0.16), transparent 26%),
+      radial-gradient(circle at 76% 90%, rgba(255, 75, 110, 0.13), transparent 30%),
+      linear-gradient(135deg, rgba(8, 20, 38, 0.94), rgba(3, 8, 18, 0.84));
+    box-shadow:
+      0 0 70px rgba(69, 255, 154, 0.08) inset,
+      0 0 60px rgba(65, 246, 255, 0.08);
+  }
+
+  .eco-cta-panel h2 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 4rem);
+    letter-spacing: -0.07em;
+  }
+
+  .eco-cta-panel p {
+    max-width: 780px;
+    margin: 0.9rem 0 0;
+    color: var(--eco-muted);
+    line-height: 1.7;
+    font-size: 1.07rem;
+  }
+
+  @media (max-width: 1050px) {
+    .eco-hero,
+    .eco-split {
+      grid-template-columns: 1fr;
+    }
+
+    .eco-card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .eco-orbit-wrap {
+      min-height: 390px;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .eco-tron {
+      border-radius: 24px;
+      padding: 0.8rem;
+    }
+
+    .eco-hero,
+    .eco-section,
+    .eco-cta-panel {
+      border-radius: 22px;
+      padding: 1.25rem;
+    }
+
+    .eco-card-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .eco-section-head {
+      display: block;
+    }
+
+    .eco-section-note {
+      margin-top: 0.8rem;
+    }
+
+    .eco-flow-step {
+      grid-template-columns: 1fr;
+    }
+
+    .eco-flow-number {
+      width: 42px;
+      height: 42px;
+    }
+
+    .eco-flow-tag {
+      width: fit-content;
+    }
+
+    .eco-orbit-wrap {
+      min-height: auto;
+      display: grid;
+      gap: 0.8rem;
+      padding: 1rem;
+    }
+
+    .eco-orbit-wrap::before,
+    .eco-orbit-wrap::after,
+    .eco-pulse-dot {
+      display: none;
+    }
+
+    .eco-core,
+    .eco-node {
+      position: static;
+      transform: none;
+      width: auto;
+      aspect-ratio: auto;
+      border-radius: 20px;
+    }
+
+    .eco-core {
+      min-height: 120px;
+    }
+
+    .eco-matrix {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eco-scanline,
+    .eco-pulse-dot {
+      animation: none;
+    }
+
+    .eco-btn,
+    .eco-tool-card {
+      transition: none;
+    }
+  }
+</style>
+
+<div class="eco-tron">
+  <div class="eco-scanline" aria-hidden="true"></div>
+
+  <section class="eco-hero">
+    <div>
+      <span class="eco-kicker">Connected Discovery Grid</span>
+
+      <h1>
+        The <span class="eco-gradient-text">PROTAC Design Ecosystem</span>
+      </h1>
+
+      <p class="eco-hero-copy">
+        A connected research interface for moving from target-binding chemistry to recruiter selection,
+        degrader assembly, API-ready outputs, and downstream modeling.
+      </p>
+
+      <p class="eco-hero-copy">
+        Instead of forcing every scientific decision into one screen, PROTAC Builder acts as the central
+        assembly layer between specialized discovery tools.
+      </p>
+
+      <div class="eco-hero-actions">
+        <a class="eco-btn eco-btn--primary" href="/builder">Launch PROTAC Builder</a>
+        <a class="eco-btn eco-btn--yellow" href="#tools">Explore the tool grid</a>
+        <a class="eco-btn eco-btn--blue" href="/api-builder">Open API Builder</a>
+      </div>
+    </div>
+
+    <div class="eco-orbit-wrap" aria-label="PROTAC Builder ecosystem map">
+      <span class="eco-pulse-dot" aria-hidden="true"></span>
+      <span class="eco-pulse-dot" aria-hidden="true"></span>
+      <span class="eco-pulse-dot" aria-hidden="true"></span>
+
+      <div class="eco-core">
+        PROTAC<br>Builder<br>Assembly Core
+      </div>
+
+      <div class="eco-node eco-node--red">
+        <strong>Warhead Hunter</strong>
+        <span>Target-binding discovery</span>
+      </div>
+
+      <div class="eco-node eco-node--yellow">
+        <strong>E3 Ligandalyzer</strong>
+        <span>Recruiter intelligence</span>
+      </div>
+
+      <div class="eco-node eco-node--blue">
+        <strong>V-LiSEMOD</strong>
+        <span>Viral ligand evidence</span>
+      </div>
+
+      <div class="eco-node eco-node--purple">
+        <strong>API Builder</strong>
+        <span>Scriptable handoff</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="eco-section" id="tools">
+    <div class="eco-section-head">
+      <div>
+        <span class="eco-section-eyebrow">Tool Roles</span>
+        <h2>Specialized modules. One connected degrader pipeline.</h2>
+      </div>
+      <p class="eco-section-note">
+        Each tool answers a different design question, then hands useful context back into the PROTAC Builder workflow.
+      </p>
+    </div>
+
+    <div class="eco-card-grid">
+      <article class="eco-tool-card eco-tool-card--green">
+        <span class="eco-tool-kicker">Assembly Core</span>
+        <h3>PROTAC Builder</h3>
+        <p>
+          Assemble warhead, linker, and E3 recruiter components into candidate degraders,
+          then export outputs for modeling and downstream analysis.
+        </p>
+        <a href="/builder">Open PROTAC Builder →</a>
+      </article>
+
+      <article class="eco-tool-card eco-tool-card--red">
+        <span class="eco-tool-kicker">Warhead Signal</span>
+        <h3>Warhead Hunter</h3>
+        <p>
+          Explore target-binding warheads and warhead-focused discovery context before selecting
+          the binding handle that enters the degrader design workflow.
+        </p>
+        <a href="https://warheadhunter.com" target="_blank" rel="noopener noreferrer">Open Warhead Hunter ↗</a>
+      </article>
+
+      <article class="eco-tool-card eco-tool-card--yellow">
+        <span class="eco-tool-kicker">Recruiter Grid</span>
+        <h3>E3 Ligandalyzer</h3>
+        <p>
+          Inspect E3 recruiters, ligase scaffolds, ligand pages, and attachment context to support
+          recruiter selection and scaffold-aware PROTAC design.
+        </p>
+        <a href="https://e3ligandalyzer.com/explorer" target="_blank" rel="noopener noreferrer">Open E3 Ligandalyzer ↗</a>
+      </article>
+
+      <article class="eco-tool-card eco-tool-card--blue">
+        <span class="eco-tool-kicker">Viral Target Layer</span>
+        <h3>V-LiSEMOD</h3>
+        <p>
+          Use viral protein-ligand structures, bound ligands, and solvent-exposed moiety evidence
+          to guide warhead selection for viral-target degrader concepts.
+        </p>
+        <a href="https://vlisemod.com" target="_blank" rel="noopener noreferrer">Open V-LiSEMOD ↗</a>
+      </article>
+
+      <article class="eco-tool-card eco-tool-card--purple">
+        <span class="eco-tool-kicker">Developer Mode</span>
+        <h3>API Builder And Docs</h3>
+        <p>
+          Move from interactive design into scripted, notebook, or batch-oriented workflows with
+          cleaner handoffs for repeatable computational experiments.
+        </p>
+        <a href="/api-builder">Open API Builder →</a>
+      </article>
+
+      <article class="eco-tool-card eco-tool-card--orange">
+        <span class="eco-tool-kicker">Lab Ecosystem</span>
+        <h3>Schurer Lab</h3>
+        <p>
+          Connect the public tool ecosystem back to the broader research context, scientific methods,
+          related projects, and open discovery infrastructure.
+        </p>
+        <a href="https://schurerlab.org" target="_blank" rel="noopener noreferrer">Visit Schurer Lab ↗</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="eco-section" id="journey">
+    <div class="eco-section-head">
+      <div>
+        <span class="eco-section-eyebrow">Workflow Path</span>
+        <h2>A typical PROTAC discovery route</h2>
+      </div>
+      <p class="eco-section-note">
+        The ecosystem is designed around real decision points: warhead, recruiter, viral context,
+        assembly, and modeling handoff.
+      </p>
+    </div>
+
+    <div class="eco-flow">
+      <article class="eco-flow-step">
+        <div class="eco-flow-number">01</div>
+        <div>
+          <h3>Find target-binding chemistry</h3>
+          <p>
+            Start in Warhead Hunter when the warhead decision is still open and you need target-binding
+            chemistry or discovery context.
+          </p>
+        </div>
+        <span class="eco-flow-tag">Warhead</span>
+      </article>
+
+      <article class="eco-flow-step">
+        <div class="eco-flow-number">02</div>
+        <div>
+          <h3>Choose recruiter context</h3>
+          <p>
+            Move into E3 Ligandalyzer when the recruiter, ligase scaffold, or attachment strategy needs
+            deeper inspection.
+          </p>
+        </div>
+        <span class="eco-flow-tag">Recruiter</span>
+      </article>
+
+      <article class="eco-flow-step">
+        <div class="eco-flow-number">03</div>
+        <div>
+          <h3>Use viral structure evidence when relevant</h3>
+          <p>
+            Use V-LiSEMOD when the target is viral and solvent-exposed ligand evidence can inform
+            degrader starting points.
+          </p>
+        </div>
+        <span class="eco-flow-tag">Viral</span>
+      </article>
+
+      <article class="eco-flow-step">
+        <div class="eco-flow-number">04</div>
+        <div>
+          <h3>Assemble and export the degrader</h3>
+          <p>
+            Return to PROTAC Builder to assemble the degrader and prepare outputs for downstream modeling,
+            scripting, or batch workflows.
+          </p>
+        </div>
+        <span class="eco-flow-tag">Builder</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="eco-section" id="handoff">
+    <div class="eco-section-head">
+      <div>
+        <span class="eco-section-eyebrow">Handoff Logic</span>
+        <h2>What each tool contributes</h2>
+      </div>
+      <p class="eco-section-note">
+        The goal is not just navigation. It is a scientific handoff from evidence to assembly to reproducible output.
+      </p>
+    </div>
+
+    <div class="eco-split">
+      <div class="eco-mini-panel">
+        <h3>Why the ecosystem is distributed</h3>
+        <p>
+          PROTAC design spans several scientific layers. A single interface can become overloaded,
+          so each tool owns a focused decision while PROTAC Builder connects the final design objects.
+        </p>
+
+        <ul class="eco-signal-list">
+          <li>Warhead tools support target-binding component selection.</li>
+          <li>Recruiter tools support E3 ligand and scaffold selection.</li>
+          <li>Viral ligand tools support target-bound evidence discovery.</li>
+          <li>Builder outputs support modeling, scoring, and scripted handoff.</li>
+        </ul>
+      </div>
+
+      <div class="eco-mini-panel">
+        <table class="eco-matrix">
+          <thead>
+            <tr>
+              <th>Decision</th>
+              <th>Primary Tool</th>
+              <th>Builder Handoff</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>What binds the target?</strong></td>
+              <td>Warhead Hunter / V-LiSEMOD</td>
+              <td>Candidate warhead or ligand-derived starting point</td>
+            </tr>
+            <tr>
+              <td><strong>Which E3 recruiter?</strong></td>
+              <td>E3 Ligandalyzer</td>
+              <td>Recruiter and attachment context</td>
+            </tr>
+            <tr>
+              <td><strong>How do components connect?</strong></td>
+              <td>PROTAC Builder</td>
+              <td>Assembled degrader candidates</td>
+            </tr>
+            <tr>
+              <td><strong>How does it move downstream?</strong></td>
+              <td>API Builder / Docs</td>
+              <td>Batch, scripted, or modeling-ready outputs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="eco-cta-panel">
+    <span class="eco-section-eyebrow">Ready to build</span>
+    <h2>Move from discovery signal to degrader design.</h2>
+    <p>
+      Start with the interactive builder, explore connected discovery tools, or move directly into
+      API-oriented workflows for reproducible computational design.
+    </p>
+
+    <div class="eco-hero-actions">
+      <a class="eco-btn eco-btn--primary" href="/builder">Open PROTAC Builder</a>
+      <a class="eco-btn eco-btn--red" href="https://warheadhunter.com" target="_blank" rel="noopener noreferrer">Warhead Hunter ↗</a>
+      <a class="eco-btn eco-btn--yellow" href="https://e3ligandalyzer.com/explorer" target="_blank" rel="noopener noreferrer">E3 Ligandalyzer ↗</a>
+      <a class="eco-btn eco-btn--blue" href="/api-docs">Read API Docs</a>
+    </div>
+  </section>
+</div>
+
 {% endblock %}
