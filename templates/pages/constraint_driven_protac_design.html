@@ -66,7 +66,7 @@
       {{ action_link('https://pmc.ncbi.nlm.nih.gov/articles/PMC12568945/', 'Read the PRosettaC benchmark', external=True) }}
     </div>
   </div>
-  <figure class="protac-figure-card protac-figure-card--hero">
+  <figure class="protac-figure-card protac-figure-card--hero science-figure science-figure--hero">
     <img
       src="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}"
       alt="Benchmark figure comparing DockQ score distributions across AF3 minimal-complex, PRosettaC ternary-complex, and AF3 core-complex predictions for crystallographically resolved PROTAC ternary systems."
@@ -79,6 +79,27 @@
       <a href="https://doi.org/10.1038/s41598-025-21502-8" target="_blank" rel="noopener noreferrer">doi:10.1038/s41598-025-21502-8</a>,
       displayed unmodified under CC BY-NC-ND 4.0.
     </figcaption>
+    <div class="protac-figure-card__actions">
+      <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 1 benchmark overview">View larger benchmark figure</a>
+    </div>
+  </figure>
+</section>
+
+<section class="protac-section-card" id="featured-benchmark">
+  <div class="protac-section-head"><h2>Featured benchmark overview</h2></div>
+  <figure class="protac-figure-card protac-figure-card--feature science-figure science-figure--feature">
+    <img
+      src="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}"
+      alt="Large benchmark overview figure comparing DockQ score distributions across AF3 minimal-complex, PRosettaC ternary-complex, and AF3 core-complex predictions for crystallographically resolved PROTAC ternary systems."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 1.</strong> This larger top-of-page view gives the benchmark overview enough room for readers to
+      inspect the score distributions before moving into the interpretation sections below.
+    </figcaption>
+    <div class="protac-figure-card__actions">
+      <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="Open full-size benchmark overview figure from Paper 4">Open full-size image</a>
+    </div>
   </figure>
 </section>
 
@@ -120,7 +141,7 @@
         formation or degradation.
       </div>
     </div>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
       <img
         src="{{ url_for('static', filename='images/Paper4/Figure2.jpg') }}"
         alt="Cumulative DockQ distribution comparison showing different tails and high-score behavior for AF3 minimal-complex, PRosettaC, and AF3 core-complex models."
@@ -133,6 +154,9 @@
         <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12568945/" target="_blank" rel="noopener noreferrer">source article</a>,
         displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure2.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 2 cumulative DockQ distribution comparison">View larger version</a>
+      </div>
     </figure>
   </div>
 </section>
@@ -222,7 +246,7 @@
         always wins, and it does not remove the need for experimental validation.
       </div>
     </div>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
       <img
         src="{{ url_for('static', filename='images/Paper4/Figure6.jpg') }}"
         alt="Per-system median DockQ comparison showing PRosettaC, AF3 minimal-complex, and AF3 core-complex performance across benchmarked ternary complexes."
@@ -235,54 +259,75 @@
         <a href="https://doi.org/10.1038/s41598-025-21502-8" target="_blank" rel="noopener noreferrer">doi link</a>,
         displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure6.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 6 per-system median DockQ comparison">View larger version</a>
+      </div>
     </figure>
   </div>
 </section>
 
 <section class="protac-section-card" id="benchmark-figures">
   <div class="protac-section-head"><h2>Reading the benchmark figures</h2></div>
-  <div class="protac-linker-grid protac-linker-grid--two">
-    <figure class="protac-figure-card">
+  <div class="science-figure-grid">
+    <figure class="protac-figure-card protac-figure-card--large science-figure science-figure--wide">
       <img src="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}" alt="Boxplot-style DockQ score distributions across benchmark ternary systems for AF3 minimal complex, PRosettaC ternary complex, and AF3 core complex models." loading="lazy">
       <figcaption>
         <strong>Figure 1.</strong> Median-centered DockQ distributions show broad variability across systems and methods;
         PRosettaC reaches higher medians in some targets but not all. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure1.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 1 DockQ distribution plot">View larger version</a>
+      </div>
     </figure>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure science-figure--wide">
       <img src="{{ url_for('static', filename='images/Paper4/Figure2.jpg') }}" alt="Cumulative DockQ distribution curves for AF3 minimal complex, PRosettaC ternary complex, and AF3 core complex benchmark models." loading="lazy">
       <figcaption>
         <strong>Figure 2.</strong> Cumulative DockQ curves emphasize tail behavior; PRosettaC accesses more high-scoring
         outliers in favorable systems, which matters for ternary-complex prioritization. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure2.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 2 cumulative DockQ curves">View larger version</a>
+      </div>
     </figure>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure science-figure--wide">
       <img src="{{ url_for('static', filename='images/Paper4/Figure3.jpg') }}" alt="Normalized histogram of DockQ score fractions showing most predicted models in low-scoring bins and smaller fractions in mid or high bins." loading="lazy">
       <figcaption>
         <strong>Figure 3.</strong> Normalized DockQ distributions show that most sampled models remain low-scoring, while
         constraint-guided methods can access more mid- and high-quality bins when the geometry is compatible. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure3.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 3 DockQ histogram">View larger version</a>
+      </div>
     </figure>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure science-figure--wide">
       <img src="{{ url_for('static', filename='images/Paper4/Figure4.jpg') }}" alt="Heat map of median DockQ differences comparing AF3 core complex, PRosettaC ternary complex, and AF3 minimal complex across benchmark systems." loading="lazy">
       <figcaption>
         <strong>Figure 4.</strong> Median DockQ difference heat maps make the method-to-method tradeoffs explicit rather
         than collapsing them into one summary score. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure4.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 4 benchmark heat map">View larger version</a>
+      </div>
     </figure>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure science-figure--wide">
       <img src="{{ url_for('static', filename='images/Paper4/Figure5.jpg') }}" alt="Swarm plot of model-level DockQ variability across benchmarked ternary complexes with many PRosettaC samples and high-scoring outliers." loading="lazy">
       <figcaption>
         <strong>Figure 5.</strong> Swarm-plot variability shows how PRosettaC can generate many sampled poses, including
         high-scoring outliers, even when median performance is modest. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure5.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 5 swarm plot">View larger version</a>
+      </div>
     </figure>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure science-figure--wide">
       <img src="{{ url_for('static', filename='images/Paper4/Figure6.jpg') }}" alt="Line plot of per-system median DockQ scores for AF3 core complex, AF3 minimal complex, and PRosettaC ternary complex predictions." loading="lazy">
       <figcaption>
         <strong>Figure 6.</strong> Per-system medians reinforce that PRosettaC is often strong in favorable systems but
         does not universally dominate every target-E3 pair. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure6.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 6 per-system median DockQ plot">View larger version</a>
+      </div>
     </figure>
   </div>
 </section>
@@ -324,7 +369,7 @@
         geometry made possible by the actual degrader, not only the global protein assembly.
       </div>
     </div>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
       <img
         src="{{ url_for('static', filename='images/Paper4/Figure4.jpg') }}"
         alt="Method-comparison heat map summarizing where AF3 core complex, AF3 minimal complex, and PRosettaC differ in median DockQ performance."
@@ -335,6 +380,9 @@
         system-specific and should be interpreted at the degrader-relevant interface level. Figure from Schulz et al.,
         displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure4.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 4 method comparison heat map">View larger version</a>
+      </div>
     </figure>
   </div>
 </section>
@@ -347,20 +395,26 @@
     introduced frame-by-frame DockQ evaluation to expose that hidden compatibility.
   </p>
   <div class="protac-linker-grid protac-linker-grid--two">
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
       <img src="{{ url_for('static', filename='images/Paper4/Figure7.jpg') }}" alt="Frame-by-frame DockQ traces comparing AF3 models to molecular-dynamics reference frames, showing low scores across the ensemble and an acceptable-threshold guide line." loading="lazy">
       <figcaption>
         <strong>Figure 7.</strong> AF3 minimal predictions in the benchmark stayed low-scoring across the dynamic
         reference ensemble, showing that a static pose can remain incompatible even after local conformational motion.
         Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure7.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 7 AF3 frame-by-frame DockQ traces">View larger version</a>
+      </div>
     </figure>
-    <figure class="protac-figure-card">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
       <img src="{{ url_for('static', filename='images/Paper4/Figure8.jpg') }}" alt="Frame-by-frame DockQ traces for PRosettaC models against molecular-dynamics reference frames, showing transient score improvements above a benchmark threshold." loading="lazy">
       <figcaption>
         <strong>Figure 8.</strong> Several PRosettaC predictions transiently improved against MD frames, revealing
         compatibility that a single static crystal comparison would miss. Figure from Schulz et al., displayed unmodified under CC BY-NC-ND 4.0.
       </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Paper4/Figure8.jpg') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of Figure 8 PRosettaC frame-by-frame DockQ traces">View larger version</a>
+      </div>
     </figure>
   </div>
   <div class="protac-callout">

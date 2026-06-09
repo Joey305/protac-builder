@@ -3,7 +3,7 @@
 }
 
 .protac-content-shell {
-  max-width: 1240px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 2rem 1rem 4.5rem;
   display: grid;
@@ -197,8 +197,8 @@
 
 .protac-linker-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
-  gap: 1.2rem;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 1fr);
+  gap: 1.4rem;
   align-items: start;
 }
 
@@ -273,7 +273,10 @@
   display: block;
   width: 100%;
   height: auto;
-  object-fit: cover;
+  object-fit: contain;
+  background:
+    radial-gradient(circle at top, rgba(34, 211, 238, 0.08), transparent 44%),
+    rgba(5, 10, 20, 0.9);
 }
 
 .protac-figure-card figcaption {
@@ -288,6 +291,78 @@
 
 .protac-figure-card--hero {
   align-self: stretch;
+}
+
+.protac-figure-card--hero img {
+  min-height: 340px;
+  max-height: 620px;
+}
+
+.protac-figure-card--large img,
+.science-figure--wide img {
+  max-height: 760px;
+}
+
+.protac-figure-card--feature img,
+.science-figure--feature img {
+  max-height: none;
+}
+
+.protac-figure-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0 1rem 1rem;
+}
+
+.protac-figure-card__zoom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(8, 13, 26, 0.88);
+  border: 1px solid rgba(94, 234, 212, 0.24);
+  color: #dff6ff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.protac-figure-card__zoom:hover,
+.protac-figure-card__zoom:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(103, 232, 249, 0.56);
+  background: rgba(10, 18, 32, 0.96);
+  color: #f8fbff;
+  text-decoration: none;
+}
+
+.science-figure-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.science-figure-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.science-figure-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.science-figure,
+.figure-card {
+  scroll-margin-top: 110px;
+}
+
+.science-figure--feature,
+.figure-card--large {
+  background:
+    radial-gradient(circle at top right, rgba(94, 234, 212, 0.12), transparent 34%),
+    rgba(15, 23, 42, 0.82);
 }
 
 .protac-callout,
@@ -451,11 +526,18 @@
   .protac-linker-grid--two,
   .protac-linker-grid--three,
   .protac-comparison-grid,
-  .protac-checklist-grid {
+  .protac-checklist-grid,
+  .science-figure-grid--two,
+  .science-figure-grid--three {
     grid-template-columns: 1fr;
   }
 
   .protac-checklist-item {
     padding-left: 2.9rem;
+  }
+
+  .protac-figure-card--hero img {
+    min-height: 0;
+    max-height: none;
   }
 }
