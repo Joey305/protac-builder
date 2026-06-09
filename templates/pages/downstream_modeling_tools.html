@@ -1,30 +1,501 @@
 {% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What happens after PROTAC Builder assembly?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "After assembly, a PROTAC candidate should move through representation checks, descriptor triage, linker bridgeability review, ternary-complex construction, selective refinement, learned re-ranking where appropriate, benchmark-ready reporting, and experimental prioritization."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What metadata should leave PROTAC Builder?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Downstream workflows should preserve the full assembled PROTAC structure, warhead and recruiter identities, linker identity, attachment atoms, stereochemistry, protonation assumptions, export format, intended POI and E3 structures, and notes about solvent-exposed exit vectors."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do downstream modeling scores prove degradation?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Downstream modeling produces hypotheses and prioritization signals. It can help assess geometry, bridgeability, interface plausibility, and stability, but it does not guarantee ternary-complex formation, ubiquitination, or cellular degradation."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Workflow Integration</span>
-  <h1>Downstream Modeling Tools</h1>
-  <p class="protac-hero-copy">Builder outputs are best treated as inputs for deeper modeling, filtering, and experimental design rather than as final answers.</p>
-  <p class="protac-hero-copy">The strongest workflows combine clean component representation with follow-on scoring, structural validation, and domain-aware interpretation.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">PROTAC Downstream Modeling</span>
+    <h1>Downstream PROTAC Modeling Tools</h1>
+    <p class="protac-hero-copy">
+      PROTAC Builder outputs are starting points for deeper computational and experimental decision-making. Once a
+      candidate degrader is assembled, downstream modeling asks whether the molecule is chemically valid, geometrically
+      plausible, bridgeable in 3D, compatible with a target-E3 ternary complex, and worth prioritizing for synthesis or
+      biological testing.
+    </p>
+    <p class="protac-hero-copy">
+      The strongest workflows move in stages: preserve the right metadata, screen for obvious feasibility issues, build
+      ternary-complex hypotheses, refine only the most credible poses, and interpret every score as one layer of
+      evidence rather than a guarantee of degradation.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Builder output to 3D handoff</span>
+      <span class="protac-pill">Geometry before heavy scoring</span>
+      <span class="protac-pill">Physics plus ML</span>
+      <span class="protac-pill">Experiments still decide</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+      {{ action_link('/api-builder', 'Open API Builder') }}
+      {{ action_link('/in-silico-protac-modeling', 'Read in silico modeling guide') }}
+      {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+      {{ action_link('/benchmarking', 'Benchmarking guide') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper5/TOCgraphic.png') }}"
+      alt="Overview figure showing computational PROTAC workflows from candidate generation through geometric feasibility, ternary modeling, learned scoring, ensemble validation, and prioritization."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>TOC graphic.</strong> Computational PROTAC workflows connect candidate generation, geometric feasibility,
+      ternary modeling, learned scoring, ensemble validation, and prioritization. Figure from the Schürer Lab in
+      silico PROTAC modeling perspective manuscript, used here as project-owned educational content.
+    </figcaption>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="categories">
-  <div class="protac-section-head"><h2>Common downstream categories</h2></div>
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: what happens after PROTAC Builder?</h2></div>
+  <p class="protac-section-copy">
+    Downstream modeling starts once a candidate has been assembled and exported with enough chemical and structural
+    context to support reproducible 3D evaluation.
+  </p>
+  <ol class="protac-step-list">
+    <li>Export a chemically valid candidate structure.</li>
+    <li>Preserve warhead, linker, recruiter, and attachment-atom metadata.</li>
+    <li>Generate or validate 3D conformers.</li>
+    <li>Check basic descriptors and property burden.</li>
+    <li>Test linker bridgeability and exit-vector geometry.</li>
+    <li>Build candidate ternary-complex poses.</li>
+    <li>Refine and score prioritized poses.</li>
+    <li>Use ML predictors or re-rankers where appropriate.</li>
+    <li>Benchmark and document the workflow.</li>
+    <li>Prioritize candidates for experimental degradation assays.</li>
+  </ol>
+  <div class="protac-callout">
+    <strong>Takeaway:</strong> downstream modeling is a filtering and hypothesis-generation layer, not a replacement
+    for degradation experiments.
+  </div>
+</section>
+
+<section class="protac-section-card" id="exports">
+  <div class="protac-section-head"><h2>What should leave PROTAC Builder?</h2></div>
+  <p class="protac-section-copy">
+    Downstream workflows are only as reliable as the handoff. Preserve enough chemistry and metadata so the molecule
+    can be reconstructed, interpreted, and benchmarked without guesswork.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Full assembled PROTAC structure</div>
+    <div class="protac-checklist-item">SMILES, MOL, SDF, or other supported export format</div>
+    <div class="protac-checklist-item">Warhead identity and boundary</div>
+    <div class="protac-checklist-item">E3 recruiter identity and boundary</div>
+    <div class="protac-checklist-item">Linker identity and chemistry</div>
+    <div class="protac-checklist-item">Warhead-side attachment atom</div>
+    <div class="protac-checklist-item">Recruiter-side attachment atom</div>
+    <div class="protac-checklist-item">Atom mapping or equivalent connection notation when available</div>
+    <div class="protac-checklist-item">Stereochemistry</div>
+    <div class="protac-checklist-item">Protonation and tautomer assumptions when known</div>
+    <div class="protac-checklist-item">Intended POI structure or model</div>
+    <div class="protac-checklist-item">Intended E3 ligase or recruiter-bound structure</div>
+    <div class="protac-checklist-item">Notes on solvent-exposed exit vectors</div>
+    <div class="protac-checklist-item">Builder version or export date where possible</div>
+  </div>
+  <div class="protac-callout">
+    <strong>Reproducibility warning:</strong> if attachment atoms are lost during export, downstream geometry-aware
+    modeling becomes much less reproducible.
+  </div>
+  <pre class="protac-schema-block"><code>{
+  "protac": "assembled structure",
+  "warhead_anchor_atom": "documented",
+  "recruiter_anchor_atom": "documented",
+  "component_boundaries": ["warhead", "linker", "recruiter"],
+  "stereochemistry": "documented",
+  "protonation_notes": "documented when known",
+  "target_structure": "PDB or model reference",
+  "e3_structure": "PDB or model reference"
+}</code></pre>
+</section>
+
+<section class="protac-section-card" id="method-families">
+  <div class="protac-section-head"><h2>Downstream method families at a glance</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-mini-card">
+      <h3>Descriptor and property filtering</h3>
+      <p>Fast first-pass triage for MW, cLogP or logD, HBD/HBA, TPSA, rotatable bonds, charge, and basic developability risk. Useful early, but it does not prove ternary formation.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Linker bridgeability and geometry checks</h3>
+      <p>Tests whether anchors and exit vectors can plausibly be connected in 3D before expensive docking or MD. Strongly dependent on correct anchor definitions.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Restrained or tethered ternary docking</h3>
+      <p>Builds POI-PROTAC-E3 poses under distance or linker constraints. Useful for structure-first design, but sensitive to sampling and scoring.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>PRosettaC-style modeling</h3>
+      <p>Uses anchor atoms and linker constraints to guide Rosetta-based ternary modeling. Strong when binding modes are known; brittle when anchors or linker hypotheses are wrong.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Efficient ternary construction workflows</h3>
+      <p>DegraderTCM-style lightweight assembly and minimization support rapid screens, but may miss subtler protein-interface rearrangements.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Molecular dynamics refinement</h3>
+      <p>Relaxes poses and tests local stability for prioritized candidates. Useful, but expensive and force-field sensitive.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Dynamic stability scoring</h3>
+      <p>HAPOD-style or short-MD stress tests help rank pose persistence rather than just minimized snapshots. Requires careful setup and interpretation.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Grid or field-based ensemble methods</h3>
+      <p>SILCS-xTAC-style approaches evaluate favorable linker or interaction regions across ensembles and can add field-based reasoning to pose review.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>ML re-ranking and prediction</h3>
+      <p>DeepPROTACs, DegradeMaster, ET-PROTACs, PROTACable, and related models can prioritize larger sets quickly, but only within their training domain.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Generative design feedback loops</h3>
+      <p>PROTAC-Invent, ProLinker, DAD-PROTAC, diffusion, and graph generators can propose new candidates after failure analysis, but all outputs need chemistry and geometry filters.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="descriptor-triage">
+  <div class="protac-section-head"><h2>Stage 1: descriptor and property triage</h2></div>
+  <p class="protac-section-copy">
+    Before heavy modeling, check whether the assembled candidate is chemically valid and carries a plausible property
+    burden for the intended context. PROTACs often live beyond classic Rule-of-Five space, so these filters are best
+    used as risk indicators rather than hard pass or fail rules.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">MW</div>
+    <div class="protac-checklist-item">cLogP or logD</div>
+    <div class="protac-checklist-item">HBD and HBA</div>
+    <div class="protac-checklist-item">TPSA</div>
+    <div class="protac-checklist-item">Rotatable bonds</div>
+    <div class="protac-checklist-item">Formal charge</div>
+    <div class="protac-checklist-item">Chiral centers</div>
+    <div class="protac-checklist-item">Linker length and polarity</div>
+    <div class="protac-checklist-item">Structural alerts</div>
+    <div class="protac-checklist-item">Synthetic accessibility or developability score where supported</div>
+  </div>
+  <p class="protac-section-copy">
+    This is where large enumerations and generative outputs should be pruned before expensive structure-based work.
+    DeepPSA-style synthetic accessibility or related feasibility modules can support this stage, but they should be
+    interpreted as triage signals rather than final answers.
+  </p>
+</section>
+
+<section class="protac-section-card" id="geometry">
+  <div class="protac-section-head"><h2>Stage 2: geometry and bridgeability checks</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        A 2D PROTAC can look perfectly reasonable while being impossible or highly strained in 3D. Bridgeability checks
+        ask whether the linker can plausibly connect the warhead and recruiter anchors across candidate protein
+        orientations without buried paths, impossible distances, or severe clashes.
+      </p>
+      <div class="protac-checklist-grid">
+        <div class="protac-checklist-item">Are both anchor atoms solvent-exposed?</div>
+        <div class="protac-checklist-item">Does the linker exit toward the partner protein?</div>
+        <div class="protac-checklist-item">Is the linker too short, too long, or overconstrained?</div>
+        <div class="protac-checklist-item">Are key binary binding interactions preserved?</div>
+        <div class="protac-checklist-item">Are alternate attachment atoms worth testing?</div>
+      </div>
+      <div class="protac-callout">
+        <strong>Interpretation:</strong> bridgeability is a feasibility test, not a proof of productive degradation.
+      </div>
+    </div>
+    <div class="protac-card-grid">
+      {{ info_card('Constraint-driven design', 'Use anchor-aware and exit-vector-aware reasoning before expensive ternary-complex modeling.', '/constraint-driven-protac-design', kicker='Geometry', cta='Review constraints') }}
+      {{ info_card('Linker design', 'Compare flexible, rigid, and polarity-balanced linker hypotheses before final handoff.', '/linkers', kicker='Linkers', cta='Review linkers') }}
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="ternary-construction">
+  <div class="protac-section-head"><h2>Stage 3: ternary complex construction</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper5/Figure2.jpg') }}"
+        alt="Overview of physics-based downstream PROTAC modeling strategies including restrained docking, PRosettaC-style workflows, molecular dynamics refinement, HAPOD, DegraderTCM, energy landscapes, and field-based methods."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 2.</strong> Constraint-driven and physics-based downstream modeling strategies for PROTAC
+        ternary-complex construction, refinement, scoring, and interpretation. Figure from the Schürer Lab in silico
+        PROTAC modeling perspective manuscript, used here as project-owned educational content.
+      </figcaption>
+    </figure>
+    <div class="protac-note-grid">
+      <article class="protac-note">
+        <h3>Restrained or tethered docking</h3>
+        <p>Uses geometric restraints to keep the PROTAC linker compatible with both bound ligands. Useful for POI and recruiter pairs with known structures, but it needs decoys and ranking checks.</p>
+      </article>
+      <article class="protac-note">
+        <h3>PRosettaC-style workflows</h3>
+        <p>Use anchor atoms and distance constraints to guide Rosetta sampling. Especially useful when the input binding modes are reliable and you want interpretable linker-geometry hypotheses.</p>
+      </article>
+      <article class="protac-note">
+        <h3>DegraderTCM-style efficient construction</h3>
+        <p>Faster and lighter ternary modeling for larger candidate sets. Strong as a triage layer, but not definitive for subtle protein-interface rearrangements.</p>
+      </article>
+      <article class="protac-note">
+        <h3>Energy landscape and linker-feasibility approaches</h3>
+        <p>Restrict evaluation to linkable protein-protein orientations and help explain why some linker lengths, vectors, or chemotypes fail before deeper refinement.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="refinement">
+  <div class="protac-section-head"><h2>Stage 4: refinement and dynamic evaluation</h2></div>
+  <p class="protac-section-copy">
+    Once you have a smaller set of plausible poses, use refinement and ensemble methods to test whether those poses hold
+    together under more realistic conditions.
+  </p>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What this stage can do</span>
+      <p>Energy minimization, explicit-solvent MD, MM/GBSA-style rescoring, HAPOD-style dynamic stress testing, short-MD persistence checks, ensemble evaluation, and SILCS-xTAC-style field-based scoring.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What it cannot prove</span>
+      <p>A stable pose does not guarantee degradation. Cell context, E3 expression, lysine accessibility, permeability, ubiquitination geometry, and assay conditions still matter.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Caution:</strong> a beautiful MD trajectory can still be biologically irrelevant if the cell context, E3
+    expression, target lysines, permeability, or assay design are unfavorable.
+  </div>
+</section>
+
+<section class="protac-section-card" id="scoring">
+  <div class="protac-section-head"><h2>Stage 5: scoring, ranking, and interpretation</h2></div>
+  <p class="protac-section-copy">
+    Downstream modeling should not rely on one score. The goal is to build a layered argument for why a candidate is
+    worth keeping, not to hide score disagreement.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Chemical validity</div>
+    <div class="protac-checklist-item">Linker bridgeability</div>
+    <div class="protac-checklist-item">Severe clash check</div>
+    <div class="protac-checklist-item">Interface plausibility</div>
+    <div class="protac-checklist-item">Buried surface and contact quality</div>
+    <div class="protac-checklist-item">Ligand and linker strain</div>
+    <div class="protac-checklist-item">Solvent exposure</div>
+    <div class="protac-checklist-item">Lysine proximity or ubiquitination-plausibility proxies</div>
+    <div class="protac-checklist-item">Ensemble stability</div>
+    <div class="protac-checklist-item">Learned pose viability or degradation probability</div>
+    <div class="protac-checklist-item">Experimental feasibility</div>
+  </div>
   <ul class="protac-bullet-list">
-    <li>PRosettaC-style restrained ternary modeling</li>
-    <li>Docking and ternary pose construction workflows</li>
-    <li>Molecular dynamics refinement</li>
-    <li>DockQ and interface metric analysis</li>
-    <li>Linker geometry and bridgeability checks</li>
-    <li>RDKit descriptor workflows</li>
-    <li>ADMET or DeepPK-adjacent screening where supported</li>
-    <li>Notebook, server, and batch-generation pipelines</li>
-    <li>Machine-learning reranking and generative design systems</li>
+    <li>DockQ and interface RMSD are most useful when reference ternary structures exist.</li>
+    <li>Docking scores and Rosetta energies can support ranking, but they need calibration.</li>
+    <li>ML predictions should be interpreted with training-domain and uncertainty limits in mind.</li>
+    <li>Score disagreement is informative and should be documented, not hidden.</li>
   </ul>
+  {{ action_link('/benchmarking', 'Review benchmarking guide') }}
 </section>
 
-<section class="protac-section-card" id="caveat">
-  <div class="protac-section-head"><h2>Important caveat</h2></div>
-  <p class="protac-section-copy">Exported structures, descriptors, and generated candidates remain hypotheses. They should be interpreted alongside assay design, structure review, and experimental validation rather than as claims of guaranteed degradation.</p>
+<section class="protac-section-card" id="ml-layers">
+  <div class="protac-section-head"><h2>Stage 6: ML re-ranking and predictive layers</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Learned predictors can help triage large candidate sets after geometry filters. They are most useful when you
+        need throughput, uncertainty-aware prioritization, or learned re-ranking on top of structure-first generation.
+      </p>
+      <div class="protac-note-grid">
+        <article class="protac-note">
+          <h3>DeepPROTACs and related degradation predictors</h3>
+          <p>Useful for candidate-level degradation prioritization from molecular and protein features.</p>
+        </article>
+        <article class="protac-note">
+          <h3>DegradeMaster and geometry-aware predictors</h3>
+          <p>Useful when spatial arrangement matters and the training data covers similar systems.</p>
+        </article>
+        <article class="protac-note">
+          <h3>ET-PROTACs and PROTACable-style re-ranking</h3>
+          <p>Useful for pose-ensemble prioritization or integrative 3D modeling pipelines.</p>
+        </article>
+        <article class="protac-note">
+          <h3>DeepTernary-style structure prediction</h3>
+          <p>Useful when direct ternary-geometry prediction is the main question rather than classic restrained docking.</p>
+        </article>
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper5/Figure3.png') }}"
+        alt="Overview of data-driven downstream PROTAC modeling strategies including geometric deep learning, degradation prediction, pose re-ranking, generative design, and feasibility filtering."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 3.</strong> Data-driven prediction, pose re-ranking, and generative-design methods that can act
+        as downstream prioritization layers after structure and geometry triage. Figure from the Schürer Lab in silico
+        PROTAC modeling perspective manuscript, used here as project-owned educational content.
+      </figcaption>
+    </figure>
+  </div>
+  <div class="protac-callout">
+    <strong>ML caution:</strong> random-split performance can look strong while failing under new targets, new E3
+    ligases, new linker classes, or different assay contexts.
+  </div>
+</section>
+
+<section class="protac-section-card" id="generative-feedback">
+  <div class="protac-section-head"><h2>Stage 7: generative feedback loops</h2></div>
+  <p class="protac-section-copy">
+    Downstream failure analysis should feed back into design. If bridgeability fails, descriptors look poor, or ternary
+    geometry is repeatedly unconvincing, the next step may be a new linker, a different attachment vector, or even a
+    different recruiter or warhead.
+  </p>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">If bridgeability fails, generate or enumerate new linkers.</div>
+    <div class="protac-checklist-item">If descriptors are poor, try property-balanced linker alternatives.</div>
+    <div class="protac-checklist-item">If ternary geometry is weak, revisit attachment vectors, linker rigidity, or E3 choice.</div>
+    <div class="protac-checklist-item">If learned activity is weak, test alternate warhead or recruiter combinations.</div>
+  </div>
+  <p class="protac-section-copy">
+    PROTAC-Invent-style 3D linker generation, ProLinker-style language-model workflows, DAD-PROTAC, diffusion, and
+    graph-based generators can propose new molecules, but every output still needs chemical sanity, synthetic
+    feasibility, bridgeability, and biological validation filters.
+  </p>
+</section>
+
+<section class="protac-section-card" id="workflow">
+  <div class="protac-section-head"><h2>Recommended downstream workflow</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <ol class="protac-step-list">
+        <li><strong>Builder export:</strong> export candidate structure and metadata.</li>
+        <li><strong>Representation audit:</strong> confirm atom mapping, anchors, stereochemistry, and protonation assumptions.</li>
+        <li><strong>Descriptor triage:</strong> remove obvious chemistry or property failures.</li>
+        <li><strong>Geometry triage:</strong> check exit vectors, linker bridgeability, and severe clashes.</li>
+        <li><strong>Rapid ternary construction:</strong> generate candidate poses with docking, restrained modeling, or low-resource pipelines.</li>
+        <li><strong>Pose filtering:</strong> rank by interface plausibility, linker strain, and geometry.</li>
+        <li><strong>Selective refinement:</strong> use MD, HAPOD-style scoring, or ensemble checks for top candidates.</li>
+        <li><strong>Learned prioritization:</strong> apply ML re-ranking or degradation predictors with uncertainty.</li>
+        <li><strong>Benchmark-ready reporting:</strong> document inputs, parameters, scores, and failure modes.</li>
+        <li><strong>Experimental follow-up:</strong> test degradation, DC50, Dmax, selectivity, target engagement, and hook effect.</li>
+      </ol>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper5/Figure4.png') }}"
+        alt="Decision tree for selecting downstream computational PROTAC workflows based on whether the goal is ternary pose construction, degradation prediction, generative design, or staged hybrid prioritization."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 4.</strong> Decision framework for choosing downstream computational PROTAC workflows based on
+        whether the immediate goal is pose construction, outcome prediction, generative redesign, or staged hybrid
+        prioritization. Figure from the Schürer Lab in silico PROTAC modeling perspective manuscript, used here as
+        project-owned educational content.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="handoff-checklist">
+  <div class="protac-section-head"><h2>Benchmark-ready handoff checklist</h2></div>
+  <p class="protac-section-copy">
+    If you want downstream results to be reproducible, report the handoff as carefully as the score.
+  </p>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">System and representation</span>
+      <p>System definition, protein structures and chain IDs, E3 complex composition, PROTAC representation, warhead-recruiter-linker boundaries, attachment atoms, anchor definitions, and stereochemistry or protonation state.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Preparation and protocol</span>
+      <p>Conformer-generation protocol, software and versions, random seeds, restraints, scoring settings, decoys or negative controls, and the exact output poses and scores kept for review.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Interpretation and scope</span>
+      <p>Domain of applicability, failure modes, validation status, and whether the workflow is being used for structure recovery, re-ranking, degradation prediction, or generative redesign.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Why it matters</span>
+      <p>PROTAC workflows are highly sensitive to attachment atoms, protonation, conformers, construct definitions, and restraint choices, so incomplete reporting undermines comparison across methods.</p>
+    </article>
+  </div>
+  {{ action_link('/benchmarking', 'Review benchmarking guide') }}
+</section>
+
+<section class="protac-section-card" id="mistakes">
+  <div class="protac-section-head"><h2>Common downstream modeling mistakes</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Exporting a molecule without anchor metadata</div>
+    <div class="protac-checklist-item">Treating 2D validity as 3D feasibility</div>
+    <div class="protac-checklist-item">Running docking before checking linker bridgeability</div>
+    <div class="protac-checklist-item">Ignoring solvent-exposed exit vectors</div>
+    <div class="protac-checklist-item">Using one score as the final answer</div>
+    <div class="protac-checklist-item">Overtrusting ML predictions outside the training domain</div>
+    <div class="protac-checklist-item">Ignoring failed conformer generation</div>
+    <div class="protac-checklist-item">Running expensive MD on poorly prepared systems</div>
+    <div class="protac-checklist-item">Forgetting E3 expression or cellular context</div>
+    <div class="protac-checklist-item">Claiming degradation from a model without experimental validation</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="ecosystem">
+  <div class="protac-section-head"><h2>How this page connects to the ecosystem</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('How to Build a PROTAC', 'Use the staged assembly workflow before you ever hand a candidate into downstream modeling.', '/how-to-build-a-protac', kicker='Workflow', cta='Read guide') }}
+    {{ info_card('Linker Design', 'Review linker length, rigidity, polarity, and exit-vector tradeoffs before bridgeability analysis.', '/linkers', kicker='Linkers', cta='Review linkers') }}
+    {{ info_card('E3 Recruiter Discovery', 'Inspect recruiter binding poses, solvent exposure, and attachment sites before ternary modeling.', '/e3-ligase-recruiters', kicker='Recruiters', cta='Explore recruiters') }}
+    {{ info_card('Constraint-Driven PROTAC Design', 'Ground handoff decisions in anchor-aware geometry and bridgeability reasoning.', '/constraint-driven-protac-design', kicker='Geometry', cta='Review constraints') }}
+    {{ info_card('In Silico PROTAC Modeling', 'See the broader computational landscape beyond this practical handoff guide.', '/in-silico-protac-modeling', kicker='Landscape', cta='Read modeling guide') }}
+    {{ info_card('Benchmarking', 'Use benchmark-ready reporting and task-specific metrics when comparing methods or publishing results.', '/benchmarking', kicker='Reporting', cta='Open benchmarking guide') }}
+    {{ info_card('API Builder', 'Support scripted and batch-oriented handoffs for larger enumerations and reproducible pipelines.', '/api-builder', kicker='Automation', cta='Open API Builder') }}
+    {{ info_card('Examples', 'Use case-study pages to show what an end-to-end builder-to-modeling workflow can look like.', '/examples', kicker='Examples', cta='View examples') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="references">
+  <div class="protac-section-head"><h2>Reference note</h2></div>
+  <div class="protac-reference-block">
+    <p>
+      This page is based in part on the Schürer Lab perspective manuscript
+      <em>From Ternary Modeling to Predictive PROTAC Design: A Computational Perspective</em>. It is intended as an
+      educational workflow guide for downstream computational handoffs and should be reviewed by the project or domain
+      owner before public release.
+    </p>
+    <p>
+      The focus here is practical workflow design: what to export, what to check first, when to use heavier physics,
+      when to use learned prioritization, and how to document the whole process so results remain interpretable and
+      reproducible.
+    </p>
+  </div>
 </section>
 {% endblock %}

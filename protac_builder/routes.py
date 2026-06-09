@@ -129,6 +129,7 @@ def benchmarking():
 
 
 @ui_bp.get("/downstream-modeling-tools")
+@ui_bp.get("/downstream-modeling")
 def downstream_modeling_tools():
     return _render_page("downstream_modeling_tools")
 
