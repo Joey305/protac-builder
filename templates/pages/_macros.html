@@ -1,15 +1,15 @@
-{% macro action_link(href, label, primary=False, external=False) -%}
+{% macro action_link(href, label, primary=False, external=False, class_name='') -%}
 <a
   href="{{ href }}"
-  class="protac-action-button {{ 'is-primary' if primary else 'is-secondary' }}"
+  class="protac-action-button {{ 'is-primary' if primary else 'is-secondary' }}{% if class_name %} {{ class_name }}{% endif %}"
   {% if external %}target="_blank" rel="noopener noreferrer"{% endif %}
 >
   {{ label }}{% if external %} ↗{% endif %}
 </a>
 {%- endmacro %}
 
-{% macro info_card(title, body, href, kicker=None, cta='Visit page', external=False) -%}
-<article class="protac-info-card">
+{% macro info_card(title, body, href, kicker=None, cta='Visit page', external=False, class_name='') -%}
+<article class="protac-info-card{% if class_name %} {{ class_name }}{% endif %}">
   {% if kicker %}
   <span class="protac-card-kicker">{{ kicker }}</span>
   {% endif %}

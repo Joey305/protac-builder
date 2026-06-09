@@ -1,5 +1,35 @@
+:root {
+  --protac-glass-bg: rgba(8, 15, 30, 0.92);
+  --protac-glass-bg-elevated: rgba(10, 20, 38, 0.94);
+  --protac-glass-bg-strong: rgba(7, 14, 28, 0.96);
+  --protac-glass-fill: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 42%);
+  --protac-glass-border: rgba(120, 245, 255, 0.18);
+  --protac-glass-border-strong: rgba(120, 245, 255, 0.34);
+  --protac-glass-highlight: rgba(255, 255, 255, 0.14);
+  --protac-glass-rim: rgba(121, 234, 255, 0.18);
+  --protac-glass-shadow:
+    0 24px 70px rgba(2, 8, 23, 0.34),
+    0 0 34px rgba(34, 211, 238, 0.07);
+  --protac-glass-shadow-strong:
+    0 32px 84px rgba(2, 8, 23, 0.42),
+    0 0 42px rgba(34, 211, 238, 0.12);
+  --protac-glass-blur: blur(18px) saturate(145%);
+  --protac-glass-noise:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.02) 0 12%, transparent 12% 24%, rgba(255, 255, 255, 0.015) 24% 36%, transparent 36% 100%);
+  --protac-focus-ring: rgba(125, 211, 252, 0.98);
+  --protac-accent-warhead: #ff3b6b;
+  --protac-accent-linker: #ffe600;
+  --protac-accent-e3: #00d4ff;
+  --protac-accent-builder: #22d3ee;
+  --protac-accent-vlisemod: #a3e635;
+}
+
 .protac-content-page {
   overflow-x: hidden;
+  background:
+    radial-gradient(circle at top, rgba(34, 211, 238, 0.08), transparent 28%),
+    radial-gradient(circle at 100% 14%, rgba(167, 139, 250, 0.08), transparent 24%),
+    linear-gradient(180deg, #030711 0%, #07111f 42%, #040910 100%);
 }
 
 .protac-content-shell {
@@ -10,15 +40,129 @@
   gap: 1.35rem;
 }
 
+.protac-glass,
 .protac-hero-card,
 .protac-section-card {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(circle at top right, rgba(94, 234, 212, 0.09), transparent 32%),
-    radial-gradient(circle at bottom left, rgba(167, 139, 250, 0.08), transparent 28%),
-    linear-gradient(180deg, rgba(8, 13, 26, 0.98), rgba(10, 18, 32, 0.97));
-  border: 1px solid rgba(94, 234, 212, 0.16);
+    var(--protac-glass-noise),
+    radial-gradient(circle at top right, rgba(94, 234, 212, 0.11), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(167, 139, 250, 0.09), transparent 28%),
+    var(--protac-glass-fill),
+    var(--protac-glass-bg);
+  border: 1px solid var(--protac-glass-border);
   border-radius: 28px;
-  box-shadow: 0 26px 70px rgba(2, 8, 23, 0.28);
+  box-shadow:
+    inset 0 1px 0 var(--protac-glass-highlight),
+    inset -1px -1px 0 rgba(120, 245, 255, 0.04),
+    var(--protac-glass-shadow);
+}
+
+.protac-glass::before,
+.protac-hero-card::before,
+.protac-section-card::before,
+.protac-glass-card::before,
+.protac-glass-panel::before,
+.protac-glass-button::before,
+.protac-glass-chip::before,
+.protac-nav-glass-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 28%, transparent 72%, rgba(56, 189, 248, 0.08)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.1), transparent 36%);
+  opacity: 0.8;
+}
+
+.protac-glass::after,
+.protac-hero-card::after,
+.protac-section-card::after,
+.protac-glass-card::after,
+.protac-glass-panel::after {
+  content: "";
+  position: absolute;
+  inset: auto 12% -32% 12%;
+  height: 42%;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.12), transparent 70%);
+  filter: blur(24px);
+  opacity: 0.7;
+}
+
+.protac-glass-subtle {
+  background:
+    var(--protac-glass-noise),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02) 42%),
+    var(--protac-glass-bg-elevated);
+}
+
+.protac-glass-strong {
+  background:
+    var(--protac-glass-noise),
+    radial-gradient(circle at top right, rgba(94, 234, 212, 0.12), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(167, 139, 250, 0.1), transparent 26%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03) 40%),
+    rgba(8, 14, 28, 0.92);
+  border-color: var(--protac-glass-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset -1px -1px 0 rgba(120, 245, 255, 0.06),
+    var(--protac-glass-shadow-strong);
+}
+
+.protac-glass-card,
+.protac-glass-panel {
+  position: relative;
+}
+
+.protac-glass-card {
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease;
+}
+
+.protac-glass-card:hover,
+.protac-glass-card:focus-within,
+.protac-glass-panel:hover,
+.protac-glass-panel:focus-within {
+  transform: translateY(-3px);
+  border-color: var(--protac-glass-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset -1px -1px 0 rgba(120, 245, 255, 0.06),
+    var(--protac-glass-shadow-strong);
+}
+
+@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  .protac-glass,
+  .protac-hero-card,
+  .protac-section-card,
+  .protac-info-card,
+  .protac-faq-item,
+  .protac-mini-card,
+  .protac-detail-card,
+  .protac-info-panel,
+  .protac-note,
+  .protac-checklist-item,
+  .protac-figure-card,
+  .protac-method-table-wrap,
+  .protac-schema-block,
+  .protac-callout,
+  .protac-reference-block,
+  .protac-pill,
+  .protac-action-button,
+  .protac-inline-link,
+  .protac-figure-card__zoom {
+    backdrop-filter: var(--protac-glass-blur);
+    -webkit-backdrop-filter: var(--protac-glass-blur);
+  }
 }
 
 .protac-hero-card {
@@ -40,8 +184,12 @@
 .protac-page-kicker {
   padding: 0.55rem 0.95rem;
   color: #bff7ff;
-  background: rgba(34, 211, 238, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03)),
+    rgba(34, 211, 238, 0.14);
+  border: 1px solid rgba(103, 232, 249, 0.18);
   font-size: 0.8rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .protac-hero-card h1 {
@@ -83,25 +231,37 @@
 }
 
 .protac-pill {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.78);
-  border: 1px solid rgba(125, 211, 252, 0.18);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    rgba(15, 23, 42, 0.84);
+  border: 1px solid rgba(125, 211, 252, 0.2);
   color: #d8f3ff;
   font-size: 0.82rem;
   font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 10px 24px rgba(2, 8, 23, 0.18);
 }
 
 .protac-action-button,
 .protac-inline-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none !important;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
 }
 
 .protac-action-button:hover,
@@ -112,23 +272,65 @@
   text-decoration: none !important;
 }
 
+.protac-action-button:focus-visible,
+.protac-inline-link:focus-visible,
+.protac-pill:focus-visible,
+.protac-figure-card__zoom:focus-visible {
+  outline: 2px solid var(--protac-focus-ring);
+  outline-offset: 3px;
+}
+
 .protac-action-button {
   min-height: 46px;
   padding: 0.85rem 1.18rem;
   border-radius: 999px;
   font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 14px 30px rgba(2, 8, 23, 0.22);
 }
 
 .protac-action-button.is-primary {
-  background: linear-gradient(90deg, #22d3ee, #5eead4);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 32%),
+    linear-gradient(90deg, #22d3ee, #5eead4 44%, #7dd3fc);
   color: #06283a;
+  border: 1px solid rgba(186, 251, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 18px 36px rgba(34, 211, 238, 0.22),
+    0 0 26px rgba(34, 211, 238, 0.16);
 }
 
 .protac-action-button.is-secondary,
 .protac-inline-link {
-  background: rgba(15, 23, 42, 0.84);
-  border: 1px solid rgba(94, 234, 212, 0.18);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    rgba(15, 23, 42, 0.84);
+  border: 1px solid rgba(94, 234, 212, 0.2);
   color: #dff6ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    0 12px 28px rgba(2, 8, 23, 0.18);
+}
+
+.protac-action-button.is-primary:hover,
+.protac-action-button.is-primary:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 22px 40px rgba(34, 211, 238, 0.28),
+    0 0 34px rgba(34, 211, 238, 0.2);
+}
+
+.protac-action-button.is-secondary:hover,
+.protac-action-button.is-secondary:focus-visible,
+.protac-inline-link:hover,
+.protac-inline-link:focus-visible {
+  border-color: rgba(103, 232, 249, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 18px 34px rgba(2, 8, 23, 0.24),
+    0 0 26px rgba(34, 211, 238, 0.08);
 }
 
 .protac-section-card {
@@ -164,10 +366,35 @@
 
 .protac-info-card,
 .protac-faq-item {
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  position: relative;
+  overflow: hidden;
+  background:
+    var(--protac-glass-noise),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03)),
+    rgba(15, 23, 42, 0.76);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 22px;
   padding: 1.2rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(2, 8, 23, 0.2);
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease;
+}
+
+.protac-info-card:hover,
+.protac-info-card:focus-within,
+.protac-faq-item:hover,
+.protac-faq-item:focus-within {
+  transform: translateY(-3px);
+  border-color: rgba(120, 245, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 40px rgba(2, 8, 23, 0.26),
+    0 0 30px rgba(34, 211, 238, 0.08);
 }
 
 .protac-card-kicker {
@@ -193,6 +420,53 @@
   padding: 0.7rem 0.95rem;
   border-radius: 999px;
   font-weight: 800;
+}
+
+.protac-tool-card {
+  --protac-tool-accent: var(--protac-accent-builder);
+}
+
+.protac-tool-card .protac-card-kicker {
+  color: color-mix(in srgb, var(--protac-tool-accent), white 72%);
+  background: color-mix(in srgb, var(--protac-tool-accent), transparent 90%);
+}
+
+.protac-tool-card:hover,
+.protac-tool-card:focus-within {
+  border-color: color-mix(in srgb, var(--protac-tool-accent), transparent 60%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 24px 42px rgba(2, 8, 23, 0.28),
+    0 0 32px color-mix(in srgb, var(--protac-tool-accent), transparent 82%);
+}
+
+.protac-tool-card .protac-inline-link:hover,
+.protac-tool-card .protac-inline-link:focus-visible {
+  border-color: color-mix(in srgb, var(--protac-tool-accent), transparent 54%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 16px 30px rgba(2, 8, 23, 0.22),
+    0 0 26px color-mix(in srgb, var(--protac-tool-accent), transparent 84%);
+}
+
+.protac-tool-card--warheadhunter {
+  --protac-tool-accent: var(--protac-accent-warhead);
+}
+
+.protac-tool-card--ligandalyzer {
+  --protac-tool-accent: var(--protac-accent-e3);
+}
+
+.protac-tool-card--vlisemod {
+  --protac-tool-accent: var(--protac-accent-vlisemod);
+}
+
+.protac-tool-card--builder {
+  --protac-tool-accent: var(--protac-accent-builder);
+}
+
+.protac-tool-card--modeling {
+  --protac-tool-accent: #60a5fa;
 }
 
 .protac-linker-hero {
@@ -228,9 +502,43 @@
 .protac-info-panel,
 .protac-note,
 .protac-checklist-item {
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  position: relative;
+  overflow: hidden;
+  background:
+    var(--protac-glass-noise),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(15, 23, 42, 0.74);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 22px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(2, 8, 23, 0.2);
+}
+
+.protac-detail-card,
+.protac-mini-card,
+.protac-note,
+.protac-checklist-item {
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.protac-detail-card:hover,
+.protac-detail-card:focus-within,
+.protac-mini-card:hover,
+.protac-mini-card:focus-within,
+.protac-note:hover,
+.protac-note:focus-within,
+.protac-checklist-item:hover,
+.protac-checklist-item:focus-within {
+  transform: translateY(-3px);
+  border-color: rgba(120, 245, 255, 0.26);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 22px 40px rgba(2, 8, 23, 0.24),
+    0 0 26px rgba(34, 211, 238, 0.06);
 }
 
 .protac-mini-card,
@@ -264,9 +572,15 @@
 .protac-figure-card {
   margin: 0;
   overflow: hidden;
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  background:
+    var(--protac-glass-noise),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(15, 23, 42, 0.74);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 22px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(2, 8, 23, 0.2);
 }
 
 .protac-figure-card img {
@@ -369,9 +683,12 @@
 .protac-reference-block {
   margin-top: 1rem;
   padding: 1rem 1.05rem;
-  background: rgba(10, 18, 32, 0.82);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(10, 18, 32, 0.84);
   border-left: 4px solid rgba(34, 211, 238, 0.75);
   border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .protac-comparison-grid,
@@ -431,9 +748,14 @@
 .protac-method-table-wrap {
   margin-top: 1rem;
   overflow-x: auto;
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 22px;
-  background: rgba(10, 18, 32, 0.72);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    rgba(10, 18, 32, 0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(2, 8, 23, 0.18);
 }
 
 .protac-method-table {
@@ -481,12 +803,17 @@
   margin: 1rem 0 0;
   padding: 1rem 1.05rem;
   overflow-x: auto;
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 22px;
-  background: rgba(10, 18, 32, 0.86);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    rgba(10, 18, 32, 0.88);
   color: #d7e7f7;
   font-size: 0.9rem;
   line-height: 1.65;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(2, 8, 23, 0.18);
 }
 
 .protac-schema-block code {
@@ -661,9 +988,22 @@ body[data-page="home"] .home-hero-node {
   padding: 1rem 1rem 1rem 1.1rem;
   border-radius: 20px;
   border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(8, 14, 26, 0.78);
-  backdrop-filter: blur(6px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(8, 14, 26, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(2, 8, 23, 0.18);
+}
+
+@supports ((backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px))) {
+  body[data-page="home"] .home-hero-node {
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+      rgba(8, 14, 26, 0.72);
+    backdrop-filter: blur(8px) saturate(145%);
+    -webkit-backdrop-filter: blur(8px) saturate(145%);
+  }
 }
 
 body[data-page="home"] .home-hero-node::after {

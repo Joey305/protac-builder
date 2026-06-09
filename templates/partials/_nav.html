@@ -144,7 +144,7 @@
           {% endif %}
         {% endfor %}
 
-        <li class="protac-site-nav__item protac-site-nav__item--menu{% if group.label in ['Ecosystem', 'Developer'] %} protac-site-nav__item--right{% endif %}">
+        <li class="protac-site-nav__item protac-site-nav__item--menu{% if group.label in ['Ecosystem', 'Developer'] %} protac-site-nav__item--right{% endif %}" data-nav-group="{{ group.label|lower|replace(' ', '-') }}">
           <button
             class="protac-site-nav__menu-trigger{% if active.value %} is-active{% endif %}"
             type="button"
@@ -155,7 +155,7 @@
             <span class="protac-nav-link__label">{{ group.label }}</span>
           </button>
 
-          <div class="protac-nav-menu" role="menu">
+          <div class="protac-nav-menu" role="menu" data-nav-group="{{ group.label|lower|replace(' ', '-') }}">
             {% for item in group["items"] %}
               <a
                 href="{{ item.href }}"
@@ -224,7 +224,7 @@
       </li>
 
       {% for group in nav_groups %}
-        <li class="protac-mobile-drawer__accordion">
+        <li class="protac-mobile-drawer__accordion" data-nav-group="{{ group.label|lower|replace(' ', '-') }}">
           <details>
             <summary>
               <span class="protac-nav-link__icon" aria-hidden="true">{{ group.icon }}</span>

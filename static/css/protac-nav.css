@@ -5,7 +5,8 @@
   --protac-nav-backdrop-z: 12900;
   --protac-nav-drawer-z: 13000;
   --protac-nav-control-z: 13100;
-  --protac-nav-bg: rgba(8, 13, 26, 0.78);
+  --protac-nav-bg: rgba(8, 13, 26, 0.9);
+  --protac-nav-bg-soft: rgba(8, 13, 26, 0.72);
   --protac-nav-bg-solid: rgba(8, 13, 26, 0.96);
   --protac-nav-panel: rgba(5, 10, 22, 0.985);
   --protac-nav-primary: #5eead4;
@@ -17,7 +18,18 @@
   --protac-nav-soft: #94a3b8;
   --protac-nav-border: rgba(94, 234, 212, 0.24);
   --protac-nav-border-strong: rgba(94, 234, 212, 0.42);
-  --protac-nav-shadow: 0 26px 90px rgba(0, 0, 0, 0.5), 0 0 34px rgba(94, 234, 212, 0.12);
+  --protac-nav-shadow:
+    0 26px 90px rgba(0, 0, 0, 0.5),
+    0 0 34px rgba(94, 234, 212, 0.12);
+  --protac-nav-glass-fill: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 42%);
+  --protac-nav-glass-highlight: rgba(255, 255, 255, 0.14);
+  --protac-nav-glass-blur: blur(18px) saturate(148%);
+  --protac-nav-builder: #5eead4;
+  --protac-nav-discovery: #ffe45c;
+  --protac-nav-science: #ff5f90;
+  --protac-nav-resources: #5eead4;
+  --protac-nav-ecosystem: #5bbcff;
+  --protac-nav-developer: #b794ff;
 }
 
 body.protac-nav-open {
@@ -58,16 +70,21 @@ body.protac-nav-open {
   gap: 1rem;
   padding: 0.85rem clamp(1rem, 3vw, 2rem);
   background:
-    linear-gradient(135deg, rgba(8, 13, 26, 0.9), rgba(15, 23, 42, 0.75)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 36%),
+    radial-gradient(circle at top left, rgba(94, 234, 212, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(167, 139, 250, 0.14), transparent 30%),
+    linear-gradient(135deg, rgba(8, 13, 26, 0.92), rgba(15, 23, 42, 0.74)),
     var(--protac-nav-bg);
   border-bottom: 1px solid var(--protac-nav-border);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 var(--protac-nav-glass-highlight),
+    0 20px 50px rgba(2, 8, 23, 0.24);
   transition:
     min-height 0.22s ease,
     padding 0.22s ease,
     background 0.22s ease,
-    border-color 0.22s ease;
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
 .protac-site-nav::after {
@@ -87,11 +104,26 @@ body.protac-nav-open {
   pointer-events: none;
 }
 
+.protac-site-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 22%, transparent 74%, rgba(56, 189, 248, 0.08)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 36%);
+}
+
 .protac-site-nav.nav-scrolled {
   min-height: 60px;
   padding-block: 0.55rem;
-  background: var(--protac-nav-bg-solid);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 34%),
+    linear-gradient(135deg, rgba(8, 13, 26, 0.96), rgba(8, 13, 26, 0.88));
   border-bottom-color: rgba(94, 234, 212, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 24px 54px rgba(2, 8, 23, 0.3);
 }
 
 .protac-nav-spacer {
@@ -130,9 +162,12 @@ body.protac-nav-open {
   border: 1px solid rgba(94, 234, 212, 0.34);
   border-radius: 12px;
   background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14), transparent 36%),
     radial-gradient(circle at top left, rgba(94, 234, 212, 0.24), transparent 54%),
     rgba(15, 23, 42, 0.72);
-  box-shadow: 0 0 20px rgba(94, 234, 212, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 20px rgba(94, 234, 212, 0.16);
 }
 
 .protac-site-nav__brand-text {
@@ -198,6 +233,9 @@ body.protac-nav-open {
   padding: 0.5rem 0.72rem;
   border-radius: 999px;
   white-space: nowrap;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(15, 23, 42, 0.08);
 }
 
 .protac-site-nav__menu-trigger {
@@ -208,7 +246,9 @@ body.protac-nav-open {
   padding: 0.5rem 0.72rem;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: transparent;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(15, 23, 42, 0.08);
   color: var(--protac-nav-muted);
   font-size: 0.92rem;
   font-weight: 700;
@@ -227,15 +267,25 @@ body.protac-nav-open {
 .protac-site-nav__menu-trigger[aria-expanded="true"] {
   outline: none;
   color: var(--protac-nav-primary);
-  background: rgba(94, 234, 212, 0.1);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 34%),
+    rgba(94, 234, 212, 0.1);
   border-color: rgba(94, 234, 212, 0.22);
   transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 28px rgba(2, 8, 23, 0.2);
 }
 
 .protac-site-nav__menu-trigger.is-active {
   color: var(--protac-nav-gold);
-  background: rgba(250, 204, 21, 0.1);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 32%),
+    rgba(250, 204, 21, 0.12);
   border-color: rgba(250, 204, 21, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 14px 30px rgba(250, 204, 21, 0.08);
 }
 
 .protac-site-nav__link:hover,
@@ -244,9 +294,14 @@ body.protac-nav-open {
 .protac-mobile-drawer__link:focus-visible {
   outline: none;
   color: var(--protac-nav-primary);
-  background: rgba(94, 234, 212, 0.1);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 32%),
+    rgba(94, 234, 212, 0.1);
   border-color: rgba(94, 234, 212, 0.22);
   text-decoration: none !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 28px rgba(2, 8, 23, 0.18);
 }
 
 .protac-site-nav__link:hover,
@@ -257,8 +312,13 @@ body.protac-nav-open {
 .protac-site-nav__link.is-active,
 .protac-mobile-drawer__link.is-active {
   color: var(--protac-nav-gold);
-  background: rgba(250, 204, 21, 0.1);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 32%),
+    rgba(250, 204, 21, 0.12);
   border-color: rgba(250, 204, 21, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 12px 28px rgba(2, 8, 23, 0.16);
 }
 
 .protac-nav-link__icon {
@@ -283,9 +343,14 @@ body.protac-nav-open {
   border: 1px solid rgba(94, 234, 212, 0.2);
   border-radius: 20px;
   background:
-    radial-gradient(circle at top right, rgba(94, 234, 212, 0.1), transparent 36%),
-    linear-gradient(180deg, rgba(10, 18, 32, 0.99), rgba(5, 10, 22, 0.985));
-  box-shadow: 0 24px 56px rgba(2, 8, 23, 0.42);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgba(94, 234, 212, 0.12), transparent 36%),
+    radial-gradient(circle at bottom left, rgba(91, 188, 255, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(10, 18, 32, 0.94), rgba(5, 10, 22, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 24px 56px rgba(2, 8, 23, 0.42),
+    0 0 26px rgba(94, 234, 212, 0.08);
   opacity: 0;
   pointer-events: none;
   transform: translateY(8px);
@@ -311,9 +376,15 @@ body.protac-nav-open {
   padding: 0.82rem 0.9rem;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 16px;
-  background: rgba(15, 23, 42, 0.64);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(15, 23, 42, 0.56);
   text-decoration: none !important;
-  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .protac-nav-menu__link:hover,
@@ -321,8 +392,13 @@ body.protac-nav-open {
 .protac-nav-menu__link.is-active {
   outline: none;
   border-color: rgba(94, 234, 212, 0.24);
-  background: rgba(15, 23, 42, 0.92);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 34%),
+    rgba(15, 23, 42, 0.9);
   transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 24px rgba(2, 8, 23, 0.2);
 }
 
 .protac-nav-menu__title {
@@ -372,11 +448,14 @@ body.protac-nav-open {
   border: 1px solid rgba(94, 234, 212, 0.28);
   border-radius: 14px;
   background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 36%),
     radial-gradient(circle at top left, rgba(94, 234, 212, 0.14), transparent 54%),
     rgba(15, 23, 42, 0.82);
   color: var(--protac-nav-text);
   cursor: pointer;
-  box-shadow: 0 0 18px rgba(94, 234, 212, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 18px rgba(94, 234, 212, 0.1);
 }
 
 .protac-site-nav__toggle:hover,
@@ -436,8 +515,6 @@ body.protac-nav-open {
   inset: 0;
   z-index: var(--protac-nav-backdrop-z);
   background: rgba(2, 6, 23, 0.68);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease;
@@ -469,9 +546,10 @@ body.protac-nav-open {
   overflow-y: auto;
   overscroll-behavior: contain;
   background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 34%),
     radial-gradient(circle at top right, rgba(94, 234, 212, 0.18), transparent 34%),
     radial-gradient(circle at 25% 10%, rgba(167, 139, 250, 0.12), transparent 34%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.99), var(--protac-nav-panel));
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(5, 10, 22, 0.9));
   border-left: 1px solid rgba(94, 234, 212, 0.28);
   box-shadow: var(--protac-nav-shadow);
   pointer-events: none;
@@ -554,7 +632,9 @@ body.protac-nav-open {
   padding: 0.86rem 0.9rem;
   border-radius: 15px;
   color: #e2e8f0;
-  background: rgba(15, 23, 42, 0.38);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(15, 23, 42, 0.38);
   border-color: rgba(148, 163, 184, 0.12);
   font-size: 0.96rem;
   line-height: 1.15;
@@ -581,8 +661,123 @@ body.protac-nav-open {
 .protac-mobile-drawer__accordion details {
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 16px;
-  background: rgba(15, 23, 42, 0.3);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(15, 23, 42, 0.3);
   overflow: hidden;
+}
+
+.protac-site-nav__item[data-nav-group="builder"] {
+  --protac-nav-group-accent: var(--protac-nav-builder);
+}
+
+.protac-site-nav__item[data-nav-group="discovery"] {
+  --protac-nav-group-accent: var(--protac-nav-discovery);
+}
+
+.protac-site-nav__item[data-nav-group="science"] {
+  --protac-nav-group-accent: var(--protac-nav-science);
+}
+
+.protac-site-nav__item[data-nav-group="resources"] {
+  --protac-nav-group-accent: var(--protac-nav-resources);
+}
+
+.protac-site-nav__item[data-nav-group="ecosystem"] {
+  --protac-nav-group-accent: var(--protac-nav-ecosystem);
+}
+
+.protac-site-nav__item[data-nav-group="developer"] {
+  --protac-nav-group-accent: var(--protac-nav-developer);
+}
+
+.protac-site-nav__item[data-nav-group] .protac-site-nav__menu-trigger:hover,
+.protac-site-nav__item[data-nav-group] .protac-site-nav__menu-trigger:focus-visible,
+.protac-site-nav__item[data-nav-group] .protac-site-nav__menu-trigger[aria-expanded="true"] {
+  color: var(--protac-nav-group-accent, var(--protac-nav-primary));
+  border-color: color-mix(in srgb, var(--protac-nav-group-accent, var(--protac-nav-primary)), transparent 66%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 14px 28px rgba(2, 8, 23, 0.2),
+    0 0 24px color-mix(in srgb, var(--protac-nav-group-accent, var(--protac-nav-primary)), transparent 82%);
+}
+
+.protac-site-nav__item[data-nav-group] .protac-nav-menu {
+  border-color: color-mix(in srgb, var(--protac-nav-group-accent, var(--protac-nav-primary)), transparent 74%);
+}
+
+.protac-site-nav__item[data-nav-group] .protac-nav-menu__link:hover,
+.protac-site-nav__item[data-nav-group] .protac-nav-menu__link:focus-visible,
+.protac-site-nav__item[data-nav-group] .protac-nav-menu__link.is-active {
+  border-color: color-mix(in srgb, var(--protac-nav-group-accent, var(--protac-nav-primary)), transparent 66%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 12px 24px rgba(2, 8, 23, 0.2),
+    0 0 24px color-mix(in srgb, var(--protac-nav-group-accent, var(--protac-nav-primary)), transparent 84%);
+}
+
+.protac-mobile-drawer__accordion[data-nav-group="builder"] {
+  --protac-nav-group-accent: var(--protac-nav-builder);
+}
+
+.protac-mobile-drawer__accordion[data-nav-group="discovery"] {
+  --protac-nav-group-accent: var(--protac-nav-discovery);
+}
+
+.protac-mobile-drawer__accordion[data-nav-group="science"] {
+  --protac-nav-group-accent: var(--protac-nav-science);
+}
+
+.protac-mobile-drawer__accordion[data-nav-group="resources"] {
+  --protac-nav-group-accent: var(--protac-nav-resources);
+}
+
+.protac-mobile-drawer__accordion[data-nav-group="ecosystem"] {
+  --protac-nav-group-accent: var(--protac-nav-ecosystem);
+}
+
+.protac-mobile-drawer__accordion[data-nav-group="developer"] {
+  --protac-nav-group-accent: var(--protac-nav-developer);
+}
+
+.protac-mobile-drawer__accordion[data-nav-group] details[open] {
+  border-color: color-mix(in srgb, var(--protac-nav-group-accent, var(--protac-nav-primary)), transparent 72%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 28px rgba(2, 8, 23, 0.18);
+}
+
+.protac-site-nav__brand:focus-visible,
+.protac-site-nav__menu-trigger:focus-visible,
+.protac-site-nav__link:focus-visible,
+.protac-nav-menu__link:focus-visible,
+.protac-site-nav__toggle:focus-visible,
+.protac-mobile-drawer__close:focus-visible,
+.protac-mobile-drawer__link:focus-visible,
+.protac-mobile-drawer__accordion summary:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.95);
+  outline-offset: 3px;
+}
+
+@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  .protac-site-nav,
+  .protac-nav-menu,
+  .protac-nav-backdrop,
+  .protac-mobile-drawer,
+  .protac-mobile-drawer__link,
+  .protac-mobile-drawer__accordion details,
+  .protac-site-nav__link,
+  .protac-site-nav__menu-trigger,
+  .protac-site-nav__toggle,
+  .protac-mobile-drawer__close {
+    backdrop-filter: var(--protac-nav-glass-blur);
+    -webkit-backdrop-filter: var(--protac-nav-glass-blur);
+  }
+
+  .protac-nav-backdrop {
+    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
+  }
 }
 
 .protac-mobile-drawer__accordion summary {
