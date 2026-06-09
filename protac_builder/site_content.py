@@ -117,8 +117,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "e3_ligase_recruiters": {
         "slug": "e3-ligase-recruiters",
         "template": "pages/e3_ligase_recruiters.html",
-        "meta_title": "E3 Ligase Recruiter Discovery Hub | PROTAC Builder",
-        "meta_description": "Learn how E3 ligase recruiters function in PROTAC design and when to use E3 Ligandalyzer before returning to PROTAC Builder.",
+        "meta_title": "E3 Ligase Recruiters for PROTAC Design | Structure-First Recruiter Selection",
+        "meta_description": "Explore how to choose E3 ligase recruiters for PROTAC design using structure-first recruiter ligand analysis, scaffold diversity, solvent exposure, expression context, and PROTAC Builder integration.",
         "software_app_schema": False,
         "article_schema": True,
     },

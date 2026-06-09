@@ -1,31 +1,504 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import info_card %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do you choose an E3 recruiter for PROTAC design?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A practical recruiter workflow starts by identifying biologically plausible E3 ligases, inspecting recruiter-bound structures, comparing recruiter ligands by scaffold and property space, checking solvent-exposed attachment atoms, and then exporting a recruiter into PROTAC Builder with a defined exit vector."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why is E3 recruiter selection structure-first and geometry-aware?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The bound recruiter pose determines which ligase is recruited, which atoms remain solvent-exposed, how much property burden is added, and how a linker exits toward the protein-of-interest ligand. Those features can strongly affect ternary complex geometry and downstream degradation behavior."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does E3 Ligandalyzer predict the best degrader recruiter?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. E3 Ligandalyzer is a decision-support platform for structure-first recruiter inspection, scaffold comparison, solvent exposure review, and recruiter export. It helps prioritize candidates but does not replace downstream modeling or experimental validation."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Recruiter Discovery</span>
-  <h1>E3 Ligase Recruiter Discovery Hub</h1>
-  <p class="protac-hero-copy">E3 ligase recruiters anchor the degrader to a chosen ligase system and define a recruiter-side attachment vector.</p>
-  <p class="protac-hero-copy">The right recruiter choice depends on scaffold geometry, exposure, recruiter-side fit, and downstream feasibility, so this page points to deeper recruiter-specific resources where available.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Structure-First Recruiter Selection</span>
+    <h1>E3 Ligase Recruiters for PROTAC Design</h1>
+    <p class="protac-hero-copy">
+      E3 recruiter selection is one of the earliest and most important decisions in PROTAC design. A recruiter is not just
+      a handle for an E3 ligase. It defines which ligase is recruited, how the ligand binds, which atoms remain
+      solvent-exposed for linker attachment, how much property burden is added, and whether downstream ternary-complex
+      modeling starts from realistic geometry.
+    </p>
+    <p class="protac-hero-copy">
+      This page is synced to the current E3 Recruiter Ligandalyzer platform draft and explains how to move from recruiter
+      comparison into PROTAC Builder, linker design, and downstream modeling without treating recruiter choice as a
+      simple CRBN-or-VHL checkbox.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Ligand-centric analysis</span>
+      <span class="protac-pill">Structure-first decisions</span>
+      <span class="protac-pill">Geometry-aware export</span>
+      <span class="protac-pill">Validation still required</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('https://e3ligandalyzer.com', 'Open E3 Ligandalyzer', primary=True, external=True) }}
+      {{ action_link('https://e3ligandalyzer.com/explorer', 'Explore recruiters', external=True) }}
+      {{ action_link('https://e3ligandalyzer.com/scaffolds', 'View scaffold dashboard', external=True) }}
+      {{ action_link('/builder', 'Send recruiters to PROTAC Builder') }}
+      {{ action_link('/linkers', 'Read linker design guide') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero">
+    <img
+      src="{{ url_for('static', filename='images/Paper3/CoverImage.jpg') }}"
+      alt="E3 Recruiter Ligandalyzer cover image showing structure-first E3 recruiter ligand selection and geometry-aware PROTAC design."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Platform overview.</strong> E3 Recruiter Ligandalyzer connects experimentally resolved recruiter complexes to
+      geometry-aware PROTAC design workflows, helping users move from ligase and recruiter inspection into linker-ready
+      assembly decisions.
+    </figcaption>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="concepts">
-  <div class="protac-section-head"><h2>What to evaluate</h2></div>
-  <p class="protac-section-copy">Examples like CRBN and VHL are common teaching cases, but the page avoids claiming a complete recruiter catalog unless that data is available locally.</p>
-  <ul class="protac-bullet-list">
-    <li>Recruiter scaffold and chemotype</li>
-    <li>Attachment-vector and exit-vector considerations</li>
-    <li>Available structural evidence for recruiter presentation</li>
-    <li>Compatibility with the chosen warhead and linker concept</li>
-  </ul>
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: how do you choose an E3 recruiter?</h2></div>
+  <ol class="protac-step-list">
+    <li>Identify E3 ligases that are biologically plausible in the intended disease, cell, or tissue context.</li>
+    <li>Inspect recruiter-bound structures instead of choosing a recruiter only because it is familiar.</li>
+    <li>Compare recruiter ligands by molecular weight, LogP, QED, scaffold class, and ligase association.</li>
+    <li>Check whether the recruiter has solvent-exposed atoms that can plausibly support linker attachment.</li>
+    <li>Compare binding poses and pocket geometry across available structures for the same ligase.</li>
+    <li>Use expression context as a biological filter, not as a hard ranking rule.</li>
+    <li>Export the selected recruiter into PROTAC Builder with a defined attachment atom.</li>
+    <li>Test multiple linker and warhead combinations downstream.</li>
+  </ol>
 </section>
 
-<section class="protac-section-card" id="tools">
-  <div class="protac-section-head"><h2>Connected tools for recruiter selection</h2></div>
+<section class="protac-section-card" id="why-recruiters-matter">
+  <div class="protac-section-head"><h2>Why E3 recruiters matter</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--three">
+    <article class="protac-mini-card">
+      <h3>Ternary complex geometry</h3>
+      <p>The recruiter determines how the ligase is oriented relative to the POI and therefore shapes the ternary interface you are trying to create.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Degradation profile</h3>
+      <p>A recruiter with acceptable binary binding can still fail as a degrader handle if its exit vector or bound pose produces poor ubiquitination geometry.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Selectivity</h3>
+      <p>Changing the ligase or recruiter scaffold can shift cooperativity, isoform preference, degradation depth, and off-target behavior.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Property burden</h3>
+      <p>Recruiters contribute meaningful molecular weight, lipophilicity, polarity, and hydrogen-bonding features to the final degrader scaffold.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Attachment feasibility</h3>
+      <p>Some recruiters expose clearer linker handles than others, and those exit vectors are often obvious only in the bound 3D context.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Biological context</h3>
+      <p>Ligase expression and cellular context can support or weaken a recruiter hypothesis, especially when moving beyond habitual CRBN or VHL starting points.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Caution:</strong> do not choose an E3 recruiter only because it is common. Choose it because its binding mode,
+    exit vector, scaffold, expression context, and downstream geometry make sense for the target and cell system.
+  </div>
+</section>
+
+<section class="protac-section-card" id="ligandalyzer-overview">
+  <div class="protac-section-head"><h2>What E3 Recruiter Ligandalyzer adds</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        E3 Recruiter Ligandalyzer is designed as a structure-first, ligand-centric platform for recruiter selection before
+        degrader assembly. Instead of treating the recruiter as a single static fragment, it helps users compare recruiter
+        chemotypes, binding poses, solvent exposure, scaffold families, and export readiness.
+      </p>
+      <div class="protac-comparison-grid">
+        <article class="protac-info-panel">
+          <span class="protac-card-kicker">Current platform snapshot</span>
+          <p>21 curated human E3 ligases, 494 unique recruiter ligands or components, 568 recruiter-bound structures, and 602 curated recruiter-conformation entries.</p>
+        </article>
+        <article class="protac-info-panel">
+          <span class="protac-card-kicker">Scaffold organization</span>
+          <p>386 unique scaffolds and 419 scaffold superclusters help users move from single recruiters to broader chemotype-level reasoning.</p>
+        </article>
+        <article class="protac-info-panel">
+          <span class="protac-card-kicker">Design-support features</span>
+          <p>MW, LogP, QED, SASA-style solvent exposure, scaffold diversity, ligand-efficiency-related metrics, and Lipinski compliance are available as context features.</p>
+        </article>
+        <article class="protac-info-panel">
+          <span class="protac-card-kicker">Decision support, not prediction</span>
+          <p>The platform helps prioritize recruiter candidates and attachment ideas, but it is not presented as a predictive ranking engine for successful degraders.</p>
+        </article>
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure1.png') }}"
+        alt="Dashboard overview for E3 Recruiter Ligandalyzer showing recruiter counts, ligase coverage, scaffold diversity, and platform summary metrics."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 1.</strong> Overview dashboard for E3 Recruiter Ligandalyzer, showing dataset scale, recruiter
+        coverage, scaffold diversity, and integration-oriented summary metrics.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="chemical-space">
+  <div class="protac-section-head"><h2>E3 recruiter ligand chemical space</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure2.png') }}"
+        alt="Chemical-space view and featured recruiter cards for E3 recruiter ligands, showing MW, LogP, QED, scaffold class, and ligase association."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 2.</strong> Interactive recruiter chemical-space view showing how recruiter ligands can be compared
+        by molecular weight, lipophilicity, QED, scaffold class, and ligase association.
+      </figcaption>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        The explorer view helps users compare recruiter ligands in chemical-property space before committing to one ligase
+        family or chemotype. That is useful because the right recruiter is rarely determined by a single metric.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Compare MW, LogP, QED, scaffold class, and recruiter class across ligases.</li>
+        <li>Look for crowded familiar clusters and underexplored regions that may still be tractable.</li>
+        <li>Use ligand-level inspection to move from global chemical space into a specific recruiter hypothesis.</li>
+        <li>Remember that a compact recruiter with attractive descriptors can still fail if its geometry or exposure is wrong.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Design takeaway:</strong> chemical space is a prioritization layer. It helps you compare recruiter options,
+        but it becomes useful only when paired with bound-structure inspection.
+      </div>
+      {{ action_link('https://e3ligandalyzer.com/explorer', 'Explore recruiter chemical space', primary=True, external=True) }}
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="structures-and-exposure">
+  <div class="protac-section-head"><h2>Solvent exposure and linker attachment</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Recruiter-level pages combine 2D chemistry with 3D protein-ligand context so users can check whether a proposed
+        exit vector is actually accessible in the bound pose.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Prefer solvent-exposed atoms when considering recruiter-side linker attachment.</li>
+        <li>Avoid modifying atoms that drive key binding interactions unless SAR or structural evidence supports the change.</li>
+        <li>Compare SASA-style exposure metrics with the surrounding pocket geometry rather than trusting one numeric feature alone.</li>
+        <li>Use the structure view to decide whether the apparent 2D exit vector is blocked, buried, or sterically awkward in 3D.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Practical rule:</strong> a good recruiter attachment site should be plausible on paper and plausible in the
+        bound structure. If those two stories disagree, trust the bound pose first.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure3.png') }}"
+        alt="Recruiter detail page with 2D structure, 3D binding-pocket view, solvent exposure metrics, and export tools."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 3.</strong> Recruiter-level analysis with 2D chemistry, 3D binding-pocket context, and solvent
+        exposure features relevant to linker attachment and export.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="ligase-coverage">
+  <div class="protac-section-head"><h2>How to choose an E3 recruiter across ligases</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure4.png') }}"
+        alt="Ligase-centric overview comparing recruiter counts and unique scaffold counts across E3 ligases."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 4.</strong> Ligase-centric overview comparing recruiter counts and scaffold diversity across E3 ligases.
+      </figcaption>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        Some E3 ligases have many recruiter structures and many scaffold families, while others remain sparse. That does
+        not automatically make the most populated ligase the best biological choice, but it does change how much design
+        information you can work with.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>More structures usually mean more confidence in pose comparison and attachment-site reasoning.</li>
+        <li>More scaffold diversity means more chemotype options when one recruiter class adds too much burden or exposes the wrong vector.</li>
+        <li>Lower-coverage ligases may still be attractive if the biology or expression context is compelling.</li>
+        <li>E3 choice should combine structural coverage, recruiter chemistry, expression context, target biology, and downstream modeling.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="aligned-poses">
+  <div class="protac-section-head"><h2>Structure-first recruiter selection inside one ligase family</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        The aligned structure viewer helps users compare multiple recruiter-bound complexes for a single ligase, which is
+        where geometry-aware recruiter selection becomes especially useful.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Compare binding orientations, conserved interactions, and ligand placement within the same pocket.</li>
+        <li>Toggle ligands, proteins, pocket views, and interaction overlays to understand steric constraints.</li>
+        <li>Use these overlays to compare how different recruiters expose different vectors even when they bind the same ligase.</li>
+      </ul>
+      <div class="protac-callout">
+        <strong>Design takeaway:</strong> if two recruiters bind the same ligase but expose different vectors, they may
+        produce very different ternary complex geometries after linker attachment.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure5.png') }}"
+        alt="Aligned structure viewer comparing multiple recruiter-bound complexes for a selected E3 ligase."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 5.</strong> Aligned structure viewer for comparing recruiter binding modes, pocket geometry, and
+        exit-vector orientation within one E3 ligase.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="scaffolds">
+  <div class="protac-section-head"><h2>Scaffold diversity across E3 ligases</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure6.png') }}"
+        alt="Scaffold dashboard showing scaffold diversity metrics, top scaffolds by ligase, scaffold frequency, and scaffold network connectivity."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 6.</strong> Scaffold Dashboard showing recruiter scaffold diversity, scaffold frequency by ligase,
+        and scaffold-ligase connectivity.
+      </figcaption>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        Scaffold analysis helps users reason about recruiter families instead of single analogues. That is useful when a
+        familiar recruiter binds well but carries the wrong properties, exposure pattern, or synthetic burden for a
+        downstream degrader program.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Bemis-Murcko-style scaffold organization highlights recurring recruiter cores.</li>
+        <li>Frequency and network connectivity can reveal well-reused chemotypes versus ligase-specific chemotypes.</li>
+        <li>Scaffold diversity supports recruiter repurposing, analogue selection, and underexplored-chemotype prioritization.</li>
+      </ul>
+      {{ action_link('https://e3ligandalyzer.com/scaffolds', 'Open scaffold dashboard', primary=True, external=True) }}
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="expression">
+  <div class="protac-section-head"><h2>Add biological context with E3 expression</h2></div>
+  <p class="protac-section-copy">
+    Expression context matters because degrader activity depends on the recruited E3 being present in the relevant cellular
+    setting. E3 Ligandalyzer adds expression views as a contextual layer rather than a rigid pass-fail ranking system.
+  </p>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Current expression snapshot</span>
+      <p>Expression profiles cover 614 human E3 ligases across 2,292 tissue samples in the current atlas-oriented platform view.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">How to use it</span>
+      <p>Use expression to screen for broadly expressed ligases, tissue-enriched ligases, or obvious biological mismatches before committing to recruiter optimization.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">What it is not</span>
+      <p>Expression should not be treated as an automatic winner-take-all score. Recruiter chemistry, bound geometry, and target biology still matter.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Expression workflow</span>
+      <p>The module supports overview inspection, gene or ligase search, expression filtering, and tissue-specificity visualization for downstream decision support.</p>
+    </article>
+  </div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure7.png') }}"
+        alt="Expression atlas overview dashboard for E3 ligases with sample counts, tissue coverage, and gene search."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 7.</strong> Expression atlas overview used to add biological context to E3 ligase selection.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure8.png') }}"
+        alt="Tissue-specific expression visualization comparing E3 ligase expression patterns across tissues."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 8.</strong> Tissue-specific expression visualization for comparing E3 ligase expression patterns across tissues.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="export">
+  <div class="protac-section-head"><h2>Export recruiters to PROTAC Builder</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        E3 Ligandalyzer is intentionally upstream of PROTAC Builder. Once a recruiter is selected, users can choose an
+        attachment atom and export the recruiter into PROTAC Builder as an editable 2D structure for linker attachment
+        and degrader assembly.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Preserve continuity between recruiter inspection, exit-vector selection, and linker design.</li>
+        <li>Carry the selected attachment point forward instead of re-deciding it after assembly has already started.</li>
+        <li>Use PROTAC Builder to pair the recruiter with warheads, enumerate candidate linkers, and prepare downstream handoffs.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('/builder', 'Open PROTAC Builder', primary=True) }}
+        {{ action_link('/how-to-build-a-protac', 'Learn how to build a PROTAC') }}
+        {{ action_link('/linkers', 'Review linker design') }}
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Paper3/Figure9.png') }}"
+        alt="Attachment-site selection modal used to export an E3 recruiter into PROTAC Builder."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 9.</strong> Recruiter export workflow from E3 Recruiter Ligandalyzer into PROTAC Builder through
+        attachment-site selection.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="checklist">
+  <div class="protac-section-head"><h2>Practical E3 recruiter selection checklist</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Is the E3 ligase relevant to the intended disease, cell type, or tissue context?</div>
+    <div class="protac-checklist-item">Is there an experimentally resolved recruiter-bound structure?</div>
+    <div class="protac-checklist-item">Does the recruiter have a plausible solvent-exposed linker attachment atom?</div>
+    <div class="protac-checklist-item">Will the recruiter preserve key binding interactions after derivatization?</div>
+    <div class="protac-checklist-item">Does the recruiter add acceptable MW, polarity, and lipophilicity burden?</div>
+    <div class="protac-checklist-item">Is the scaffold well explored or intentionally underexplored?</div>
+    <div class="protac-checklist-item">Are there multiple binding poses or conformations worth comparing?</div>
+    <div class="protac-checklist-item">Is the ligase expressed in the intended cellular context?</div>
+    <div class="protac-checklist-item">Can this recruiter be exported into PROTAC Builder with a defined attachment point?</div>
+    <div class="protac-checklist-item">Have you considered at least one alternative recruiter or ligase?</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="mistakes">
+  <div class="protac-section-head"><h2>Common mistakes</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Habit-driven recruiter choice</h3>
+      <p>Choosing CRBN or VHL only by habit can hide better geometry, scaffold, or expression-context options for the actual target system.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>2D-only exit-vector reasoning</h3>
+      <p>Treating a clean 2D derivatization point as valid without checking the bound 3D pose can lead to buried, blocked, or misleading attachment ideas.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Property-only comparisons</h3>
+      <p>Comparing recruiters only by MW, LogP, or QED ignores the structural context that ultimately controls exit-vector utility and ternary geometry.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Over-interpreting expression</h3>
+      <p>Expression is a contextual layer, not a standalone ranking engine. A broadly expressed ligase is not automatically the best recruiter choice.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Assuming binary affinity is enough</h3>
+      <p>A tightly binding recruiter can still produce poor degradation if the resulting ligase orientation or linker trajectory is unproductive.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Exporting without documenting the atom</h3>
+      <p>Sending a recruiter into linker design without preserving the selected attachment atom makes later optimization harder to interpret.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="workflow">
+  <div class="protac-section-head"><h2>Recommended workflow through the ecosystem</h2></div>
+  <ol class="protac-step-list">
+    <li>Start in E3 Ligandalyzer and compare ligases, recruiters, scaffolds, and bound structures.</li>
+    <li>Inspect recruiter-level solvent exposure and choose plausible attachment atoms.</li>
+    <li>Check expression context to confirm the ligase is biologically plausible.</li>
+    <li>Export the recruiter to PROTAC Builder with the selected attachment point.</li>
+    <li>Pair it with a POI warhead using Warhead Hunter or V-LiSEMOD when relevant.</li>
+    <li>Choose linker panels using the Linker Design guide and builder templates.</li>
+    <li>Use downstream modeling and benchmarking pages for ternary-complex evaluation and workflow review.</li>
+  </ol>
   <div class="protac-card-grid">
-    {{ info_card('Inspect E3 recruiters in Ligandalyzer', 'Use the recruiter explorer, ligand detail pages, and scaffold views.', 'https://e3ligandalyzer.com/explorer', kicker='External', cta='Open E3 Ligandalyzer', external=True) }}
-    {{ info_card('Explore viral warhead leads in V-LiSEMOD', 'When the target is viral, use bound-ligand structures and solvent-exposed moieties to inform warhead discovery before assembly.', 'https://vlisemod.com', kicker='External', cta='Open V-LiSEMOD', external=True) }}
-    {{ info_card('Return to PROTAC Builder', 'Bring the chosen recruiter back into degrader assembly.', '/builder', kicker='Assembly', cta='Return to builder') }}
+    {{ info_card('E3 Ligandalyzer', 'Start recruiter-first: compare structures, ligases, and recruiter pages before assembly.', 'https://e3ligandalyzer.com', kicker='External Platform', cta='Open E3 Ligandalyzer', external=True) }}
+    {{ info_card('Explorer', 'Move through recruiter chemical space and ligand-level inspection with the interactive explorer.', 'https://e3ligandalyzer.com/explorer', kicker='External Module', cta='Visit explorer', external=True) }}
+    {{ info_card('Scaffold Dashboard', 'Reason at the scaffold-family level when one recruiter class is too narrow or too burdensome.', 'https://e3ligandalyzer.com/scaffolds', kicker='External Module', cta='View scaffold dashboard', external=True) }}
+    {{ info_card('PROTAC Builder', 'Export recruiter choices into assembly-ready editable 2D structures for linker attachment.', '/builder', kicker='Assembly', cta='Open PROTAC Builder') }}
+    {{ info_card('How to Build a PROTAC', 'Follow the full staged workflow from target selection through degradation readouts.', '/how-to-build-a-protac', kicker='Guide', cta='Read build guide') }}
+    {{ info_card('Linker Design', 'Compare flexible, rigid, PEG-like, alkyl, and geometry-aware linker strategies.', '/linkers', kicker='Guide', cta='Read linker guide') }}
+    {{ info_card('Warhead Discovery', 'Connect recruiter-first design with POI-ligand selection and upstream warhead context.', '/warheads', kicker='Guide', cta='Explore warheads') }}
+    {{ info_card('Warhead Hunter', 'Use broader target-binding ligand exploration when the POI side is still uncertain.', 'https://warheadhunter.com/examples', kicker='External Platform', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('V-LiSEMOD', 'Use viral protein-ligand structures and solvent-exposed moiety evidence for viral target programs.', 'https://vlisemod.com', kicker='External Platform', cta='Open V-LiSEMOD', external=True) }}
+    {{ info_card('Downstream Modeling', 'Review where recruiter-aware assembled candidates go next for ternary-complex analysis.', '/downstream-modeling-tools', kicker='Guide', cta='View downstream tools') }}
+    {{ info_card('In Silico PROTAC Modeling', 'Compare restrained docking, modeling, and refinement strategies for recruiter-aware candidates.', '/in-silico-protac-modeling', kicker='Guide', cta='Read modeling guide') }}
+    {{ info_card('Benchmarking', 'Review benchmarking context and workflow evaluation for computational degrader studies.', '/benchmarking', kicker='Guide', cta='Open benchmarking') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="platform-note">
+  <div class="protac-section-head"><h2>Platform note</h2></div>
+  <div class="protac-reference-block">
+    <p>
+      E3 Recruiter Ligandalyzer is an active Schurer Lab platform for structure-first E3 recruiter ligand exploration.
+      Dataset counts and feature availability may change as the platform is updated.
+    </p>
+    <p>
+      This page is intentionally written as an internal platform guide rather than a formal literature citation. It reflects
+      the current Ligandalyzer tool draft and should be reviewed by the project owner or domain lead before public release.
+    </p>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('https://e3ligandalyzer.com', 'Open E3 Recruiter Ligandalyzer', primary=True, external=True) }}
+    {{ action_link('https://e3ligandalyzer.com/explorer', 'Visit the explorer', external=True) }}
+    {{ action_link('https://e3ligandalyzer.com/scaffolds', 'View scaffold dashboard', external=True) }}
   </div>
 </section>
 {% endblock %}
