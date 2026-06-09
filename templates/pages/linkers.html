@@ -1,31 +1,385 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import info_card %}
+{% from "pages/_macros.html" import action_link, info_card %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Linker Design</span>
-  <h1>PROTAC Linker Design Hub</h1>
-  <p class="protac-hero-copy">Linkers do more than connect two fragments. In PROTAC design they influence whether the target and E3 ligase can adopt a productive ternary arrangement.</p>
-  <p class="protac-hero-copy">This hub focuses on linker geometry and feasibility rather than claiming a complete linker library.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Linker Design</span>
+    <h1>PROTAC Linker Design Hub</h1>
+    <p class="protac-hero-copy">
+      In a PROTAC, the linker is not a passive spacer. It helps determine whether the protein of interest
+      and the recruited E3 ligase can adopt a productive ternary complex with the right distance, orientation,
+      and physicochemical balance for degradation.
+    </p>
+    <p class="protac-hero-copy">
+      This page helps you decide which linker features to test first before moving into PROTAC Builder,
+      modeling, or synthesis: length, group type, flexibility versus rigidity, and the attachment vectors on both ligands.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Bridgeability matters</span>
+      <span class="protac-pill">Ternary geometry matters</span>
+      <span class="protac-pill">Permeability still matters</span>
+      <span class="protac-pill">Experiments still decide</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/builder', 'Open the builder', primary=True) }}
+      {{ action_link('/how-to-build-a-protac', 'Read the build guide') }}
+      {{ action_link('/downstream-modeling-tools', 'View downstream tools') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero">
+    <img
+      src="{{ url_for('static', filename='images/Figures/Figure1.jpg') }}"
+      alt="Schematic showing a PROTAC bridging a protein of interest and an E3 ligase to form a ternary complex."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 1.</strong> Conceptual PROTAC anatomy and mode of action: POI ligand, linker, and E3 ligase ligand combine to support ternary complex formation and ubiquitin-driven degradation.
+      Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+      <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+    </figcaption>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="properties">
-  <div class="protac-section-head"><h2>Design dimensions to watch</h2></div>
+<section class="protac-section-card" id="overview">
+  <div class="protac-section-head"><h2>Why linkers matter</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--three">
+    <article class="protac-mini-card">
+      <h3>Ternary complex formation</h3>
+      <p>The linker controls whether both ligands can engage at the same time without severe steric clash or wasted conformational freedom.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Ubiquitination geometry</h3>
+      <p>Even when both ends bind, the POI must still be presented to the recruited E3 in a geometry that supports ubiquitination.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Selectivity</h3>
+      <p>Changing the linker or exit vector can alter protein-protein contacts and shift degradation selectivity across related targets or isoforms.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Permeability and solubility</h3>
+      <p>Linker chemistry changes molecular weight, polarity, H-bond burden, and lipophilicity, which can strongly affect cell entry.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>PK and metabolic stability</h3>
+      <p>Flexible, polar, or oxidation-prone motifs may help in one area while hurting oral exposure, microsomal stability, or clearance.</p>
+    </article>
+    <article class="protac-mini-card">
+      <h3>Synthesis feasibility</h3>
+      <p>A good linker is not only biologically plausible. It should also be synthetically reachable for iterative SAR.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="core-dimensions">
+  <div class="protac-section-head"><h2>The four core design dimensions</h2></div>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">1. Length</span>
+      <p>Does the linker give enough reach to bridge the POI ligand and E3 recruiter without introducing excessive entropy or floppiness?</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">2. Group Type</span>
+      <p>Does the chemistry add helpful solubility or shape, or does it overburden the molecule with molecular weight, HBD/HBA count, or metabolic liability?</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">3. Flexibility vs Rigidity</span>
+      <p>Should the system sample many conformations, or should the linker pre-organize the ligands into a narrower geometry space?</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">4. Linkage Site / Exit Vector</span>
+      <p>Are you exiting from solvent-exposed positions that preserve ligand binding while orienting the E3 recruiter productively?</p>
+    </article>
+  </div>
+  <figure class="protac-figure-card">
+    <img
+      src="{{ url_for('static', filename='images/Figures/Figure2.jpg') }}"
+      alt="Overview figure summarizing flexible and relatively rigid PROTAC linker classes, their frequencies, timeline, and key characteristics."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 2.</strong> Overview of linker classes discussed in the review: flexible linkers dominate the surveyed set, with alkyl and PEG motifs most common, while triazole, cycloalkane, aromatic, spiro, fused heterocycle, macrocyclic, photo-caged, and photo-switchable classes appear less frequently.
+      Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+      <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+    </figcaption>
+  </figure>
+</section>
+
+<section class="protac-section-card" id="flexible-linkers">
+  <div class="protac-section-head"><h2>Flexible linkers</h2></div>
+  <p class="protac-section-copy">
+    Flexible linkers are often the first place to start because they are easy to enumerate and can reveal whether a POI/E3 pair has enough geometric tolerance to support degradation.
+  </p>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Alkyl-based linkers</h3>
+      <p><strong>Benefits:</strong> synthetically accessible, easy to length-tune, broadly useful for first-pass SAR, and often stable under physiological conditions.</p>
+      <p><strong>Cautions:</strong> can increase hydrophobicity, reduce aqueous solubility, raise oxidative metabolism risk, and become too floppy when extended.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>PEG-based linkers</h3>
+      <p><strong>Benefits:</strong> hydrophilic spacing units that can improve solubility and allow productive conformational sampling.</p>
+      <p><strong>Cautions:</strong> may raise molecular weight, HBA/HBD burden, and polarity, reduce permeability, and introduce metabolic liabilities in some settings.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>When to start here:</strong> If you do not yet know the required ternary geometry, start with a small flexible panel to test whether the target and recruiter tolerate a range of distances and linker chemistries.
+  </div>
+</section>
+
+<section class="protac-section-card" id="rigid-linkers">
+  <div class="protac-section-head"><h2>Relatively rigid linkers</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Triazole-based linkers</h3>
+      <p><strong>Benefits:</strong> accessible by click chemistry, often chemically stable, and useful when you want a more defined linker geometry.</p>
+      <p><strong>Cautions:</strong> a clean synthetic route does not guarantee the triazole geometry matches the productive ternary interface.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Cycloalkane, piperidine, and piperazine motifs</h3>
+      <p><strong>Benefits:</strong> can add conformational control, improve solubility tuning, preserve geometry, and sometimes support better metabolic behavior.</p>
+      <p><strong>Cautions:</strong> if the exit vectors are wrong, these motifs can overconstrain the system and block productive engagement.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Aromatic, spiro, fused heterocycle, and macrocyclic motifs</h3>
+      <p><strong>Benefits:</strong> stronger shape control, reduced entropic wandering, and in some cases helpful stacking or interface interactions.</p>
+      <p><strong>Cautions:</strong> higher synthesis complexity, possible permeability penalties, and strong context dependence across target classes.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Photo-caged and photo-switchable linkers</h3>
+      <p><strong>Benefits:</strong> enable conditional or spatiotemporal control over degrader behavior.</p>
+      <p><strong>Cautions:</strong> specialized tools rather than default discovery choices; they add light-delivery and validation complexity.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="length">
+  <div class="protac-section-head"><h2>Length: too short, too long, just right</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Linker length is one of the clearest failure points in PROTAC design. Too short can prevent both ligands from engaging or create steric clash. Too long can increase conformational entropy and reduce the population of productive ternary states.
+      </p>
+      <p class="protac-section-copy">
+        A 5 to 15 atom exploration window can be a practical starting point when there is no stronger structural hypothesis, but it is not a universal rule. The right answer depends on POI surface topology, E3 orientation, and attachment-vector geometry.
+      </p>
+      <div class="protac-callout">
+        <strong>Practical guidance:</strong> test a short series rather than assuming one best linker length. Systematic length walks usually teach more than a single “rational” guess.
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Figures/Figure4.jpg') }}"
+        alt="Illustration showing that suitable linker length can form a ternary complex while too-short and too-long linkers can fail."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 4.</strong> Linker-length concept and case examples: a productive bridge requires enough reach for ternary complex formation, while both overly short and overly long linkers can fail for different geometric reasons.
+        Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+        <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="group-type">
+  <div class="protac-section-head"><h2>Group type and permeability</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Figures/Figure5.jpg') }}"
+        alt="Figure illustrating how linker group types influence molecular weight, hydrogen-bonding features, lipophilicity, and cell permeability."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 5.</strong> Group type changes the property budget of the whole PROTAC, including molecular weight, hydrogen-bond donor and acceptor counts, and lipophilicity, which then affect cell permeability.
+        Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+        <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+      </figcaption>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        Linker chemistry can improve solubility and still hurt permeability, or improve permeability while creating solubility and formulation problems. That tradeoff is central in PROTAC medicinal chemistry because the scaffold is already large before linker optimization begins.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>More heteroatoms often help solubility but can increase polarity and HBA burden.</li>
+        <li>More hydrophobic carbon content can help passive permeability but worsen solubility and sometimes metabolic stability.</li>
+        <li>Added rings can tune shape and preorganization but also raise synthetic complexity and size.</li>
+      </ul>
+      <p class="protac-section-copy">
+        This is one reason PROTAC Builder is useful early: you can compare linker templates quickly, inspect the assembled scaffold, and decide which candidates are worth carrying into downstream modeling or chemistry.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="flexibility">
+  <div class="protac-section-head"><h2>Flexibility and ternary complex stability</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Flexible linkers can succeed because they let the system sample productive conformations. Rigid linkers can succeed because they reduce entropic cost and better preserve a productive ligand orientation.
+      </p>
+      <p class="protac-section-copy">
+        Neither approach is universally better. The productive choice depends on the relative placement of the POI pocket, E3 pocket, and protein-protein interface that emerges in the ternary complex.
+      </p>
+      <div class="protac-note-grid">
+        <article class="protac-note">
+          <h3>Flexible success mode</h3>
+          <p>Useful when the interface needs conformational exploration to discover a productive pose.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Rigid success mode</h3>
+          <p>Useful when preorganization or preserved vector geometry helps stabilize a favored ternary arrangement.</p>
+        </article>
+      </div>
+    </div>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Figures/Figure6.jpg') }}"
+        alt="Figure showing how linker flexibility affects PROTAC stability and the design path leading to Bavdegalutamide ARV-110."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 6.</strong> Flexibility-versus-rigidity case study centered on Bavdegalutamide (ARV-110): the review uses this example to show how linker tuning and AR-ligand optimization can improve selective AR degradation and in vivo activity.
+        Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+        <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="linkage-site">
+  <div class="protac-section-head"><h2>Linkage site and exit vector</h2></div>
+  <p class="protac-section-copy">
+    Linkers usually work best when they leave each ligand from a solvent-exposed region that does not disrupt key binding interactions. Moving the attachment atom can rotate the recruited E3, alter ternary protein-protein contacts, and change the degradation profile.
+  </p>
   <ul class="protac-bullet-list">
-    <li>Length and end-to-end reach</li>
-    <li>Polarity and physicochemical burden</li>
-    <li>Flexibility versus conformational bias</li>
-    <li>Attachment geometry and vector alignment</li>
-    <li>Constraint-driven bridgeability between anchors</li>
+    <li>Prefer solvent-exposed attachment vectors when structural or SAR evidence supports them.</li>
+    <li>Avoid modifying atoms that are critical for ligand binding unless there is direct evidence the interaction is preserved.</li>
+    <li>Expect linkage-site changes to affect isoform selectivity, cooperativity, and degradation depth.</li>
   </ul>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Figures/Figure7.jpg') }}"
+        alt="Figure showing how analysis of solvent-exposed regions and linkage-site changes can improve interactions and selectivity."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 7.</strong> Linkage-site analysis can preserve original ligand interactions while improving ternary protein-protein contacts; random exit vectors are more likely to reduce activity or selectivity.
+        Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+        <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+      </figcaption>
+    </figure>
+    <figure class="protac-figure-card">
+      <img
+        src="{{ url_for('static', filename='images/Figures/Figure8.jpg') }}"
+        alt="Figure showing a linkage-site and solvent-exposure case study with varying linker lengths and structural analysis."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Figure 8.</strong> Additional linkage-site case study from the review: solvent-exposure analysis, alternate attachment positions, and length variation reshape the ternary complex and can materially change observed degradation behavior.
+        Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+        <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+      </figcaption>
+    </figure>
+  </div>
 </section>
 
-<section class="protac-section-card" id="next">
-  <div class="protac-section-head"><h2>Where to go next</h2></div>
+<section class="protac-section-card" id="workflow">
+  <div class="protac-section-head"><h2>Practical design workflow</h2></div>
+  <figure class="protac-figure-card">
+    <img
+      src="{{ url_for('static', filename='images/Figures/Figure3.jpg') }}"
+      alt="Workflow figure showing empirical design, structure-guided design, docking, molecular dynamics, restrained minimization, SAR, and machine-learning based linker generation."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Figure 3.</strong> The review organizes linker design as a blend of empirical SAR, structure-guided modeling, docking or restrained ternary approaches, molecular dynamics, and emerging AI or ML generation workflows.
+      Source: Dong et al., <em>Acta Pharmaceutica Sinica B</em> (2024),
+      <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">doi:10.1016/j.apsb.2024.04.007</a>.
+    </figcaption>
+  </figure>
+  <ol class="protac-step-list">
+    <li>Identify the POI ligand and E3 recruiter you actually want to test, not just the pair that is easiest to draw.</li>
+    <li>Confirm plausible solvent-exposed exit vectors on both ligands before linker enumeration.</li>
+    <li>Start with a small linker panel instead of a giant library.</li>
+    <li>Vary length systematically across the panel.</li>
+    <li>Compare at least one flexible option and one more conformationally biased option.</li>
+    <li>Check overall physicochemical burden, especially size, polarity, and H-bond count.</li>
+    <li>Use docking, restrained ternary modeling, and MD when they help rank ideas, not as substitutes for data.</li>
+    <li>Prioritize synthesis-feasible candidates and validate experimentally.</li>
+  </ol>
   <div class="protac-card-grid">
-    {{ info_card('Open the builder', 'Use curated linker templates and molecule assembly workflows.', '/builder', kicker='Assembly', cta='Open builder') }}
-    {{ info_card('How to build a PROTAC', 'Follow the staged workflow for selecting anchors and linkers.', '/how-to-build-a-protac', kicker='Guide', cta='Read the guide') }}
-    {{ info_card('Downstream modeling tools', 'See how linker choices feed into restrained ternary modeling and refinement.', '/downstream-modeling-tools', kicker='Modeling', cta='View downstream tools') }}
+    {{ info_card('Open PROTAC Builder', 'Assemble candidate degraders from selected warheads, linkers, and recruiters.', '/builder', kicker='Build', cta='Open builder') }}
+    {{ info_card('How to build a PROTAC', 'Follow the staged workflow for choosing anchors, attachment atoms, and linker hypotheses.', '/how-to-build-a-protac', kicker='Guide', cta='Read the guide') }}
+    {{ info_card('Downstream modeling tools', 'See where restrained ternary modeling, docking, MD, and interface scoring fit after assembly.', '/downstream-modeling-tools', kicker='Modeling', cta='View tools') }}
+    {{ info_card('What is a PROTAC?', 'Use the science explainer if you want a quick refresher on warheads, linkers, and E3 recruitment.', '/what-is-a-protac', kicker='Primer', cta='Open explainer') }}
+    {{ info_card('API Builder', 'Prepare larger scripted or batch workflows once you know which linker ideas are worth scaling.', '/api-builder', kicker='Batch', cta='Open API Builder') }}
+    {{ info_card('View comprehensive linker table', 'The review includes a large Table 1 covering linker classes, representative PROTACs, POIs, E3 ligases, and references.', 'https://www.sciencedirect.com/science/article/pii/S2211383524001357#tbl1', kicker='Reference', cta='Open Table 1', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="checklist">
+  <div class="protac-section-head"><h2>Design checklist before using the builder</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Do both ligands have defensible solvent-exposed attachment vectors?</div>
+    <div class="protac-checklist-item">Are you testing a small length series instead of a single guess?</div>
+    <div class="protac-checklist-item">Have you compared flexible and more rigid linker ideas?</div>
+    <div class="protac-checklist-item">Does the linker chemistry fit your permeability and solubility budget?</div>
+    <div class="protac-checklist-item">Could the linkage site disrupt a key binding interaction?</div>
+    <div class="protac-checklist-item">Is the design simple enough to synthesize and iterate quickly?</div>
+    <div class="protac-checklist-item">Will downstream modeling answer a real ranking question?</div>
+    <div class="protac-checklist-item">Have you kept expectations realistic until experimental degradation data exists?</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="failure-modes">
+  <div class="protac-section-head"><h2>Common failure modes</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <ul class="protac-bullet-list">
+      <li>Linker too short to allow simultaneous engagement.</li>
+      <li>Linker too long, producing excessive conformational entropy.</li>
+      <li>Linker too flexible for the needed ternary geometry.</li>
+      <li>Linker too rigid for the actual exit-vector alignment.</li>
+    </ul>
+    <ul class="protac-bullet-list">
+      <li>Wrong linkage site or exit vector.</li>
+      <li>Excessive polarity or molecular weight burden.</li>
+      <li>Loss of a key ligand-protein interaction after derivatization.</li>
+      <li>Overinterpreting docking or AI-generated proposals without experimental follow-up.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="protac-section-card" id="references">
+  <div class="protac-section-head"><h2>References and attribution</h2></div>
+  <div class="protac-reference-block">
+    <p>
+      Primary review used to ground this page:
+      <strong>Dong et al.</strong>, “Characteristic roadmap of linker governs the rational design of PROTACs,”
+      <em>Acta Pharmaceutica Sinica B</em>, 2024.
+    </p>
+    <p>
+      Full article:
+      <a href="https://www.sciencedirect.com/science/article/pii/S2211383524001357" target="_blank" rel="noopener noreferrer">
+        ScienceDirect article
+      </a>
+      and
+      <a href="https://doi.org/10.1016/j.apsb.2024.04.007" target="_blank" rel="noopener noreferrer">
+        DOI: 10.1016/j.apsb.2024.04.007
+      </a>.
+    </p>
+    <p>
+      Comprehensive linker summary table:
+      <a href="https://www.sciencedirect.com/science/article/pii/S2211383524001357#tbl1" target="_blank" rel="noopener noreferrer">
+        View Table 1
+      </a>.
+    </p>
+    <p>
+      Figures on this page are local copies derived from the review and are presented with visible attribution so readers can locate the original publication for full context.
+    </p>
   </div>
 </section>
 {% endblock %}

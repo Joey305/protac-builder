@@ -191,6 +191,164 @@
   font-weight: 800;
 }
 
+.protac-linker-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.protac-linker-hero__copy {
+  min-width: 0;
+}
+
+.protac-linker-grid,
+.protac-comparison-grid,
+.protac-note-grid,
+.protac-checklist-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.protac-linker-grid--two,
+.protac-comparison-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.protac-linker-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.protac-mini-card,
+.protac-detail-card,
+.protac-info-panel,
+.protac-note,
+.protac-checklist-item {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+}
+
+.protac-mini-card,
+.protac-detail-card,
+.protac-info-panel,
+.protac-note {
+  padding: 1.15rem;
+}
+
+.protac-mini-card h3,
+.protac-detail-card h3,
+.protac-note h3 {
+  margin: 0 0 0.55rem;
+  color: #f8fbff;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.protac-mini-card p,
+.protac-detail-card p,
+.protac-info-panel p,
+.protac-note p,
+.protac-figure-card figcaption,
+.protac-step-list li,
+.protac-reference-block p,
+.protac-checklist-item {
+  color: #d7e7f7;
+  line-height: 1.72;
+}
+
+.protac-figure-card {
+  margin: 0;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+}
+
+.protac-figure-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.protac-figure-card figcaption {
+  padding: 0.9rem 1rem 1rem;
+  font-size: 0.92rem;
+}
+
+.protac-figure-card figcaption a,
+.protac-reference-block a {
+  color: #92f7ff;
+}
+
+.protac-figure-card--hero {
+  align-self: stretch;
+}
+
+.protac-callout,
+.protac-reference-block {
+  margin-top: 1rem;
+  padding: 1rem 1.05rem;
+  background: rgba(10, 18, 32, 0.82);
+  border-left: 4px solid rgba(34, 211, 238, 0.75);
+  border-radius: 16px;
+}
+
+.protac-comparison-grid,
+.protac-note-grid {
+  margin-top: 0.7rem;
+}
+
+.protac-checklist-grid {
+  margin-top: 0.4rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.protac-checklist-item {
+  position: relative;
+  padding: 1rem 1rem 1rem 3rem;
+  font-weight: 650;
+}
+
+.protac-checklist-item::before {
+  content: "✓";
+  position: absolute;
+  left: 1rem;
+  top: 0.95rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #082031;
+  background: linear-gradient(90deg, #22d3ee, #5eead4);
+  font-weight: 900;
+}
+
+.protac-step-list {
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.protac-step-list li + li {
+  margin-top: 0.6rem;
+}
+
+.protac-section-card .protac-figure-card + .protac-step-list,
+.protac-section-card .protac-figure-card + .protac-card-grid {
+  margin-top: 1rem;
+}
+
+.protac-reference-block p {
+  margin: 0;
+}
+
+.protac-reference-block p + p {
+  margin-top: 0.7rem;
+}
+
 @media (max-width: 768px) {
   .protac-content-shell {
     padding-top: 1.2rem;
@@ -204,5 +362,17 @@
 
   .protac-hero-card h1 {
     font-size: clamp(2rem, 8vw, 2.8rem);
+  }
+
+  .protac-linker-hero,
+  .protac-linker-grid--two,
+  .protac-linker-grid--three,
+  .protac-comparison-grid,
+  .protac-checklist-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .protac-checklist-item {
+    padding-left: 2.9rem;
   }
 }
