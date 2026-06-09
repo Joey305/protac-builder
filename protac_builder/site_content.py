@@ -101,8 +101,8 @@ PAGE_META: dict[str, dict[str, Any]] = {
     "warheads": {
         "slug": "warheads",
         "template": "pages/warheads.html",
-        "meta_title": "PROTAC Warhead Discovery Hub | PROTAC Builder",
-        "meta_description": "Learn how warheads function in PROTAC design, why attachment context matters, and when to use Warhead Hunter and PROTAC Builder together.",
+        "meta_title": "PROTAC Warhead Discovery | Target-Binding Ligands and Linker Attachment Sites",
+        "meta_description": "Learn how PROTAC warhead discovery uses ligand-bound protein structures, solvent exposure mapping, RCSB search, attachment-vector inspection, and Warhead Hunter outputs to guide degrader assembly.",
         "software_app_schema": False,
         "article_schema": True,
     },

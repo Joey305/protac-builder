@@ -1,29 +1,602 @@
 {% extends "pages/_page_base.html" %}
-{% from "pages/_macros.html" import info_card %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block structured_data %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is a PROTAC warhead?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A PROTAC warhead is the target-binding ligand or chemical motif that recognizes the protein of interest. In degrader design, the warhead also needs a plausible attachment atom or exit vector for a linker without destroying the interactions that make it bind."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I choose a warhead for a PROTAC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A practical warhead workflow starts by finding a ligand-bound protein structure or a credible binding pose, checking which ligand atoms remain solvent-exposed, identifying candidate attachment atoms, and then carrying only geometry-aware warhead options into PROTAC Builder."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does solvent exposure matter for warhead design?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "When a ligand binds a protein, some atoms are buried in the binding site and others remain solvent-facing. Solvent-exposed atoms can be useful starting points for modification-site inspection, while buried atoms are more likely to participate in binding and should usually be modified cautiously."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is a linker attachment site?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A linker attachment site is the ligand atom or functional position chosen for chemical expansion so the warhead can be connected to a linker and, eventually, to an E3 ligase recruiter in a PROTAC."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I choose an attachment atom from a 2D structure alone?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually not. A clean-looking 2D atom may point into buried protein volume or participate in key binding interactions in the 3D bound pose, so protein-bound context should be inspected whenever possible."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is Warhead Hunter?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Warhead Hunter is a structure-guided platform that converts ligand-bound protein structures into atom-level solvent exposure maps, synchronized 2D and 3D inspection views, downloadable artifacts, and API-accessible results for warhead and linker planning."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What does RCSB Scout do?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "RCSB Scout helps users search RCSB by known PDB ID or by protein and keyword queries so they can identify ligand-bound structures worth sending into Warhead Hunter."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What files does Warhead Hunter produce?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Warhead Hunter can produce prepared structure files, ligand SDF outputs, exposure tables, SVG atom maps, manifests, downloadable job bundles, and browser-accessible result views."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do Warhead Hunter results connect to PROTAC Builder?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Users can bring back the target context, ligand identity, binding-pose information, candidate solvent-exposed atoms, and selected attachment sites into PROTAC Builder to define the target-facing anchor before pairing the warhead with recruiters and linkers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Warhead Hunter guarantee a successful PROTAC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Warhead Hunter supports inspection and prioritization, but solvent exposure mapping and structure-guided warhead analysis do not guarantee a successful PROTAC or productive degradation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What should I do after selecting a warhead?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "After selecting a warhead, users should define the target-facing attachment atom, compare alternate attachment vectors when needed, bring the candidate into PROTAC Builder, pair it with E3 recruiters and linkers, and then use downstream modeling and experiments for validation."
+          }
+        }
+      ]
+    }
+  </script>
+{% endblock %}
 
 {% block page_content %}
-<section class="protac-hero-card">
-  <span class="protac-page-kicker">Warhead Discovery</span>
-  <h1>PROTAC Warhead Discovery Hub</h1>
-  <p class="protac-hero-copy">A warhead is the target-binding part of a PROTAC. It determines the protein-of-interest context, possible attachment vectors, and much of the downstream feasibility of ternary complex formation.</p>
-  <p class="protac-hero-copy">This page is a discovery hub rather than a claim of a complete standalone warhead library inside PROTAC Builder.</p>
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Warhead Discovery</span>
+    <h1>PROTAC Warhead Discovery</h1>
+    <p class="protac-hero-copy">
+      A PROTAC warhead is the target-binding component that anchors the degrader to the protein of interest. Before a
+      linker is attached, users need to understand the warhead’s bound pose, which atoms remain solvent-exposed, and
+      whether the proposed attachment vector points into open space rather than disrupting key binding interactions.
+    </p>
+    <p class="protac-hero-copy">
+      This page connects PROTAC Builder to the live Warhead Hunter ecosystem. The goal is not just to find a binder,
+      but to inspect whether that binder has a usable modification site for PROTAC-oriented chemical expansion and
+      downstream ternary-complex design.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">Protein-bound ligand context</span>
+      <span class="protac-pill">Atom-level SASA</span>
+      <span class="protac-pill">2D / 3D inspection</span>
+      <span class="protac-pill">PROTAC attachment planning</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('https://warheadhunter.com', 'Open Warhead Hunter', primary=True, external=True) }}
+      {{ action_link('https://warheadhunter.com/hunter', 'Launch a Warhead Hunt', external=True) }}
+      {{ action_link('https://warheadhunter.com/scout', 'Search RCSB Scout', external=True) }}
+      {{ action_link('https://warheadhunter.com/examples', 'View examples', external=True) }}
+      {{ action_link('/builder', 'Return to PROTAC Builder') }}
+    </div>
+  </div>
+  <figure class="protac-figure-card protac-figure-card--hero science-figure science-figure--hero">
+    <img
+      src="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Home.png') }}"
+      alt="Warhead Hunter homepage showing structure-guided medicinal chemistry workflow, launch options, and atom-level solvent exposure mapping features."
+      loading="lazy"
+    >
+    <figcaption>
+      <strong>Warhead Hunter overview.</strong> The live platform is built around ligand-bound protein context,
+      atom-level solvent exposure mapping, synchronized 2D/3D inspection, downloadable artifacts, and API-accessible
+      job outputs for warhead and linker planning.
+    </figcaption>
+    <div class="protac-figure-card__actions">
+      <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Home.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the Warhead Hunter home page screenshot">View larger screenshot</a>
+      <a class="protac-figure-card__zoom" href="https://warheadhunter.com" target="_blank" rel="noopener noreferrer" aria-label="Open the live Warhead Hunter website">Open live site</a>
+    </div>
+  </figure>
 </section>
 
-<section class="protac-section-card" id="role">
+<section class="protac-section-card" id="quick-answer">
+  <div class="protac-section-head"><h2>Quick answer: what is a PROTAC warhead?</h2></div>
+  <p class="protac-section-copy">
+    A PROTAC warhead is the target-binding ligand or chemical motif that recognizes the protein of interest. In
+    degrader design, the warhead must bind the target and provide a plausible attachment atom or exit vector for a
+    linker without destroying the interactions that make the warhead bind.
+  </p>
+  <div class="protac-callout">
+    <strong>Practical takeaway:</strong> warhead discovery is not only about finding a binder. It is about finding a
+    binder with a usable modification site.
+  </div>
+</section>
+
+<section class="protac-section-card" id="warhead-context">
   <div class="protac-section-head"><h2>Why warhead context matters</h2></div>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Bound pose matters</span>
+      <p>The same ligand can be useful or unusable depending on how it binds. A strong binder in abstract 2D chemistry may still be a poor PROTAC warhead if the only editable atoms are buried in the protein interface.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Buried atoms vs exposed atoms</span>
+      <p>Atoms buried in the binding site are often important for recognition. Solvent-exposed atoms can be better starting points for chemical expansion or linker attachment.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Attachment choice affects geometry</span>
+      <p>Warhead attachment choice influences exit vector, steric burden, linker bridgeability, ternary-complex geometry, and downstream degradation potential.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">Binding is not enough</span>
+      <p>Strong target binding alone does not guarantee a useful PROTAC warhead. The molecule still needs a modification site that can support the rest of the degrader architecture.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Warning:</strong> do not choose an attachment atom from the 2D structure alone. Inspect the ligand in the
+    protein-bound 3D context whenever possible.
+  </div>
+</section>
+
+<section class="protac-section-card" id="science">
+  <div class="protac-section-head"><h2>Ligand solvent exposure mapping</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Warhead Hunter is built around a simple but useful scientific idea. When a ligand binds a protein, some atoms
+        are buried against the binding site while others remain exposed to solvent. Those solvent-facing atoms can be
+        candidate modification positions for warhead elaboration, linker attachment, or PROTAC-oriented design review.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Buried atoms are often more protein-facing and should usually be modified cautiously.</li>
+        <li>Solvent-exposed atoms can be useful starting points for modification-site inspection.</li>
+        <li>Atom-level solvent-accessible surface area can help prioritize atoms for closer review.</li>
+        <li>Exposure mapping is a guide, not a guarantee of successful chemistry or degradation.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('https://warheadhunter.com/science', 'Read the Warhead Hunter science page', primary=True, external=True) }}
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/Science.png') }}"
+        alt="Warhead Hunter science page explaining ligand solvent exposure and the distinction between protein-facing buried atoms and solvent-exposed atoms."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Science page.</strong> Warhead Hunter’s science page explains ligand solvent exposure: buried atoms are
+        more protein-facing, while solvent-exposed atoms can be useful starting points for modification-site inspection.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/Science.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the Warhead Hunter science page screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/science" target="_blank" rel="noopener noreferrer" aria-label="Open the live Warhead Hunter science page">Open science page</a>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="rcsb-scout">
+  <div class="protac-section-head"><h2>Search RCSB for ligand-bound protein structures</h2></div>
+  <p class="protac-section-copy">
+    RCSB Scout helps users query ligand-bound protein structures before launching a warhead hunt. It supports two
+    practical modes: search by known PDB ID when you already know the structure, or search by protein or keyword when
+    you need discovery help across the broader RCSB archive.
+  </p>
+  <div class="science-figure-grid science-figure-grid--two">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/RCSB_Scout.png') }}"
+        alt="RCSB Scout page showing the known PDB ID and protein or keyword search modes used to query ligand-bound structures before launching Warhead Hunter."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>RCSB Scout.</strong> RCSB Scout supports both known-PDB and protein or keyword search modes so users
+        can find ligand-bound structures before running Warhead Hunter.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/RCSB_Scout.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the RCSB Scout screenshot">View larger screenshot</a>
+      </div>
+    </figure>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/rcsb-scout2.png') }}"
+        alt="Additional RCSB Scout interface view highlighting result selection and handoff into the Warhead Hunter setup flow."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Scout handoff view.</strong> Once a useful hit is found, RCSB Scout helps users carry the structure,
+        protein-chain selection, and search context into the Warhead Hunter launch workflow.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/rcsb-scout2.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the second RCSB Scout screenshot">View larger screenshot</a>
+      </div>
+    </figure>
+  </div>
   <ul class="protac-bullet-list">
-    <li>Warhead pose and solvent exposure shape where a linker can be attached.</li>
-    <li>Attachment atom choice influences exit vector, steric burden, and bridgeability.</li>
-    <li>Target-specific warhead chemistry often needs more context than an assembly tool alone can provide.</li>
+    <li>Use PDB ID mode when you already know the structure you want.</li>
+    <li>Use protein or keyword mode for terms like “DYRK1A inhibitor bound” or “cereblon pomalidomide bound.”</li>
+    <li>Search results can reveal structures worth sending into Warhead Hunter for solvent-exposure analysis.</li>
   </ul>
+  <div class="protac-action-row">
+    {{ action_link('https://warheadhunter.com/scout', 'Open RCSB Scout', primary=True, external=True) }}
+    {{ action_link('https://warheadhunter.com/scout', 'Search by PDB ID', external=True) }}
+    {{ action_link('https://warheadhunter.com/scout', 'Search by protein / keyword', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="launch-hunter">
+  <div class="protac-section-head"><h2>Use Warhead Hunter for PROTAC design</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Launch.png') }}"
+        alt="Warhead Hunter launch workflow with fields for target label, RCSB search query, optional FASTA sequence, and launch controls."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Launch workflow.</strong> Warhead Hunter supports job submission with a target label, RCSB query, and
+        optional FASTA sequence context when specificity matters.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_Launch.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the Warhead Hunter launch page screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/hunter" target="_blank" rel="noopener noreferrer" aria-label="Open the live Warhead Hunter launch page">Launch Warhead Hunter</a>
+      </div>
+    </figure>
+    <div>
+      <p class="protac-section-copy">
+        The launch workflow is meant to be practical rather than magical. Users provide enough context for Warhead
+        Hunter to retrieve candidate ligand-bound structures and organize outputs into interpretable result views and
+        downloadable artifacts.
+      </p>
+      <ol class="protac-step-list">
+        <li>Provide a target label for bookkeeping and result organization.</li>
+        <li>Provide an RCSB search query, which can be a PDB ID, protein name, or natural-language query.</li>
+        <li>Optionally provide FASTA when the target name is broad or specificity matters.</li>
+        <li>Submit a scan job and inspect the returned structures and exposure maps.</li>
+      </ol>
+      <div class="protac-note-grid">
+        <article class="protac-note">
+          <h3>Example search ideas</h3>
+          <p>`CRBN`, `HIV-1 protease inhibitor bound`, `DYRK1A inhibitor bound`, and `cereblon pomalidomide bound` are all useful styles of starting query, but results still need inspection.</p>
+        </article>
+        <article class="protac-note">
+          <h3>Caution</h3>
+          <p>Not every query will return a perfect structure, and not every ligand-bound structure will support a useful PROTAC warhead hypothesis.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="results">
+  <div class="protac-section-head"><h2>Inspect results: 3D context and 2D ligand maps</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Warhead Hunter results are useful because they keep the protein-bound context visible. Users can inspect whether
+        candidate atoms are exposed or buried, review synchronized 2D ligand maps, and compare candidate modification
+        sites before deciding what should come back into PROTAC Builder.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>3D views help inspect whether a candidate atom points toward solvent or protein volume.</li>
+        <li>2D ligand maps highlight SASA or exposure categories for quick comparison.</li>
+        <li>Results can inform linker attachment planning, not just warhead selection.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('https://warheadhunter.com/results/d6706e03', 'View DYRK1A results', primary=True, external=True) }}
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--feature science-figure science-figure--feature">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/DYRK1A_Results.png') }}"
+        alt="DYRK1A Warhead Hunter results page showing protein-bound ligand context, atom-level exposure, and synchronized 2D and 3D inspection panels."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>DYRK1A results.</strong> DYRK1A Warhead Hunter results show protein-bound ligand context, atom-level
+        exposure, and synchronized 2D/3D inspection views that can support linker attachment planning.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/DYRK1A_Results.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the DYRK1A results screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/results/d6706e03" target="_blank" rel="noopener noreferrer" aria-label="Open the live DYRK1A results page on Warhead Hunter">Open live results</a>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section class="protac-section-card" id="examples">
+  <div class="protac-section-head"><h2>Learn from public example pages</h2></div>
+  <p class="protac-section-copy">
+    Public example pages are a low-friction way to understand the workflow before launching your own job. They show
+    what completed, read-only jobs look like, including file manifests, downloadable bundles, and links into richer
+    result galleries.
+  </p>
+  <div class="science-figure-grid science-figure-grid--two">
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/Example_Page.png') }}"
+        alt="Warhead Hunter examples index page showing completed public jobs that can be opened for learning and workflow review."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>Examples index.</strong> Public Warhead Hunter examples provide completed jobs with metadata, file
+        manifests, downloads, and result-gallery links.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/Example_Page.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the Warhead Hunter examples page screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/examples" target="_blank" rel="noopener noreferrer" aria-label="Open the live Warhead Hunter examples page">Browse examples</a>
+      </div>
+    </figure>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/DYRK1A_Example.png') }}"
+        alt="DYRK1A example page on Warhead Hunter showing a completed example job with downloadable structures, tables, SVG maps, and result links."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>DYRK1A example.</strong> The DYRK1A example page shows a curated example with available rows,
+        WAR_PDB files, SDF files, SVG maps, and downloadable artifacts.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/DYRK1A_Example.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the DYRK1A example page screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/examples/d6706e03" target="_blank" rel="noopener noreferrer" aria-label="Open the live DYRK1A example page on Warhead Hunter">Open DYRK1A example</a>
+      </div>
+    </figure>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('https://warheadhunter.com/examples', 'Browse Warhead Hunter examples', primary=True, external=True) }}
+    {{ action_link('https://warheadhunter.com/examples/d6706e03', 'Open DYRK1A example', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="api">
+  <div class="protac-section-head"><h2>Automate warhead discovery with the API</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <div>
+      <p class="protac-section-copy">
+        Warhead Hunter also supports programmatic workflows. The API layer is useful when users want reproducible job
+        submission, job monitoring, result manifests, file retrieval, and larger batch-oriented discovery campaigns.
+      </p>
+      <ul class="protac-bullet-list">
+        <li>Submit jobs programmatically.</li>
+        <li>Monitor job status and manifests.</li>
+        <li>Download WAR_PDB structures, SDF outputs, SVG atom maps, and other artifacts.</li>
+        <li>Connect result retrieval to downstream analysis or batch pipelines.</li>
+      </ul>
+      <div class="protac-action-row">
+        {{ action_link('https://warheadhunter.com/api-docs', 'Open Warhead Hunter API docs', primary=True, external=True) }}
+      </div>
+    </div>
+    <figure class="protac-figure-card protac-figure-card--large science-figure">
+      <img
+        src="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_API.png') }}"
+        alt="Warhead Hunter API documentation showing programmatic job submission, job monitoring, result manifests, download routes, and automation-oriented examples."
+        loading="lazy"
+      >
+      <figcaption>
+        <strong>API docs.</strong> Warhead Hunter API documentation supports programmatic job submission, monitoring,
+        manifests, downloads, and batch workflows.
+      </figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='images/Warhead_Hunter/Hunter_API.png') }}" target="_blank" rel="noopener noreferrer" aria-label="View larger version of the Warhead Hunter API documentation screenshot">View larger screenshot</a>
+        <a class="protac-figure-card__zoom" href="https://warheadhunter.com/api-docs" target="_blank" rel="noopener noreferrer" aria-label="Open the live Warhead Hunter API documentation">Open API docs</a>
+      </div>
+    </figure>
+  </div>
 </section>
 
 <section class="protac-section-card" id="handoff">
+  <div class="protac-section-head"><h2>Bring warheads into PROTAC Builder</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>What should come back from Warhead Hunter</h3>
+      <ul class="protac-bullet-list">
+        <li>Target name and protein context.</li>
+        <li>PDB ID or other structure source.</li>
+        <li>Ligand identity and bound-pose context.</li>
+        <li>Candidate solvent-exposed attachment atoms.</li>
+        <li>Notes about buried atoms or atoms to avoid.</li>
+        <li>SDF, MOL, or SMILES where available.</li>
+        <li>Selected warhead structure and target-facing attachment atom.</li>
+        <li>Any uncertainty or alternate attachment vectors worth testing.</li>
+      </ul>
+    </article>
+    <article class="protac-detail-card">
+      <h3>How PROTAC Builder uses that handoff</h3>
+      <ol class="protac-step-list">
+        <li>Import or select the warhead.</li>
+        <li>Define the target-facing attachment atom.</li>
+        <li>Pair the warhead with an E3 recruiter.</li>
+        <li>Select or enumerate linkers.</li>
+        <li>Export assembled candidates for downstream modeling and experimental follow-up.</li>
+      </ol>
+      <div class="protac-callout">
+        <strong>Scope reminder:</strong> PROTAC Builder helps organize component and attachment-site hypotheses. It does
+        not guarantee productive degradation.
+      </div>
+    </article>
+  </div>
+  <div class="protac-action-row">
+    {{ action_link('/builder', 'Return to PROTAC Builder', primary=True) }}
+    {{ action_link('/linkers', 'Read linker design guide') }}
+    {{ action_link('/e3-ligase-recruiters', 'Explore E3 recruiters') }}
+    {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="checklist">
+  <div class="protac-section-head"><h2>Practical warhead selection checklist</h2></div>
+  <div class="protac-checklist-grid">
+    <div class="protac-checklist-item">Does the warhead bind the intended protein of interest?</div>
+    <div class="protac-checklist-item">Is there a ligand-bound structure or credible modeled pose?</div>
+    <div class="protac-checklist-item">Is the binding mode relevant to the biological target context?</div>
+    <div class="protac-checklist-item">Are key binding interactions preserved?</div>
+    <div class="protac-checklist-item">Is at least one plausible atom solvent-exposed?</div>
+    <div class="protac-checklist-item">Does the candidate attachment atom point toward solvent or open interface space?</div>
+    <div class="protac-checklist-item">Could modification disrupt binding or selectivity?</div>
+    <div class="protac-checklist-item">Is the warhead compatible with a linker attachment strategy?</div>
+    <div class="protac-checklist-item">Are alternate attachment atoms worth testing?</div>
+    <div class="protac-checklist-item">Can the warhead be exported or redrawn for PROTAC Builder?</div>
+    <div class="protac-checklist-item">Is experimental validation planned?</div>
+  </div>
+</section>
+
+<section class="protac-section-card" id="mistakes">
+  <div class="protac-section-head"><h2>Common warhead discovery mistakes</h2></div>
+  <div class="protac-linker-grid protac-linker-grid--two">
+    <article class="protac-detail-card">
+      <h3>Choosing a ligand only because it binds strongly</h3>
+      <p>Strong affinity is useful, but it does not tell you whether the ligand has a usable modification site for degrader design.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Ignoring the protein-bound pose</h3>
+      <p>A warhead should be inspected in bound 3D context whenever possible, not just as a flat 2D drawing.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Selecting a buried atom as the linker attachment site</h3>
+      <p>Buried atoms are more likely to participate in key binding interactions or point into protein volume.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Assuming solvent exposure guarantees success</h3>
+      <p>Exposure is useful, but it does not guarantee clean chemistry, preserved binding, or productive ternary geometry.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Treating RCSB hits as final answers</h3>
+      <p>RCSB search results are a starting point. Structure quality, construct relevance, ligand identity, and binding context still need review.</p>
+    </article>
+    <article class="protac-detail-card">
+      <h3>Forgetting the rest of the degrader</h3>
+      <p>Even a good warhead must still work with a recruiter, linker, ternary-complex geometry, and downstream validation plan.</p>
+    </article>
+  </div>
+</section>
+
+<section class="protac-section-card" id="workflow">
   <div class="protac-section-head"><h2>Recommended workflow</h2></div>
+  <ol class="protac-step-list">
+    <li>Start with a protein of interest or disease-relevant target.</li>
+    <li>Search known ligand-bound structures using RCSB Scout.</li>
+    <li>Launch a Warhead Hunter job with target label, query, and optional FASTA.</li>
+    <li>Inspect 3D ligand-binding context.</li>
+    <li>Review 2D atom exposure maps.</li>
+    <li>Select candidate modification atoms.</li>
+    <li>Download or record warhead artifacts.</li>
+    <li>Bring the warhead into PROTAC Builder.</li>
+    <li>Pair it with an E3 recruiter and linker panel.</li>
+    <li>Use downstream modeling and experimental validation.</li>
+  </ol>
+</section>
+
+<section class="protac-section-card" id="ecosystem">
+  <div class="protac-section-head"><h2>Connected tool ecosystem</h2></div>
   <div class="protac-card-grid">
-    {{ info_card('Explore warheads in Warhead Hunter', 'Use warhead-first discovery and examples before degrader assembly.', 'https://warheadhunter.com/examples', kicker='External', cta='Open Warhead Hunter', external=True) }}
-    {{ info_card('Assemble in PROTAC Builder', 'Bring the chosen target-binding ligand back into the builder.', '/builder', kicker='Assembly', cta='Return to builder') }}
-    {{ info_card('See examples', 'Review cross-site and component-aware example workflows.', '/examples', kicker='Examples', cta='Open examples') }}
+    {{ info_card('Warhead Hunter', 'Live warhead-focused discovery for ligand-bound structure retrieval, exposure mapping, and candidate attachment-site inspection.', 'https://warheadhunter.com', kicker='External', cta='Open Warhead Hunter', external=True) }}
+    {{ info_card('Warhead Hunter Science', 'Read the scientific background for atom-level solvent exposure mapping and modification-site interpretation.', 'https://warheadhunter.com/science', kicker='External', cta='Open science page', external=True) }}
+    {{ info_card('RCSB Scout', 'Search ligand-bound structures by PDB ID or by protein and keyword query before launching a warhead hunt.', 'https://warheadhunter.com/scout', kicker='External', cta='Open RCSB Scout', external=True) }}
+    {{ info_card('Warhead Hunter Examples', 'Review completed public jobs before launching your own scans.', 'https://warheadhunter.com/examples', kicker='External', cta='Open examples', external=True) }}
+    {{ info_card('Warhead Hunter API Docs', 'Use the API layer for job submission, monitoring, manifests, downloads, and automation.', 'https://warheadhunter.com/api-docs', kicker='External', cta='Open API docs', external=True) }}
+    {{ info_card('PROTAC Builder', 'Bring inspected warhead candidates back into the builder for recruiter pairing and linker assembly.', '/builder', kicker='Assembly', cta='Return to builder') }}
+    {{ info_card('Linker Design', 'Review bridgeability, flexibility, polarity, and exit-vector implications before final assembly.', '/linkers', kicker='Internal Guide', cta='Open linker guide') }}
+    {{ info_card('E3 Recruiter Discovery', 'Connect warhead-side decisions with recruiter pose, solvent exposure, and E3 context.', '/e3-ligase-recruiters', kicker='Internal Guide', cta='Explore E3 recruiters') }}
+    {{ info_card('Downstream Modeling', 'Follow builder outputs into ternary-complex modeling, scoring, and refinement workflows.', '/downstream-modeling', kicker='Internal Guide', cta='Open downstream modeling') }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="faq">
+  <div class="protac-section-head"><h2>Frequently asked questions</h2></div>
+  <div class="protac-faq-list">
+    <article class="protac-faq-item">
+      <h3>What is a PROTAC warhead?</h3>
+      <p>A PROTAC warhead is the target-binding ligand or chemical motif that anchors the degrader to the protein of interest.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How do I choose a warhead for a PROTAC?</h3>
+      <p>Choose a warhead by looking at target binding, bound-pose context, solvent exposure, attachment-site plausibility, and whether the warhead can support the rest of the degrader geometry.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Why does solvent exposure matter for warhead design?</h3>
+      <p>Because solvent-facing atoms can be more useful starting points for modification-site inspection, while buried atoms are more likely to be important for binding.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is a linker attachment site?</h3>
+      <p>It is the atom or functional position chosen for expansion so the warhead can be connected to a linker and, later, to an E3 recruiter.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Can I choose an attachment atom from a 2D structure alone?</h3>
+      <p>Usually not. You should inspect the atom in the protein-bound 3D context whenever possible.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What is Warhead Hunter?</h3>
+      <p>Warhead Hunter is a structure-guided platform that converts ligand-bound protein structures into atom-level exposure maps and synchronized 2D/3D inspection views.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What does RCSB Scout do?</h3>
+      <p>RCSB Scout helps users search RCSB by known PDB IDs or by protein and keyword queries before launching Warhead Hunter jobs.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What files does Warhead Hunter produce?</h3>
+      <p>It can produce prepared structure files, ligand SDF outputs, exposure tables, SVG maps, manifests, and downloadable job bundles.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>How do Warhead Hunter results connect to PROTAC Builder?</h3>
+      <p>They help users identify candidate attachment atoms and carry target, ligand, and pose context back into PROTAC Builder for assembly.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>Does Warhead Hunter guarantee a successful PROTAC?</h3>
+      <p>No. It supports inspection and prioritization, but it does not guarantee successful warheads, ternary complexes, or degradation.</p>
+    </article>
+    <article class="protac-faq-item">
+      <h3>What should I do after selecting a warhead?</h3>
+      <p>Bring the warhead into PROTAC Builder, define the attachment atom, pair it with recruiters and linkers, and then use downstream modeling and experiments for validation.</p>
+    </article>
   </div>
 </section>
 {% endblock %}
