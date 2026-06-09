@@ -2,299 +2,1220 @@
 {% from "pages/_macros.html" import action_link, info_card %}
 
 {% block page_content %}
-<section class="protac-hero-card protac-linker-hero">
-  <div class="protac-linker-hero__copy">
-    <span class="protac-page-kicker">Methods</span>
-    <h1>PROTAC Builder Methods</h1>
-    <p class="protac-hero-copy">
-      PROTAC Builder is a component assembly and workflow handoff tool. It helps users turn warheads, linkers, and E3
-      recruiters into candidate degrader structures while keeping component boundaries, attachment atoms, and
-      downstream-ready representations explicit.
-    </p>
-    <p class="protac-hero-copy">
-      The methodological role of the builder is not to serve as a complete biological prediction engine. Instead, it
-      supports disciplined candidate preparation so downstream modeling, reporting, and experimental planning can be
-      more reproducible.
-    </p>
-    <div class="protac-pill-row">
-      <span class="protac-pill">Component assembly</span>
-      <span class="protac-pill">Attachment-aware workflow</span>
-      <span class="protac-pill">API and handoff ready</span>
-      <span class="protac-pill">Limits stated explicitly</span>
+
+<style>
+  .methods-neon {
+    --mn-bg: #030711;
+    --mn-panel: rgba(8, 16, 36, 0.86);
+    --mn-panel-2: rgba(12, 22, 48, 0.92);
+    --mn-border: rgba(74, 240, 255, 0.22);
+    --mn-text: #eef8ff;
+    --mn-muted: #a7b8d4;
+    --mn-cyan: #45f6ff;
+    --mn-blue: #397bff;
+    --mn-green: #49ff9d;
+    --mn-yellow: #ffe759;
+    --mn-red: #ff4d6d;
+    --mn-purple: #a875ff;
+    --mn-orange: #ff9b42;
+
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--mn-text);
+    margin: -1rem auto 0;
+    padding: clamp(1rem, 2vw, 1.8rem);
+    border: 1px solid rgba(69, 246, 255, 0.18);
+    border-radius: 34px;
+    background:
+      radial-gradient(circle at 8% 8%, rgba(69, 246, 255, 0.18), transparent 30%),
+      radial-gradient(circle at 92% 12%, rgba(255, 231, 89, 0.15), transparent 28%),
+      radial-gradient(circle at 82% 70%, rgba(255, 77, 109, 0.13), transparent 30%),
+      radial-gradient(circle at 14% 84%, rgba(73, 255, 157, 0.11), transparent 28%),
+      linear-gradient(135deg, #030711 0%, #071126 46%, #02050e 100%);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.03) inset,
+      0 0 90px rgba(69, 246, 255, 0.08),
+      0 0 150px rgba(57, 123, 255, 0.06);
+  }
+
+  .methods-neon::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image:
+      linear-gradient(rgba(69, 246, 255, 0.075) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(69, 246, 255, 0.075) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent 82%);
+    opacity: 0.62;
+  }
+
+  .methods-neon::after {
+    content: "";
+    position: absolute;
+    inset: auto -15% -38% -15%;
+    z-index: -1;
+    height: 46%;
+    background:
+      linear-gradient(to bottom, rgba(69, 246, 255, 0.14), transparent 26%),
+      repeating-linear-gradient(
+        90deg,
+        rgba(69, 246, 255, 0.16) 0 1px,
+        transparent 1px 86px
+      );
+    transform: perspective(760px) rotateX(64deg);
+    transform-origin: top;
+    opacity: 0.62;
+  }
+
+  .mn-scan {
+    position: absolute;
+    inset: 0;
+    height: 190px;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(to bottom, transparent, rgba(69,246,255,0.08), transparent);
+    animation: mn-scan 8s linear infinite;
+  }
+
+  @keyframes mn-scan {
+    from { transform: translateY(-230px); }
+    to { transform: translateY(calc(100% + 230px)); }
+  }
+
+  .mn-hero,
+  .mn-section,
+  .mn-cta {
+    position: relative;
+    z-index: 1;
+  }
+
+  
+  .mn-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: center;
+    min-height: 540px;
+    padding: clamp(1.6rem, 4vw, 4.5rem);
+    border: 1px solid rgba(69, 246, 255, 0.24);
+    border-radius: 30px;
+    overflow: visible;
+    background:
+      linear-gradient(135deg, rgba(9, 19, 44, 0.94), rgba(3, 7, 18, 0.74)),
+      radial-gradient(circle at 82% 20%, rgba(168, 117, 255, 0.22), transparent 34%);
+    box-shadow:
+      0 24px 90px rgba(0, 0, 0, 0.44),
+      0 0 70px rgba(69, 246, 255, 0.08) inset;
+  }
+
+  .mn-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    margin-bottom: 1rem;
+    padding: 0.55rem 0.82rem;
+    color: #031018;
+    font-size: 0.76rem;
+    font-weight: 1000;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--mn-green), var(--mn-cyan), var(--mn-yellow));
+    box-shadow:
+      0 0 24px rgba(69, 246, 255, 0.42),
+      0 0 34px rgba(73, 255, 157, 0.18);
+  }
+
+  .mn-hero h1 {
+    margin: 0;
+    max-width: 980px;
+    font-size: clamp(2.8rem, 5.9vw, 6.2rem);
+    line-height: 1.08;
+    letter-spacing: -0.065em;
+    padding-right: 0.2em;
+    padding-bottom: 0.16em;
+    overflow: visible;
+    text-shadow:
+      0 0 18px rgba(69, 246, 255, 0.32),
+      0 0 58px rgba(57, 123, 255, 0.16);
+  }
+
+  
+  .mn-gradient-text {
+    display: inline-block;
+    padding-right: 0.16em;
+    padding-bottom: 0.08em;
+    margin-right: -0.08em;
+    line-height: 1.08;
+    background: linear-gradient(
+      92deg,
+      #ffffff 0%,
+      var(--mn-cyan) 20%,
+      var(--mn-green) 42%,
+      var(--mn-yellow) 62%,
+      var(--mn-red) 80%,
+      var(--mn-purple) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(69,246,255,0.25));
+  }
+
+  .mn-copy {
+    max-width: 820px;
+    margin: 1.25rem 0 0;
+    color: var(--mn-muted);
+    font-size: clamp(1.05rem, 1.35vw, 1.24rem);
+    line-height: 1.72;
+  }
+
+  .mn-pill-row,
+  .mn-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.72rem;
+    margin-top: 1.5rem;
+  }
+
+  .mn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.58rem 0.78rem;
+    color: var(--mn-text);
+    font-size: 0.86rem;
+    font-weight: 900;
+    border: 1px solid rgba(69,246,255,0.25);
+    border-radius: 999px;
+    background: rgba(6, 14, 32, 0.72);
+    box-shadow: 0 0 18px rgba(69,246,255,0.08);
+  }
+
+  .mn-pill:nth-child(1) { border-color: rgba(73,255,157,0.42); }
+  .mn-pill:nth-child(2) { border-color: rgba(255,231,89,0.42); }
+  .mn-pill:nth-child(3) { border-color: rgba(57,123,255,0.48); }
+  .mn-pill:nth-child(4) { border-color: rgba(255,77,109,0.45); }
+
+  .mn-visual {
+    position: relative;
+    min-height: 430px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(69,246,255,0.2);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at center, rgba(69,246,255,0.14), transparent 38%),
+      linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015));
+    box-shadow:
+      0 0 58px rgba(69,246,255,0.1) inset,
+      0 0 34px rgba(168,117,255,0.11);
+    overflow: hidden;
+  }
+
+  .mn-visual svg {
+    width: min(520px, 96%);
+    height: auto;
+    filter: drop-shadow(0 0 14px rgba(69,246,255,0.18));
+  }
+
+  .mn-section {
+    margin-top: clamp(1.2rem, 3vw, 2.2rem);
+    padding: clamp(1.35rem, 3.2vw, 2.6rem);
+    border: 1px solid rgba(69,246,255,0.17);
+    border-radius: 30px;
+    background:
+      linear-gradient(145deg, rgba(8, 16, 36, 0.88), rgba(3, 7, 18, 0.76)),
+      radial-gradient(circle at 88% 16%, rgba(255,77,109,0.075), transparent 34%);
+    box-shadow:
+      0 20px 70px rgba(0,0,0,0.31),
+      0 0 56px rgba(69,246,255,0.045) inset;
+  }
+
+  .mn-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .mn-section-eyebrow {
+    color: var(--mn-cyan);
+    font-size: 0.76rem;
+    font-weight: 1000;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-shadow: 0 0 16px rgba(69,246,255,0.45);
+  }
+
+  .mn-section h2 {
+    margin: 0.25rem 0 0;
+    font-size: clamp(1.8rem, 3vw, 3.1rem);
+    line-height: 1;
+    letter-spacing: -0.06em;
+  }
+
+  .mn-section-note {
+    max-width: 520px;
+    margin: 0;
+    color: var(--mn-muted);
+    line-height: 1.65;
+  }
+
+  .mn-scope-grid,
+  .mn-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .mn-card-grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mn-panel {
+    --accent: var(--mn-cyan);
+    position: relative;
+    overflow: hidden;
+    padding: 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--accent), transparent 58%);
+    border-radius: 24px;
+    background:
+      linear-gradient(145deg, color-mix(in srgb, var(--accent), transparent 92%), rgba(255,255,255,0.025)),
+      rgba(7, 14, 31, 0.82);
+    box-shadow:
+      0 0 32px color-mix(in srgb, var(--accent), transparent 88%),
+      0 0 0 1px rgba(255,255,255,0.035) inset;
+  }
+
+  .mn-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg, transparent 0 46%, color-mix(in srgb, var(--accent), transparent 86%) 47%, transparent 56%),
+      radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent), transparent 72%), transparent 24%);
+    pointer-events: none;
+  }
+
+  .mn-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .mn-panel--green { --accent: var(--mn-green); }
+  .mn-panel--yellow { --accent: var(--mn-yellow); }
+  .mn-panel--red { --accent: var(--mn-red); }
+  .mn-panel--blue { --accent: var(--mn-blue); }
+  .mn-panel--purple { --accent: var(--mn-purple); }
+  .mn-panel--orange { --accent: var(--mn-orange); }
+
+  .mn-panel h3 {
+    margin: 0 0 0.85rem;
+    font-size: 1.28rem;
+    letter-spacing: -0.035em;
+  }
+
+  .mn-panel p {
+    margin: 0;
+    color: var(--mn-muted);
+    line-height: 1.65;
+  }
+
+  .mn-chip-list {
+    display: grid;
+    gap: 0.62rem;
+    margin-top: 1rem;
+  }
+
+  .mn-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.58rem;
+    padding: 0.72rem 0.78rem;
+    color: var(--mn-muted);
+    line-height: 1.45;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    background: rgba(0,0,0,0.16);
+  }
+
+  .mn-chip::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 14px var(--accent);
+  }
+
+  .mn-flow-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .mn-flow-svg-panel {
+    display: grid;
+    place-items: center;
+    min-height: 430px;
+  }
+
+  .mn-flow-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .mn-step {
+    --step: var(--mn-cyan);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--step), transparent 58%);
+    border-radius: 20px;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--step), transparent 91%), rgba(255,255,255,0.02));
+    box-shadow: 0 0 22px color-mix(in srgb, var(--step), transparent 88%);
+  }
+
+  .mn-step:nth-child(1) { --step: var(--mn-red); }
+  .mn-step:nth-child(2) { --step: var(--mn-yellow); }
+  .mn-step:nth-child(3) { --step: var(--mn-green); }
+  .mn-step:nth-child(4) { --step: var(--mn-cyan); }
+  .mn-step:nth-child(5) { --step: var(--mn-blue); }
+  .mn-step:nth-child(6) { --step: var(--mn-purple); }
+  .mn-step:nth-child(7) { --step: var(--mn-orange); }
+  .mn-step:nth-child(8) { --step: var(--mn-green); }
+
+  .mn-step-num {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    color: #061018;
+    font-size: 0.82rem;
+    font-weight: 1000;
+    border-radius: 14px;
+    background: var(--step);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--step), transparent 44%);
+  }
+
+  .mn-step strong {
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  .mn-step span {
+    color: var(--mn-muted);
+    line-height: 1.5;
+  }
+
+  .mn-method-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .mn-method-card {
+    min-height: 270px;
+  }
+
+  .mn-method-icon {
+    width: 78px;
+    height: 78px;
+    margin-bottom: 1rem;
+  }
+
+  .mn-callout {
+    margin-top: 1rem;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid rgba(255,231,89,0.32);
+    border-radius: 22px;
+    color: var(--mn-text);
+    background:
+      radial-gradient(circle at 8% 20%, rgba(255,231,89,0.13), transparent 30%),
+      rgba(255,231,89,0.045);
+    box-shadow: 0 0 30px rgba(255,231,89,0.08);
+    line-height: 1.65;
+  }
+
+  .mn-terminal {
+    overflow: hidden;
+    border: 1px solid rgba(73,255,157,0.28);
+    border-radius: 24px;
+    background: rgba(0, 0, 0, 0.34);
+    box-shadow:
+      0 0 32px rgba(73,255,157,0.08),
+      0 0 0 1px rgba(255,255,255,0.035) inset;
+  }
+
+  .mn-terminal-bar {
+    display: flex;
+    gap: 0.45rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(73,255,157,0.18);
+    background: rgba(73,255,157,0.05);
+  }
+
+  .mn-terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+  }
+
+  .mn-terminal-dot:nth-child(1) { background: var(--mn-red); box-shadow: 0 0 12px var(--mn-red); }
+  .mn-terminal-dot:nth-child(2) { background: var(--mn-yellow); box-shadow: 0 0 12px var(--mn-yellow); }
+  .mn-terminal-dot:nth-child(3) { background: var(--mn-green); box-shadow: 0 0 12px var(--mn-green); }
+
+  .mn-terminal-body {
+    display: grid;
+    gap: 0.55rem;
+    padding: 1rem;
+  }
+
+  .mn-terminal-body a {
+    color: var(--mn-green);
+    text-decoration: none;
+  }
+
+  .mn-terminal-body code {
+    color: var(--mn-green);
+    text-shadow: 0 0 12px rgba(73,255,157,0.4);
+  }
+
+  .mn-output-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .mn-output-item {
+    padding: 0.85rem;
+    border: 1px solid rgba(69,246,255,0.15);
+    border-radius: 18px;
+    background: rgba(4,10,24,0.58);
+    color: var(--mn-muted);
+    line-height: 1.45;
+  }
+
+  .mn-output-item strong {
+    color: var(--mn-text);
+  }
+
+  .mn-resource-grid {
+    margin-top: 1rem;
+  }
+
+  .mn-cta {
+    margin-top: clamp(1.2rem, 3vw, 2.2rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 1px solid rgba(73,255,157,0.28);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at 12% 15%, rgba(73,255,157,0.2), transparent 28%),
+      radial-gradient(circle at 88% 20%, rgba(255,231,89,0.16), transparent 26%),
+      radial-gradient(circle at 76% 90%, rgba(255,77,109,0.13), transparent 30%),
+      linear-gradient(135deg, rgba(8,20,38,0.94), rgba(3,8,18,0.84));
+    box-shadow:
+      0 0 70px rgba(73,255,157,0.08) inset,
+      0 0 60px rgba(69,246,255,0.08);
+  }
+
+  .mn-cta h2 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.07em;
+  }
+
+  .mn-cta p {
+    max-width: 820px;
+    margin: 0.9rem 0 0;
+    color: var(--mn-muted);
+    line-height: 1.7;
+    font-size: 1.06rem;
+  }
+
+  .mn-svg-line {
+    stroke-dasharray: 8 10;
+    animation: mn-dash 7s linear infinite;
+  }
+
+  @keyframes mn-dash {
+    to { stroke-dashoffset: -160; }
+  }
+
+  @media (max-width: 1100px) {
+    .mn-hero,
+    .mn-flow-wrap {
+      grid-template-columns: 1fr;
+    }
+
+    .mn-card-grid--three,
+    .mn-method-row,
+    .mn-output-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 740px) {
+    .methods-neon {
+      padding: 0.75rem;
+      border-radius: 24px;
+    }
+
+    .mn-hero,
+    .mn-section,
+    .mn-cta {
+      padding: 1.2rem;
+      border-radius: 22px;
+    }
+
+    .mn-scope-grid,
+    .mn-card-grid,
+    .mn-card-grid--three,
+    .mn-method-row,
+    .mn-output-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mn-section-head {
+      display: block;
+    }
+
+    .mn-section-note {
+      margin-top: 0.75rem;
+    }
+
+    .mn-visual,
+    .mn-flow-svg-panel {
+      min-height: 310px;
+    }
+
+    .mn-step {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mn-scan,
+    .mn-svg-line {
+      animation: none;
+    }
+  }
+</style>
+
+<div class="methods-neon">
+  <div class="mn-scan" aria-hidden="true"></div>
+
+  <section class="mn-hero">
+    <div class="mn-hero-copy-block">
+
+      <span class="mn-kicker">Methods / Assembly Logic</span>
+
+      <h1>
+        PROTAC Builder <span class="mn-gradient-text">Methods</span>
+      </h1>
+
+      <p class="mn-copy">
+        PROTAC Builder is a component assembly and workflow handoff tool. It helps users turn warheads,
+        linkers, and E3 recruiters into candidate degrader structures while keeping component boundaries,
+        attachment atoms, and downstream-ready representations explicit.
+      </p>
+
+      <p class="mn-copy">
+        The builder is not framed as a complete biological prediction engine. It supports disciplined
+        candidate preparation so downstream modeling, reporting, and experimental planning can be more reproducible.
+      </p>
+
+      <div class="mn-pill-row">
+        <span class="mn-pill">Component assembly</span>
+        <span class="mn-pill">Attachment-aware workflow</span>
+        <span class="mn-pill">API and handoff ready</span>
+        <span class="mn-pill">Limits stated explicitly</span>
+      </div>
+
+      <div class="mn-action-row protac-action-row">
+        {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
+        {{ action_link('/how-to-build-a-protac', 'Read the build guide') }}
+        {{ action_link('/examples', 'View examples') }}
+        {{ action_link('/api-builder', 'Open API Builder') }}
+      </div>
     </div>
-    <div class="protac-action-row">
+
+    <div class="mn-visual" aria-label="Molecular assembly graphic">
+      <svg viewBox="0 0 560 440" role="img" aria-labelledby="mnHeroSvgTitle">
+        <title id="mnHeroSvgTitle">Warhead, linker, and recruiter assembly graphic</title>
+
+        <defs>
+          <radialGradient id="mnCoreGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#49ff9d" stop-opacity="1"/>
+            <stop offset="42%" stop-color="#45f6ff" stop-opacity="0.82"/>
+            <stop offset="78%" stop-color="#397bff" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#397bff" stop-opacity="0"/>
+          </radialGradient>
+
+          <filter id="mnGlow">
+            <feGaussianBlur stdDeviation="3.5" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <linearGradient id="mnRainbow" x1="0%" x2="100%" y1="0%" y2="0%">
+            <stop offset="0%" stop-color="#ff4d6d"/>
+            <stop offset="28%" stop-color="#ffe759"/>
+            <stop offset="52%" stop-color="#49ff9d"/>
+            <stop offset="76%" stop-color="#45f6ff"/>
+            <stop offset="100%" stop-color="#a875ff"/>
+          </linearGradient>
+        </defs>
+
+        <rect x="18" y="18" width="524" height="404" rx="34" fill="rgba(3,8,18,0.58)" stroke="rgba(69,246,255,0.24)"/>
+
+        <path class="mn-svg-line" d="M70 220 C120 110, 205 105, 266 205 S410 322, 490 215" fill="none" stroke="url(#mnRainbow)" stroke-width="4" filter="url(#mnGlow)"/>
+        <path d="M90 330 L165 330 L210 280 L280 280 L338 330 L470 330" fill="none" stroke="#45f6ff" stroke-opacity="0.34" stroke-width="2"/>
+        <path d="M90 112 L168 112 L220 160 L286 160 L338 112 L470 112" fill="none" stroke="#ffe759" stroke-opacity="0.27" stroke-width="2"/>
+
+        <circle cx="280" cy="220" r="108" fill="url(#mnCoreGlow)" opacity="0.85"/>
+        <circle cx="280" cy="220" r="74" fill="rgba(3,8,18,0.72)" stroke="#45f6ff" stroke-width="2"/>
+        <text x="280" y="206" text-anchor="middle" fill="#eafaff" font-size="18" font-weight="900">ASSEMBLY</text>
+        <text x="280" y="232" text-anchor="middle" fill="#49ff9d" font-size="13" font-weight="800">warhead · linker · recruiter</text>
+
+        <g filter="url(#mnGlow)">
+          <circle cx="96" cy="220" r="42" fill="rgba(255,77,109,0.14)" stroke="#ff4d6d" stroke-width="3"/>
+          <text x="96" y="216" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">WARHEAD</text>
+          <text x="96" y="234" text-anchor="middle" fill="#ffb7c5" font-size="10">target bind</text>
+
+          <circle cx="280" cy="96" r="36" fill="rgba(255,231,89,0.13)" stroke="#ffe759" stroke-width="3"/>
+          <text x="280" y="93" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">LINKER</text>
+          <text x="280" y="110" text-anchor="middle" fill="#fff3a5" font-size="10">bridge</text>
+
+          <circle cx="464" cy="220" r="42" fill="rgba(57,123,255,0.14)" stroke="#397bff" stroke-width="3"/>
+          <text x="464" y="216" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">E3</text>
+          <text x="464" y="234" text-anchor="middle" fill="#b8caff" font-size="10">recruiter</text>
+
+          <circle cx="280" cy="346" r="36" fill="rgba(73,255,157,0.13)" stroke="#49ff9d" stroke-width="3"/>
+          <text x="280" y="343" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">EXPORT</text>
+          <text x="280" y="360" text-anchor="middle" fill="#b9ffd8" font-size="10">handoff</text>
+        </g>
+
+        <g fill="#45f6ff" opacity="0.78">
+          <circle cx="168" cy="164" r="5"/>
+          <circle cx="392" cy="164" r="5"/>
+          <circle cx="168" cy="276" r="5"/>
+          <circle cx="392" cy="276" r="5"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section class="mn-section" id="scope-summary">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Scope Boundary</span>
+        <h2>What the method does, and what it does not claim.</h2>
+      </div>
+      <p class="mn-section-note">
+        The page should make the builder feel powerful while still being scientifically careful about limits.
+      </p>
+    </div>
+
+    <div class="mn-scope-grid">
+      <article class="mn-panel mn-panel--green">
+        <h3>In scope</h3>
+        <div class="mn-chip-list">
+          <div class="mn-chip">Component selection and assembly</div>
+          <div class="mn-chip">Warhead, linker, and recruiter organization</div>
+          <div class="mn-chip">Attachment-atom and anchor-aware thinking</div>
+          <div class="mn-chip">Curated template use where available</div>
+          <div class="mn-chip">Custom SMILES input where implemented</div>
+          <div class="mn-chip">Query-parameter launch workflows where implemented</div>
+          <div class="mn-chip">Generated-structure and workflow handoff support</div>
+          <div class="mn-chip">API and batch preparation where implemented</div>
+          <div class="mn-chip">Downstream modeling preparation</div>
+        </div>
+      </article>
+
+      <article class="mn-panel mn-panel--red">
+        <h3>Out of scope</h3>
+        <div class="mn-chip-list">
+          <div class="mn-chip">Guaranteed degradation prediction</div>
+          <div class="mn-chip">Guaranteed synthetic feasibility</div>
+          <div class="mn-chip">Complete universal component libraries</div>
+          <div class="mn-chip">Full ADMET prediction unless explicitly implemented elsewhere</div>
+          <div class="mn-chip">Experimental assay interpretation</div>
+          <div class="mn-chip">Clinical decision-making</div>
+          <div class="mn-chip">Fully automated target-to-drug discovery</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="mn-section" id="design-philosophy">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Design Philosophy</span>
+        <h2>Component logic meets geometric constraint.</h2>
+      </div>
+      <p class="mn-section-note">
+        PROTAC assembly is treated as a structured hypothesis, not simple molecule concatenation.
+      </p>
+    </div>
+
+    <div class="mn-card-grid mn-card-grid--three">
+      <article class="mn-panel mn-panel--cyan">
+        <h3>Component-plus-geometry</h3>
+        <p>
+          The workflow treats PROTAC design as component assembly constrained by geometry, not as simple
+          concatenation of two ligands and a spacer.
+        </p>
+      </article>
+
+      <article class="mn-panel mn-panel--yellow">
+        <h3>Explicit boundaries</h3>
+        <p>
+          Warhead, linker, and recruiter boundaries are preserved so downstream interpretation does not lose
+          track of where each component begins and ends.
+        </p>
+      </article>
+
+      <article class="mn-panel mn-panel--blue">
+        <h3>Explicit attachment atoms</h3>
+        <p>
+          Attachment atoms and exit vectors are treated as first-class design choices because wrong anchors can
+          invalidate otherwise attractive chemistry.
+        </p>
+      </article>
+
+      <article class="mn-panel mn-panel--purple">
+        <h3>Hypothesis framing</h3>
+        <p>
+          Assembled candidates are treated as hypotheses that need descriptor review, structural analysis, and
+          experimental follow-up.
+        </p>
+      </article>
+
+      <article class="mn-panel mn-panel--green">
+        <h3>Reproducibility</h3>
+        <p>
+          Inputs, component IDs, attachment logic, and outputs should be explicit enough that a workflow can be
+          repeated, audited, and discussed later.
+        </p>
+      </article>
+
+      <article class="mn-panel mn-panel--orange">
+        <h3>Downstream awareness</h3>
+        <p>
+          Builder output should be useful for modeling, scoring, batch workflows, reporting, and follow-up
+          experimental design.
+        </p>
+      </article>
+    </div>
+
+    <div class="mn-callout">
+      <strong>The central methodological assumption:</strong> cleaner component representation makes downstream
+      modeling and experimental planning more reproducible.
+    </div>
+  </section>
+
+  <section class="mn-section" id="workflow">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Assembly Pipeline</span>
+        <h2>Component assembly workflow</h2>
+      </div>
+      <p class="mn-section-note">
+        A visual rail for moving from component choice to exported candidate records.
+      </p>
+    </div>
+
+    <div class="mn-flow-wrap">
+      <article class="mn-panel mn-panel--blue mn-flow-svg-panel">
+        <svg viewBox="0 0 520 520" role="img" aria-labelledby="mnFlowTitle">
+          <title id="mnFlowTitle">PROTAC Builder workflow diagram</title>
+
+          <defs>
+            <filter id="mnSmallGlow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <rect x="20" y="20" width="480" height="480" rx="38" fill="rgba(3,8,18,0.48)" stroke="rgba(69,246,255,0.22)"/>
+
+          <path class="mn-svg-line" d="M260 86 C385 96, 432 180, 390 260 C348 344, 278 400, 178 360 C78 320, 74 192, 158 126 C186 104, 218 90, 260 86Z" fill="none" stroke="#45f6ff" stroke-width="4" opacity="0.72" filter="url(#mnSmallGlow)"/>
+
+          <circle cx="260" cy="86" r="34" fill="rgba(255,77,109,0.18)" stroke="#ff4d6d" stroke-width="3"/>
+          <text x="260" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="900">01</text>
+
+          <circle cx="390" cy="158" r="34" fill="rgba(255,231,89,0.18)" stroke="#ffe759" stroke-width="3"/>
+          <text x="390" y="163" text-anchor="middle" fill="#fff" font-size="13" font-weight="900">02</text>
+
+          <circle cx="390" cy="300" r="34" fill="rgba(73,255,157,0.18)" stroke="#49ff9d" stroke-width="3"/>
+          <text x="390" y="305" text-anchor="middle" fill="#fff" font-size="13" font-weight="900">03</text>
+
+          <circle cx="260" cy="392" r="34" fill="rgba(69,246,255,0.18)" stroke="#45f6ff" stroke-width="3"/>
+          <text x="260" y="397" text-anchor="middle" fill="#fff" font-size="13" font-weight="900">04</text>
+
+          <circle cx="132" cy="300" r="34" fill="rgba(57,123,255,0.18)" stroke="#397bff" stroke-width="3"/>
+          <text x="132" y="305" text-anchor="middle" fill="#fff" font-size="13" font-weight="900">05</text>
+
+          <circle cx="132" cy="158" r="34" fill="rgba(168,117,255,0.18)" stroke="#a875ff" stroke-width="3"/>
+          <text x="132" y="163" text-anchor="middle" fill="#fff" font-size="13" font-weight="900">06</text>
+
+          <circle cx="260" cy="250" r="74" fill="rgba(3,8,18,0.76)" stroke="#49ff9d" stroke-width="3" filter="url(#mnSmallGlow)"/>
+          <text x="260" y="242" text-anchor="middle" fill="#eaffff" font-size="18" font-weight="1000">CANDIDATE</text>
+          <text x="260" y="268" text-anchor="middle" fill="#49ff9d" font-size="12" font-weight="800">record + structure</text>
+
+          <g fill="#ffe759" opacity="0.8">
+            <circle cx="210" cy="215" r="5"/>
+            <circle cx="310" cy="215" r="5"/>
+            <circle cx="210" cy="285" r="5"/>
+            <circle cx="310" cy="285" r="5"/>
+          </g>
+        </svg>
+      </article>
+
+      <div class="mn-flow-list">
+        <div class="mn-step">
+          <div class="mn-step-num">01</div>
+          <div><strong>Select or import a target-binding warhead.</strong><span>Start with the target-binding component and preserve its binding logic.</span></div>
+        </div>
+
+        <div class="mn-step">
+          <div class="mn-step-num">02</div>
+          <div><strong>Select or import an E3 recruiter.</strong><span>Choose a ligase-side binder with credible scaffold and attachment context.</span></div>
+        </div>
+
+        <div class="mn-step">
+          <div class="mn-step-num">03</div>
+          <div><strong>Choose or enumerate linkers.</strong><span>Compare reach, polarity, flexibility, rigidity, and linker chemistry.</span></div>
+        </div>
+
+        <div class="mn-step">
+          <div class="mn-step-num">04</div>
+          <div><strong>Define attachment atoms and anchor logic.</strong><span>Make exit vectors explicit before trusting the assembled molecule.</span></div>
+        </div>
+
+        <div class="mn-step">
+          <div class="mn-step-num">05</div>
+          <div><strong>Assemble candidate molecules.</strong><span>Generate degrader hypotheses while preserving component boundaries.</span></div>
+        </div>
+
+        <div class="mn-step">
+          <div class="mn-step-num">06</div>
+          <div><strong>Inspect the chemical representation.</strong><span>Review whether the output is chemically and methodologically sensible.</span></div>
+        </div>
+
+        <div class="mn-step">
+          <div class="mn-step-num">07</div>
+          <div><strong>Export or hand off candidates.</strong><span>Move candidates into API, batch, modeling, or reporting workflows.</span></div>
+        </div>
+
+        <div class="mn-step">
+          <div class="mn-step-num">08</div>
+          <div><strong>Evaluate with modeling and experiments.</strong><span>Treat every assembled PROTAC as a hypothesis requiring validation.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mn-action-row protac-action-row">
+      {{ action_link('/how-to-build-a-protac', 'Practical build guide', primary=True) }}
+      {{ action_link('/component-hubs', 'Component hubs') }}
+      {{ action_link('/examples', 'Examples') }}
+    </div>
+  </section>
+
+  <section class="mn-section" id="component-methodology">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Component Methods</span>
+        <h2>Warhead, linker, and recruiter logic</h2>
+      </div>
+      <p class="mn-section-note">
+        Each component is a scientific decision, not just a dropdown value.
+      </p>
+    </div>
+
+    <div class="mn-method-row">
+      <article class="mn-panel mn-panel--red mn-method-card" id="warhead-methodology">
+        <svg class="mn-method-icon" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="38" fill="rgba(255,77,109,0.12)" stroke="#ff4d6d" stroke-width="4"/>
+          <circle cx="34" cy="42" r="8" fill="#ff4d6d"/>
+          <circle cx="62" cy="34" r="8" fill="#ffe759"/>
+          <circle cx="60" cy="64" r="8" fill="#45f6ff"/>
+          <path d="M39 43 L57 36 M58 41 L60 58" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <h3>Warhead methodology</h3>
+        <p>
+          The warhead is the target-binding component. Bound pose and solvent exposure should guide
+          modification-site choice, preserving target engagement rather than maximizing abstract modularity.
+        </p>
+        <div class="mn-action-row protac-action-row">
+          {{ action_link('/warheads', 'Warhead guide', primary=True) }}
+          {{ action_link('https://warheadhunter.com', 'Warhead Hunter', external=True) }}
+        </div>
+      </article>
+
+      <article class="mn-panel mn-panel--yellow mn-method-card" id="linker-methodology">
+        <svg class="mn-method-icon" viewBox="0 0 100 100" aria-hidden="true">
+          <rect x="12" y="42" width="22" height="16" rx="8" fill="rgba(255,231,89,0.2)" stroke="#ffe759" stroke-width="4"/>
+          <rect x="66" y="42" width="22" height="16" rx="8" fill="rgba(255,231,89,0.2)" stroke="#ffe759" stroke-width="4"/>
+          <path d="M34 50 C44 24, 56 76, 66 50" fill="none" stroke="#49ff9d" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="50" cy="50" r="7" fill="#45f6ff"/>
+        </svg>
+        <h3>Linker methodology</h3>
+        <p>
+          Linkers test bridgeability hypotheses. Length, polarity, attachment chemistry, rigidity,
+          flexibility, and rotatable-bond burden should be documented rather than guessed implicitly.
+        </p>
+        <div class="mn-action-row protac-action-row">
+          {{ action_link('/linkers', 'Linker guide', primary=True) }}
+          {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
+        </div>
+      </article>
+
+      <article class="mn-panel mn-panel--blue mn-method-card" id="recruiter-methodology">
+        <svg class="mn-method-icon" viewBox="0 0 100 100" aria-hidden="true">
+          <polygon points="50,10 84,30 84,70 50,90 16,70 16,30" fill="rgba(57,123,255,0.14)" stroke="#397bff" stroke-width="4"/>
+          <circle cx="50" cy="50" r="17" fill="rgba(69,246,255,0.22)" stroke="#45f6ff" stroke-width="4"/>
+          <path d="M50 33 V18 M67 50 H82 M50 67 V82 M33 50 H18" stroke="#ffe759" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <h3>E3 recruiter methodology</h3>
+        <p>
+          Recruiter choice should consider bound pose, scaffold context, solvent exposure, attachment
+          geometry, and the biological context of the recruited ligase.
+        </p>
+        <div class="mn-action-row protac-action-row">
+          {{ action_link('/e3-ligase-recruiters', 'Recruiter guide', primary=True) }}
+          {{ action_link('https://e3ligandalyzer.com/explorer', 'E3 Ligandalyzer', external=True) }}
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="mn-section" id="anchors">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Anchor Geometry</span>
+        <h2>Attachment atoms and exit vectors</h2>
+      </div>
+      <p class="mn-section-note">
+        A 2D-valid assembly can still be a poor 3D hypothesis when anchors are wrong.
+      </p>
+    </div>
+
+    <div class="mn-card-grid">
+      <article class="mn-panel mn-panel--green">
+        <h3>Attachment atom checklist</h3>
+        <div class="mn-chip-list">
+          <div class="mn-chip">Is the atom solvent-exposed?</div>
+          <div class="mn-chip">Does it preserve key binding interactions?</div>
+          <div class="mn-chip">Does it point toward plausible partner-protein space?</div>
+          <div class="mn-chip">Are alternate attachment atoms worth testing?</div>
+        </div>
+      </article>
+
+      <article class="mn-panel mn-panel--purple">
+        <h3>Why exit vectors matter</h3>
+        <p>
+          Exit vectors describe how the linker leaves the warhead and recruiter. They matter because
+          anchor choices can point a linker into a steric wall, destroy key binding interactions, or
+          make an apparently valid molecule a weak ternary-complex hypothesis.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="mn-section" id="query-params">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Reproducible Launch</span>
+        <h2>Query-parameter workflows</h2>
+      </div>
+      <p class="mn-section-note">
+        Parameterized routes create cleaner entry points for examples, documentation, teaching, and scripts.
+      </p>
+    </div>
+
+    <div class="mn-terminal">
+      <div class="mn-terminal-bar" aria-hidden="true">
+        <span class="mn-terminal-dot"></span>
+        <span class="mn-terminal-dot"></span>
+        <span class="mn-terminal-dot"></span>
+      </div>
+
+      <div class="mn-terminal-body">
+        <a href="/builder?ligand=DR7"><code>/builder?ligand=DR7</code></a>
+        <a href="/builder?ligase=CRBN_Y70"><code>/builder?ligase=CRBN_Y70</code></a>
+        <a href="/builder?ligase=VHL_3JS"><code>/builder?ligase=VHL_3JS</code></a>
+        <a href="/builder?smiles=CCCCC"><code>/builder?smiles=CCCCC</code></a>
+      </div>
+    </div>
+
+    <div class="mn-callout">
+      These routes help document starting conditions more explicitly. Invalid or missing IDs should fail clearly
+      or fall back safely depending on the implemented path.
+    </div>
+  </section>
+
+  <section class="mn-section" id="api-batch">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Automation Layer</span>
+        <h2>API and batch methodology</h2>
+      </div>
+      <p class="mn-section-note">
+        Batch workflows should preserve enough metadata to make the run reproducible later.
+      </p>
+    </div>
+
+    <article class="mn-panel mn-panel--blue">
+      <p>
+        API Builder and the public route surface support scriptable workflows where implemented.
+        Methodologically, batch workflows should preserve component IDs, custom SMILES where relevant,
+        attachment atoms, linker identifiers, query parameters, and output metadata.
+      </p>
+
+      <div class="mn-action-row protac-action-row">
+        {{ action_link('/api-builder', 'API Builder', primary=True) }}
+        {{ action_link('/api-docs', 'API Docs') }}
+        {{ action_link('/openapi.json', 'OpenAPI JSON') }}
+        {{ action_link('/openapi.yaml', 'OpenAPI YAML') }}
+        {{ action_link('/batch-workflows', 'Batch Workflows') }}
+      </div>
+    </article>
+  </section>
+
+  <section class="mn-section" id="outputs">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Candidate Record</span>
+        <h2>Outputs and downstream handoff</h2>
+      </div>
+      <p class="mn-section-note">
+        What leaves the builder should be more than a string. It should be an interpretable candidate record.
+      </p>
+    </div>
+
+    <div class="mn-output-grid">
+      <div class="mn-output-item"><strong>Candidate structure</strong><br>Assembled degrader representation.</div>
+      <div class="mn-output-item"><strong>Component IDs or names</strong><br>Traceable warhead, linker, and recruiter labels.</div>
+      <div class="mn-output-item"><strong>Component boundaries</strong><br>Clear warhead, linker, and recruiter segmentation.</div>
+      <div class="mn-output-item"><strong>Attachment atoms</strong><br>Explicit anchor choices for interpretation.</div>
+      <div class="mn-output-item"><strong>Custom SMILES</strong><br>User-provided structures where applicable.</div>
+      <div class="mn-output-item"><strong>Selected linker identity</strong><br>Documented linker choice or enumeration result.</div>
+      <div class="mn-output-item"><strong>Export format</strong><br>Supported generated files or handoff outputs.</div>
+      <div class="mn-output-item"><strong>Date/version notes</strong><br>Basic reproducibility context.</div>
+      <div class="mn-output-item"><strong>Modeling plan</strong><br>Downstream analysis or validation intent.</div>
+    </div>
+
+    <div class="mn-action-row protac-action-row">
+      {{ action_link('/downstream-modeling', 'Downstream Modeling', primary=True) }}
+      {{ action_link('/in-silico-protac-modeling', 'In Silico Modeling') }}
+      {{ action_link('/benchmarking', 'Benchmarking') }}
+    </div>
+  </section>
+
+  <section class="mn-section" id="validation">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Interpretation</span>
+        <h2>Validation, reporting, and limitations</h2>
+      </div>
+      <p class="mn-section-note">
+        Builder output is a hypothesis. No single computational score proves activity.
+      </p>
+    </div>
+
+    <div class="mn-card-grid mn-card-grid--three">
+      <article class="mn-panel mn-panel--green">
+        <h3>Validation</h3>
+        <p>
+          Downstream validation can include descriptor review, bridgeability checks, ternary modeling,
+          molecular dynamics, ML re-ranking, and experimental degradation assays.
+        </p>
+      </article>
+
+      <article class="mn-panel mn-panel--yellow" id="reporting">
+        <h3>Recommended reporting</h3>
+        <div class="mn-chip-list">
+          <div class="mn-chip">Builder route and version or date</div>
+          <div class="mn-chip">Input warhead, recruiter, and linker IDs</div>
+          <div class="mn-chip">Attachment atoms and query parameters</div>
+          <div class="mn-chip">Known limitations and validation status</div>
+        </div>
+      </article>
+
+      <article class="mn-panel mn-panel--red" id="limitations">
+        <h3>Current limitations</h3>
+        <div class="mn-chip-list">
+          <div class="mn-chip">Not a guarantee of degradation</div>
+          <div class="mn-chip">Not a complete component universe</div>
+          <div class="mn-chip">Custom SMILES still require user validation</div>
+          <div class="mn-chip">2D-valid assembly does not guarantee 3D bridgeability</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="mn-action-row protac-action-row">
+      {{ action_link('/benchmarking', 'Read benchmarking guide', primary=True) }}
+    </div>
+  </section>
+
+  <section class="mn-section" id="resources">
+    <div class="mn-section-head">
+      <div>
+        <span class="mn-section-eyebrow">Connected Resources</span>
+        <h2>Move through the full design stack</h2>
+      </div>
+      <p class="mn-section-note">
+        These pages connect methods to practical usage, component selection, automation, and downstream modeling.
+      </p>
+    </div>
+
+    <div class="protac-card-grid mn-resource-grid">
+      {{ info_card('FAQ', 'Read user-facing scope, workflow, API, and troubleshooting answers.', '/faq', kicker='Support', cta='Open FAQ') }}
+      {{ info_card('How to Build a PROTAC', 'Practical assembly workflow from component choice to validation.', '/how-to-build-a-protac', kicker='Guide', cta='Read build guide') }}
+      {{ info_card('Component Hubs', 'See how warheads, linkers, and recruiters connect into one workflow.', '/component-hubs', kicker='Workflow Map', cta='Open component hubs') }}
+      {{ info_card('Warhead Discovery', 'Upstream methodology for target-binding warhead inspection.', '/warheads', kicker='Guide', cta='Open warhead guide') }}
+      {{ info_card('Linker Design', 'Bridgeability, linker classes, and geometry-aware linker thinking.', '/linkers', kicker='Guide', cta='Open linker guide') }}
+      {{ info_card('E3 Recruiter Discovery', 'Recruiter-side structure, scaffold, and attachment-vector considerations.', '/e3-ligase-recruiters', kicker='Guide', cta='Open recruiter guide') }}
+      {{ info_card('API Builder', 'Prepare batch-friendly and scripted workflows.', '/api-builder', kicker='Automation', cta='Open API Builder') }}
+      {{ info_card('Downstream Modeling', 'Move assembled candidates into modeling, scoring, and prioritization workflows.', '/downstream-modeling', kicker='Handoff', cta='Open downstream modeling') }}
+      {{ info_card('Benchmarking', 'Report workflows and results more reproducibly.', '/benchmarking', kicker='Reporting', cta='Open benchmarking') }}
+    </div>
+  </section>
+
+  <section class="mn-cta">
+    <span class="mn-section-eyebrow">Ready to assemble</span>
+    <h2>Turn component evidence into a reproducible PROTAC hypothesis.</h2>
+    <p>
+      Start with the builder, review the practical guide, or move into API-oriented workflows when you need
+      repeatable computational design.
+    </p>
+
+    <div class="mn-action-row protac-action-row">
       {{ action_link('/builder', 'Launch PROTAC Builder', primary=True) }}
       {{ action_link('/how-to-build-a-protac', 'Read the build guide') }}
-      {{ action_link('/examples', 'View examples') }}
       {{ action_link('/api-builder', 'Open API Builder') }}
+      {{ action_link('/examples', 'View examples') }}
     </div>
-  </div>
-</section>
+  </section>
+</div>
 
-<section class="protac-section-card" id="scope-summary">
-  <div class="protac-section-head"><h2>Method scope</h2></div>
-  <div class="protac-linker-grid protac-linker-grid--two">
-    <article class="protac-detail-card">
-      <h3>In scope</h3>
-      <div class="protac-checklist-grid">
-        <div class="protac-checklist-item">Component selection and assembly</div>
-        <div class="protac-checklist-item">Warhead, linker, and recruiter organization</div>
-        <div class="protac-checklist-item">Attachment-atom and anchor-aware thinking</div>
-        <div class="protac-checklist-item">Curated template use where available</div>
-        <div class="protac-checklist-item">Custom SMILES input where implemented</div>
-        <div class="protac-checklist-item">Query-parameter launch workflows where implemented</div>
-        <div class="protac-checklist-item">Generated-structure and workflow handoff support</div>
-        <div class="protac-checklist-item">API and batch preparation where implemented</div>
-        <div class="protac-checklist-item">Downstream modeling preparation</div>
-      </div>
-    </article>
-    <article class="protac-detail-card">
-      <h3>Out of scope</h3>
-      <div class="protac-checklist-grid">
-        <div class="protac-checklist-item">Guaranteed degradation prediction</div>
-        <div class="protac-checklist-item">Guaranteed synthetic feasibility</div>
-        <div class="protac-checklist-item">Complete universal component libraries</div>
-        <div class="protac-checklist-item">Full ADMET prediction unless explicitly implemented elsewhere</div>
-        <div class="protac-checklist-item">Experimental assay interpretation</div>
-        <div class="protac-checklist-item">Clinical decision-making</div>
-        <div class="protac-checklist-item">Fully automated target-to-drug discovery</div>
-      </div>
-    </article>
-  </div>
-</section>
-
-<section class="protac-section-card" id="design-philosophy">
-  <div class="protac-section-head"><h2>Design philosophy</h2></div>
-  <div class="protac-comparison-grid">
-    <article class="protac-info-panel">
-      <span class="protac-card-kicker">Component-plus-geometry</span>
-      <p>The workflow treats PROTAC design as component assembly constrained by geometry, not as simple concatenation of two ligands and a spacer.</p>
-    </article>
-    <article class="protac-info-panel">
-      <span class="protac-card-kicker">Explicit boundaries</span>
-      <p>Warhead, linker, and recruiter boundaries are preserved so downstream interpretation does not lose track of where each component begins and ends.</p>
-    </article>
-    <article class="protac-info-panel">
-      <span class="protac-card-kicker">Explicit attachment atoms</span>
-      <p>Attachment atoms and exit vectors are treated as first-class design choices because wrong anchors can invalidate otherwise attractive chemistry.</p>
-    </article>
-    <article class="protac-info-panel">
-      <span class="protac-card-kicker">Hypothesis framing</span>
-      <p>Assembled candidates are treated as hypotheses that need descriptor review, structural analysis, and experimental follow-up.</p>
-    </article>
-  </div>
-  <div class="protac-callout">
-    <strong>The central methodological assumption:</strong> cleaner component representation makes downstream modeling
-    and experimental planning more reproducible.
-  </div>
-</section>
-
-<section class="protac-section-card" id="workflow">
-  <div class="protac-section-head"><h2>Component assembly workflow</h2></div>
-  <ol class="protac-step-list">
-    <li>Select or import a target-binding warhead.</li>
-    <li>Select or import an E3 recruiter.</li>
-    <li>Choose or enumerate linkers.</li>
-    <li>Define attachment atoms and anchor logic.</li>
-    <li>Assemble candidate molecules.</li>
-    <li>Inspect the resulting chemical representation.</li>
-    <li>Export or hand off candidates to downstream workflows.</li>
-    <li>Evaluate with modeling and experiments.</li>
-  </ol>
-  <div class="protac-action-row">
-    {{ action_link('/how-to-build-a-protac', 'Practical build guide', primary=True) }}
-    {{ action_link('/component-hubs', 'Component hubs') }}
-    {{ action_link('/examples', 'Examples') }}
-  </div>
-</section>
-
-<section class="protac-section-card" id="warhead-methodology">
-  <div class="protac-section-head"><h2>Warhead methodology</h2></div>
-  <p class="protac-section-copy">
-    The warhead is the target-binding component. Methodologically, the builder assumes warhead choice should be as
-    structure-aware as possible: preserve target binding, prefer known or credible bound pose context, and identify a
-    plausible attachment atom that does not obviously destroy key interactions.
-  </p>
-  <ul class="protac-bullet-list">
-    <li>Bound pose and solvent exposure should guide modification-site choice.</li>
-    <li>Warhead Hunter can support upstream inspection of target-bound ligands and candidate modification atoms.</li>
-    <li>Warhead selection should preserve target engagement rather than only maximize abstract modularity.</li>
-  </ul>
-  <div class="protac-action-row">
-    {{ action_link('/warheads', 'Warhead methodology guide', primary=True) }}
-    {{ action_link('https://warheadhunter.com', 'Warhead Hunter', external=True) }}
-    {{ action_link('https://warheadhunter.com/science', 'Warhead Hunter Science', external=True) }}
-  </div>
-</section>
-
-<section class="protac-section-card" id="linker-methodology">
-  <div class="protac-section-head"><h2>Linker methodology</h2></div>
-  <p class="protac-section-copy">
-    Linkers are chosen to test bridgeability hypotheses. The workflow does not treat them as passive spacers. Instead,
-    it assumes linker choices affect reach, flexibility, rigidity, polarity, rotatable-bond burden, and the geometric
-    feasibility of a ternary arrangement.
-  </p>
-  <ul class="protac-bullet-list">
-    <li>Flexible and rigid alternatives should both be considered where appropriate.</li>
-    <li>Length, polarity, and attachment chemistry should be documented rather than guessed implicitly.</li>
-    <li>Bridgeability should be reviewed before expensive downstream modeling begins.</li>
-  </ul>
-  <div class="protac-action-row">
-    {{ action_link('/linkers', 'Linker methodology guide', primary=True) }}
-    {{ action_link('/constraint-driven-protac-design', 'Constraint-driven design') }}
-  </div>
-</section>
-
-<section class="protac-section-card" id="recruiter-methodology">
-  <div class="protac-section-head"><h2>E3 recruiter methodology</h2></div>
-  <p class="protac-section-copy">
-    The recruiter defines ligase-side binding and attachment geometry. The method assumes recruiter choice should
-    consider bound pose, scaffold context, solvent exposure, and when possible the biological context of the recruited
-    ligase rather than defaulting blindly to one familiar example.
-  </p>
-  <ul class="protac-bullet-list">
-    <li>E3 choice influences ternary geometry and downstream compatibility.</li>
-    <li>Recruiter-side attachment vectors deserve the same care as warhead-side attachment vectors.</li>
-    <li>E3 Ligandalyzer supports upstream recruiter inspection before assembly.</li>
-  </ul>
-  <div class="protac-action-row">
-    {{ action_link('/e3-ligase-recruiters', 'Recruiter methodology guide', primary=True) }}
-    {{ action_link('https://e3ligandalyzer.com', 'E3 Ligandalyzer', external=True) }}
-    {{ action_link('https://e3ligandalyzer.com/explorer', 'Explorer', external=True) }}
-    {{ action_link('https://e3ligandalyzer.com/scaffolds', 'Scaffolds', external=True) }}
-  </div>
-</section>
-
-<section class="protac-section-card" id="anchors">
-  <div class="protac-section-head"><h2>Attachment atoms and exit vectors</h2></div>
-  <p class="protac-section-copy">
-    Attachment atoms are where the linker connects. Exit vectors describe how the linker leaves the warhead and the
-    recruiter. This part of the method is critical because a 2D-valid assembly can still be a poor 3D hypothesis if
-    the anchor choices point into steric clashes or destroy key interactions.
-  </p>
-  <div class="protac-checklist-grid">
-    <div class="protac-checklist-item">Is the atom solvent-exposed?</div>
-    <div class="protac-checklist-item">Does it preserve key binding interactions?</div>
-    <div class="protac-checklist-item">Does it point toward plausible partner-protein space?</div>
-    <div class="protac-checklist-item">Are alternate attachment atoms worth testing?</div>
-  </div>
-</section>
-
-<section class="protac-section-card" id="query-params">
-  <div class="protac-section-head"><h2>Query-parameter launch workflows</h2></div>
-  <p class="protac-section-copy">
-    Implemented query parameters create reproducible entry points for examples, documentation, teaching, and scripted
-    workflows. Current examples include:
-  </p>
-  <ul class="protac-bullet-list">
-    <li><a href="/builder?ligand=DR7"><code>/builder?ligand=DR7</code></a></li>
-    <li><a href="/builder?ligase=CRBN_Y70"><code>/builder?ligase=CRBN_Y70</code></a></li>
-    <li><a href="/builder?ligase=VHL_3JS"><code>/builder?ligase=VHL_3JS</code></a></li>
-    <li><a href="/builder?smiles=CCCCC"><code>/builder?smiles=CCCCC</code></a></li>
-  </ul>
-  <p class="protac-section-copy">
-    These routes help document starting conditions more explicitly. Invalid or missing IDs should fail clearly or fall
-    back safely depending on the implemented path.
-  </p>
-</section>
-
-<section class="protac-section-card" id="api-batch">
-  <div class="protac-section-head"><h2>API and batch methodology</h2></div>
-  <p class="protac-section-copy">
-    API Builder and the public route surface support scriptable workflows where implemented. Methodologically, batch
-    workflows should preserve component IDs, custom SMILES where relevant, attachment atoms, linker identifiers, query
-    parameters, and output metadata so runs can be reproduced later.
-  </p>
-  <div class="protac-action-row">
-    {{ action_link('/api-builder', 'API Builder', primary=True) }}
-    {{ action_link('/api-docs', 'API Docs') }}
-    {{ action_link('/openapi.json', 'OpenAPI JSON') }}
-    {{ action_link('/openapi.yaml', 'OpenAPI YAML') }}
-    {{ action_link('/batch-workflows', 'Batch Workflows') }}
-  </div>
-</section>
-
-<section class="protac-section-card" id="outputs">
-  <div class="protac-section-head"><h2>Outputs and downstream handoff</h2></div>
-  <p class="protac-section-copy">
-    What should leave the builder is not just a string, but a reproducible candidate record. At minimum that means the
-    assembled candidate structure plus enough component and anchor metadata for downstream interpretation.
-  </p>
-  <div class="protac-checklist-grid">
-    <div class="protac-checklist-item">Candidate structure</div>
-    <div class="protac-checklist-item">Component IDs or names</div>
-    <div class="protac-checklist-item">Warhead, linker, and recruiter boundaries</div>
-    <div class="protac-checklist-item">Attachment atoms</div>
-    <div class="protac-checklist-item">Custom SMILES when applicable</div>
-    <div class="protac-checklist-item">Selected linker identity</div>
-    <div class="protac-checklist-item">Supported export or handoff format</div>
-    <div class="protac-checklist-item">Date, version, or workflow notes</div>
-    <div class="protac-checklist-item">Downstream modeling plan</div>
-  </div>
-  <div class="protac-action-row">
-    {{ action_link('/downstream-modeling', 'Downstream Modeling', primary=True) }}
-    {{ action_link('/in-silico-protac-modeling', 'In Silico Modeling') }}
-    {{ action_link('/benchmarking', 'Benchmarking') }}
-  </div>
-</section>
-
-<section class="protac-section-card" id="validation">
-  <div class="protac-section-head"><h2>Validation and interpretation</h2></div>
-  <p class="protac-section-copy">
-    Builder output is a hypothesis. Downstream validation can include descriptor review, bridgeability checks, ternary
-    modeling, molecular dynamics, ML re-ranking, and experimental degradation assays. No single computational score
-    proves activity.
-  </p>
-  <ul class="protac-bullet-list">
-    <li>DC50, Dmax, hook effect, selectivity, and target engagement remain experimental concepts.</li>
-    <li>Computational signals can rank or explain, but not replace biological validation.</li>
-    <li>Interpretation should remain aligned with what the current workflow actually measures.</li>
-  </ul>
-</section>
-
-<section class="protac-section-card" id="reporting">
-  <div class="protac-section-head"><h2>Recommended reporting</h2></div>
-  <div class="protac-checklist-grid">
-    <div class="protac-checklist-item">Builder route and version or date</div>
-    <div class="protac-checklist-item">Input warhead, recruiter, and linker IDs</div>
-    <div class="protac-checklist-item">Custom SMILES if used</div>
-    <div class="protac-checklist-item">Attachment atoms</div>
-    <div class="protac-checklist-item">Query parameters</div>
-    <div class="protac-checklist-item">Output files or structures</div>
-    <div class="protac-checklist-item">Downstream modeling method</div>
-    <div class="protac-checklist-item">Validation status</div>
-    <div class="protac-checklist-item">Known limitations</div>
-  </div>
-  <div class="protac-action-row">
-    {{ action_link('/benchmarking', 'Read benchmarking guide', primary=True) }}
-  </div>
-</section>
-
-<section class="protac-section-card" id="limitations">
-  <div class="protac-section-head"><h2>Current limitations</h2></div>
-  <div class="protac-bullet-list">
-    <li>Not a guarantee of degradation.</li>
-    <li>Not a complete component universe.</li>
-    <li>Not all query parameters or exports may be supported in every deployment.</li>
-    <li>Custom SMILES still require user validation.</li>
-    <li>2D-valid assembly does not guarantee 3D bridgeability.</li>
-    <li>Downstream modeling and experiments remain necessary.</li>
-    <li>Data and features may change as the platform evolves.</li>
-  </div>
-</section>
-
-<section class="protac-section-card" id="resources">
-  <div class="protac-section-head"><h2>Connected resources</h2></div>
-  <div class="protac-card-grid">
-    {{ info_card('FAQ', 'Read user-facing scope, workflow, API, and troubleshooting answers.', '/faq', kicker='Support', cta='Open FAQ') }}
-    {{ info_card('How to Build a PROTAC', 'Practical assembly workflow from component choice to validation.', '/how-to-build-a-protac', kicker='Guide', cta='Read build guide') }}
-    {{ info_card('Component Hubs', 'See how warheads, linkers, and recruiters connect into one workflow.', '/component-hubs', kicker='Workflow Map', cta='Open component hubs') }}
-    {{ info_card('Warhead Discovery', 'Upstream methodology for target-binding warhead inspection.', '/warheads', kicker='Guide', cta='Open warhead guide') }}
-    {{ info_card('Linker Design', 'Bridgeability, linker classes, and geometry-aware linker thinking.', '/linkers', kicker='Guide', cta='Open linker guide') }}
-    {{ info_card('E3 Recruiter Discovery', 'Recruiter-side structure, scaffold, and attachment-vector considerations.', '/e3-ligase-recruiters', kicker='Guide', cta='Open recruiter guide') }}
-    {{ info_card('API Builder', 'Prepare batch-friendly and scripted workflows.', '/api-builder', kicker='Automation', cta='Open API Builder') }}
-    {{ info_card('Downstream Modeling', 'Move assembled candidates into modeling, scoring, and prioritization workflows.', '/downstream-modeling', kicker='Handoff', cta='Open downstream modeling') }}
-    {{ info_card('Benchmarking', 'Report workflows and results more reproducibly.', '/benchmarking', kicker='Reporting', cta='Open benchmarking') }}
-  </div>
-</section>
 {% endblock %}
