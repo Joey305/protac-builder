@@ -580,6 +580,17 @@
     content: "Hunting For Proteins!";
 }
 
+.complete-ligand-selector {
+    margin-top: 14px;
+}
+
+.complete-ligand-count {
+    display: block;
+    margin-top: 6px;
+    color: #a4cafe;
+    font-size: 0.82rem;
+}
+
 /* ============================================================
    E3 LIGANDALYZER BUTTON — uses same Tron styling
    ============================================================ */
@@ -1906,7 +1917,7 @@ body[data-page="builder"] .modal-content {
                 <div class="col-md-4 selector-box builder-selector-card warhead-selector-box">
                     <label for="warhead">Select Warhead From V-LiSEMOD:</label>
 
-                    <select id="warhead" class="form-control" onchange="loadLigand(this.value)">
+                    <select id="warhead" class="form-control">
                         <option value="">Select one</option>
                         {% for warhead in warheads %}
                             <option value="{{ warhead.smiles }}" data-ligand="{{ warhead.ligand }}">
@@ -1914,6 +1925,14 @@ body[data-page="builder"] .modal-content {
                             </option>
                         {% endfor %}
                     </select>
+
+                    <div class="complete-ligand-selector">
+                        <label for="complete-ligand-warhead">Select Warhead From Complete Ligand List:</label>
+                        <select id="complete-ligand-warhead" class="form-control" disabled>
+                            <option value="">Loading complete ligand list...</option>
+                        </select>
+                        <small id="complete-ligand-count" class="complete-ligand-count"></small>
+                    </div>
 
                     <!-- 🎯 Warhead Hunter CTA -->
                     <button type="button"

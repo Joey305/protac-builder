@@ -137,6 +137,8 @@ async function loadWarheadSmilesFromURL(rawSmiles) {
     // Clear dropdown selection because this warhead is coming from URL, not V-LiSEMOD dropdown.
     const warheadDropdown = document.getElementById("warhead");
     if (warheadDropdown) warheadDropdown.value = "";
+    const completeLigandDropdown = document.getElementById("complete-ligand-warhead");
+    if (completeLigandDropdown) completeLigandDropdown.value = "";
 
     // Put SMILES visibly into the manual input box.
     const input = document.getElementById("warhead-smiles-input");
@@ -363,14 +365,6 @@ $(document).ready(function () {
 
     setTimeout(initializeLigand, 500); // ✅ Delay initialization
 
-    // ✅ Handle dropdown changes (manual selection)
-    $("#warhead").on("change", function () {
-        const selectedSmiles = $(this).val();
-        if (selectedSmiles) {
-            console.log("✅ New ligand selected:", selectedSmiles);
-            loadLigand(selectedSmiles);
-        }
-    });
 });
 
 
@@ -3911,6 +3905,8 @@ function clearLigaseOnly() {
 
         const warheadDropdown = document.getElementById("warhead");
         if (warheadDropdown) warheadDropdown.value = "";
+        const completeLigandDropdown = document.getElementById("complete-ligand-warhead");
+        if (completeLigandDropdown) completeLigandDropdown.value = "";
     }
 
     // ------------------------------------------------------------------------
@@ -4209,6 +4205,13 @@ function clearLigaseOnly() {
 $(document).ready(function () {
     console.log("🔄 Initializing warhead dropdown selection in COPYindex...");
 
+    const COMPLETE_LIGAND_DROPDOWN_ID = "complete-ligand-warhead";
+    const COMPLETE_LIGAND_COUNT_ID = "complete-ligand-count";
+    const COMPLETE_LIGAND_SOURCE = "complete-ligand-list";
+    const COMPLETE_LIGAND_LABEL = "complete ligand list";
+    const COMPLETE_LIGAND_URL = "/static/data/Components-smiles-stereo-oe.smi";
+    let completeLigandListLoaded = false;
+
     function hasIncomingHandoff() {
         const q = new URLSearchParams(window.location.search || "");
         const h = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
@@ -4226,6 +4229,214 @@ $(document).ready(function () {
         );
     }
 
+    function setWarheadStatus(message, color) {
+        if (typeof updateTextContent === "function") {
+            updateTextContent("warhead-code-status", message, color);
+            return;
+        }
+
+        const status = document.getElementById("warhead-code-status");
+        if (!status) return;
+        status.textContent = message;
+        if (color) status.style.color = color;
+    }
+
+    function openWarheadSmilesPanel() {
+        const panel = document.getElementById("warhead-smiles-panel");
+        if (panel) panel.classList.add("open");
+
+        const toggleBtn = document.querySelector("[onclick*='warhead-smiles-panel']");
+        if (toggleBtn) {
+            toggleBtn.classList.add("active");
+            toggleBtn.textContent = "Hide SMILES";
+        }
+    }
+
+    function clearWarheadSelectionStateForNewSmiles() {
+        sessionStorage.removeItem("modifiedLigand");
+        sessionStorage.removeItem("savedMolecule");
+        sessionStorage.removeItem(EXPORT_WARHEAD_SDF_KEY);
+        sessionStorage.removeItem("combinedMOL");
+        sessionStorage.removeItem("generatedSMILES");
+        sessionStorage.removeItem("incomingWarheadSmiles");
+        sessionStorage.removeItem("warheadHandoffSmiles");
+        sessionStorage.removeItem("completeLigandCode");
+        sessionStorage.removeItem("warheadPdbFile");
+        sessionStorage.removeItem("warheadPdb");
+        sessionStorage.removeItem("warheadLigand");
+        sessionStorage.removeItem("ligandHead2");
+
+        if (window.saveClicks && Object.prototype.hasOwnProperty.call(window.saveClicks, "warhead")) {
+            window.saveClicks.warhead = false;
+        } else if (typeof saveClicks !== "undefined" && saveClicks && saveClicks.warhead !== undefined) {
+            saveClicks.warhead = false;
+        }
+    }
+
+    async function loadSelectedWarheadSmiles(smiles, sourceLabel, ligandCode) {
+        const cleanSmiles = String(smiles || "").trim();
+        if (!cleanSmiles) return false;
+
+        clearWarheadSelectionStateForNewSmiles();
+        window.__WARHEAD_HANDOFF_LOADED = false;
+
+        const input = document.getElementById("warhead-smiles-input");
+        if (input) input.value = cleanSmiles;
+
+        $("#ligand-container").show();
+        openWarheadSmilesPanel();
+        setWarheadStatus(
+            ligandCode
+                ? `Loading warhead ${ligandCode} from ${sourceLabel}...`
+                : `Loading warhead from ${sourceLabel}...`,
+            "#93c5fd"
+        );
+
+        let ok = false;
+
+        if (typeof window.loadSmilesIntoEditor === "function") {
+            ok = await window.loadSmilesIntoEditor(
+                cleanSmiles,
+                window.sketcher,
+                "#ligand-container",
+                sourceLabel || "warhead"
+            );
+        } else if (typeof loadLigand === "function") {
+            loadLigand(cleanSmiles);
+            ok = true;
+        }
+
+        if (ok) {
+            sessionStorage.setItem("warheadSource", sourceLabel || "manual-smiles");
+            if (ligandCode) sessionStorage.setItem("completeLigandCode", ligandCode);
+
+            setWarheadStatus(
+                ligandCode
+                    ? `Loaded warhead ${ligandCode} into the builder editor.`
+                    : "Loaded warhead into the builder editor.",
+                "#4ade80"
+            );
+
+            if (typeof showAlert === "function") {
+                const suffix = ligandCode ? ` ${ligandCode}` : "";
+                showAlert(
+                    `✅ Warhead${suffix} loaded from ${sourceLabel}. Add your U attachment atom, then click Save.`,
+                    "success"
+                );
+            }
+        } else {
+            setWarheadStatus(
+                ligandCode
+                    ? `Could not load warhead ${ligandCode}.`
+                    : "Could not load warhead.",
+                "#f87171"
+            );
+        }
+
+        return ok;
+    }
+
+    function parseCompleteLigandSmi(text) {
+        const ligands = [];
+        const skippedRows = [];
+
+        String(text || "")
+            .split(/\r?\n/)
+            .forEach((line, index) => {
+                if (!line || !line.trim()) return;
+
+                const parts = line.split("\t");
+                const smiles = parts[0] || "";
+                const code = (parts[1] || "").trim();
+                const name = parts.length > 2 ? parts.slice(2).join(" ").trim() : "";
+
+                if (!smiles || !code) {
+                    skippedRows.push(index + 1);
+                    return;
+                }
+
+                ligands.push({ smiles, code, name });
+            });
+
+        if (skippedRows.length) {
+            console.warn(
+                `⚠ Skipped ${skippedRows.length} malformed complete-ligand rows.`,
+                skippedRows.slice(0, 20)
+            );
+        }
+
+        return { ligands, skippedRows };
+    }
+
+    function populateCompleteLigandDropdown(ligands) {
+        const dropdown = document.getElementById(COMPLETE_LIGAND_DROPDOWN_ID);
+        const countEl = document.getElementById(COMPLETE_LIGAND_COUNT_ID);
+
+        if (!dropdown) return;
+
+        dropdown.innerHTML = "";
+
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "Select a ligand";
+        dropdown.appendChild(placeholder);
+
+        const fragment = document.createDocumentFragment();
+
+        ligands.forEach((ligand) => {
+            const option = document.createElement("option");
+            option.value = ligand.smiles;
+            option.textContent = ligand.name ? `${ligand.code} — ${ligand.name}` : ligand.code;
+            option.dataset.ligandCode = ligand.code;
+            option.dataset.ligandName = ligand.name || "";
+            fragment.appendChild(option);
+        });
+
+        dropdown.appendChild(fragment);
+        dropdown.disabled = false;
+
+        if (countEl) {
+            countEl.textContent = `Loaded ${ligands.length.toLocaleString()} ligands`;
+        }
+    }
+
+    async function loadCompleteLigandDropdown() {
+        if (completeLigandListLoaded) return;
+
+        const dropdown = document.getElementById(COMPLETE_LIGAND_DROPDOWN_ID);
+        const countEl = document.getElementById(COMPLETE_LIGAND_COUNT_ID);
+
+        if (!dropdown) return;
+
+        try {
+            const response = await fetch(COMPLETE_LIGAND_URL, { cache: "force-cache" });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} while loading ${COMPLETE_LIGAND_URL}`);
+            }
+
+            const text = await response.text();
+            const { ligands, skippedRows } = parseCompleteLigandSmi(text);
+
+            populateCompleteLigandDropdown(ligands);
+            completeLigandListLoaded = true;
+
+            console.log(
+                `✅ Loaded ${ligands.length} complete-ligand warheads from ${COMPLETE_LIGAND_URL}.`,
+                { skippedRows: skippedRows.length }
+            );
+        } catch (error) {
+            console.error("❌ Could not load complete ligand list.", error);
+            dropdown.disabled = true;
+            dropdown.innerHTML = '<option value="">Could not load complete ligand list</option>';
+            if (countEl) countEl.textContent = "";
+
+            if (typeof showAlert === "function") {
+                showAlert("❌ Could not load complete ligand list.", "danger");
+            }
+        }
+    }
+
     // Manual dropdown selection still works.
     $("#warhead").off("change.protacWarhead").on("change.protacWarhead", function () {
         const selectedSmiles = $(this).val();
@@ -4234,13 +4445,47 @@ $(document).ready(function () {
 
         console.log("✅ New warhead dropdown selected:", selectedSmiles);
 
+        const completeDropdown = document.getElementById(COMPLETE_LIGAND_DROPDOWN_ID);
+        if (completeDropdown) completeDropdown.value = "";
+
         // If the user manually changes dropdown, it should override imported handoff.
         window.__WARHEAD_HANDOFF_LOADED = false;
         sessionStorage.removeItem("incomingWarheadSmiles");
         sessionStorage.removeItem("warheadHandoffSmiles");
+        sessionStorage.removeItem("completeLigandCode");
+        sessionStorage.setItem("warheadSource", "vlisemod-dropdown");
 
         loadLigand(selectedSmiles);
     });
+
+    $(`#${COMPLETE_LIGAND_DROPDOWN_ID}`)
+        .off("change.completeLigandWarhead")
+        .on("change.completeLigandWarhead", async function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const selectedSmiles = this.value;
+
+            if (!selectedSmiles) return;
+
+            const ligandCode = selectedOption?.dataset?.ligandCode || "";
+            console.log("✅ New complete-list warhead selected:", {
+                ligandCode,
+                smiles: selectedSmiles
+            });
+
+            const warheadDropdown = document.getElementById("warhead");
+            if (warheadDropdown) warheadDropdown.value = "";
+
+            const loaded = await loadSelectedWarheadSmiles(
+                selectedSmiles,
+                COMPLETE_LIGAND_LABEL,
+                ligandCode
+            );
+            if (loaded) {
+                sessionStorage.setItem("warheadSource", COMPLETE_LIGAND_SOURCE);
+            }
+        });
+
+    loadCompleteLigandDropdown();
 
     // Older ligand-code URL path still works, but only if there is no SMILES handoff.
     setTimeout(() => {

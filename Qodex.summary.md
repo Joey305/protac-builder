@@ -1,140 +1,96 @@
 # Qodex.summary
 
 ## Task
-Add glass-inspired CSS styling to PROTAC Builder.
+Add complete ligand-list warhead dropdown to PROTAC Builder.
 
 ## Original Goal
-Introduce a modern glass visual design layer, especially in the navigation and home page, while preserving the dark scientific neon identity. The implementation should be maintainable, CSS-first, responsive, accessible, and not over-engineered.
+Allow users to choose warheads from either the existing V-LiSEMOD dropdown or the new `Components-smiles-stereo-oe.smi` complete ligand list, with the complete list dropdown stacked below the V-LiSEMOD dropdown and above the Warhead Hunter button.
 
 ## Assumptions
-- The existing shared content and navigation styles should remain the system of record instead of introducing a separate visual framework.
-- `backdrop-filter` should be treated as progressive enhancement, not a baseline dependency.
-- Existing content hierarchy and routes should stay intact while visual hooks are added through classes and data attributes.
-- The current ecosystem link destinations remain correct:
-  - `https://warheadhunter.com`
-  - `https://warheadhunter.com/scout`
-  - `https://warheadhunter.com/examples`
-  - `https://e3ligandalyzer.com`
-  - `https://e3ligandalyzer.com/explorer`
-  - `https://e3ligandalyzer.com/scaffolds`
-  - `https://vlisemod.com`
-- The current home-page emoji accents were acceptable if kept sparse and professional.
+- The `.smi` file is tab-separated with SMILES, ligand code, and optional ligand name.
+- Ligand codes may be 3 characters or longer.
+- Selecting a complete-list ligand should load its SMILES into the existing warhead ChemDoodle editor but should not auto-save the warhead.
 
 ## Files Inspected
-- `README.md`
-  Confirmed the documented local start command and route expectations.
-- `templates/base.html`
-  Verified global stylesheet load order and shared shell includes.
-- `templates/pages/_page_base.html`
-  Confirmed shared content-page shell and `data-page` hook usage.
-- `templates/pages/_macros.html`
-  Checked whether `info_card` and `action_link` could safely accept additional classes.
-- `templates/partials/_nav.html`
-  Reviewed desktop dropdown and mobile drawer structure.
-- `templates/pages/home.html`
-  Reviewed hero, component cards, ecosystem cards, and CTA markup.
-- `templates/pages/component_hubs.html`
-  Reviewed shared ecosystem/tool card usage through `info_card`.
-- `templates/pages/ecosystem.html`
-  Confirmed it already has a separate custom visual treatment and should not be broadly refactored.
-- `static/css/protac-content.css`
-  Identified the shared hero, card, pill, button, figure, and responsive styles to extend.
-- `static/css/protac-nav.css`
-  Identified existing nav tokens, dropdown styles, mobile drawer behavior, and focus states.
-- `static/css/protac-builder-mobile.css`
-  Checked mobile/nav z-index interactions for compatibility.
+- `templates/builder.html`
+  Verified the Step 1 builder card structure, existing `#warhead` markup, Warhead Hunter placement, and local CSS area for light spacing changes.
+- `static/js/COPYscripts.js`
+  Reviewed URL handoff loaders, duplicate `#warhead` handlers, `loadLigand`, `loadLigandFromCode`, `loadSmilesIntoEditor`, and existing warhead session-state clearing logic.
+- `static/data/Components-smiles-stereo-oe.smi`
+  Confirmed tab-separated structure, sampled the first rows, and checked row count plus malformed-row count.
 - `app.py`
-  Confirmed the Flask app entry point and local dev port.
+  Confirmed the local Flask server and the builder route could be started for validation.
 
 ## Files Changed
-- `static/css/protac-content.css`
-  Added reusable glass tokens, fallback-first glass surfaces, hover/focus treatments, shared tool-card accent styles, and home-page glass refinements.
-- `static/css/protac-nav.css`
-  Upgraded the navigation, dropdowns, drawer, and mobile controls to glass surfaces with stronger highlights, focus rings, and group-specific accent behavior.
-- `templates/pages/_macros.html`
-  Extended `action_link` and `info_card` with optional `class_name` support so shared cards/buttons can pick up accent variants without markup duplication.
-- `templates/pages/home.html`
-  Applied reusable glass classes to the home hero and sections, and updated the E3 iconography to a cleaner electric accent.
-- `templates/partials/_nav.html`
-  Added `data-nav-group` hooks for desktop and mobile navigation accent styling.
-- `templates/pages/component_hubs.html`
-  Added accent classes to shared ecosystem/tool cards so the glass hover system carries beyond the home page.
+- `templates/builder.html`
+  Added the stacked complete-ligand dropdown and count indicator under the existing V-LiSEMOD selector, added light spacing styles, and removed the inline warhead `onchange` to avoid duplicate handler execution.
+- `static/js/COPYscripts.js`
+  Added one-time client-side `.smi` loading/parsing, efficient dropdown population with `DocumentFragment`, complete-list selection handling, mutual clearing between the two warhead dropdowns, and extra stale warhead-state clearing so raw SMILES selections load cleanly into the existing editor flow.
 - `Qodex.summary.md`
   Replaced the previous summary with this task summary.
 
 ## Files Created
-- No new project files were created.
+- No new project files or backend endpoints were created.
 
 ## Implementation Summary
-The site now has a reusable glass layer built directly into the existing shared CSS instead of a parallel component system. Shared hero cards, section cards, info cards, detail cards, pills, buttons, zoom links, and utility panels now use translucent dark surfaces, subtle rim highlights, layered gradients, stronger depth shadows, and progressive-enhancement blur where the browser supports it.
+The builder warhead card now shows two stacked selectors: the original V-LiSEMOD dropdown first, then a new complete ligand-list dropdown loaded from `/static/data/Components-smiles-stereo-oe.smi`, followed by the existing Warhead Hunter button.
 
-The navigation was refreshed into a floating instrument-panel style. Desktop nav, dropdowns, mobile drawer surfaces, the hamburger control, and the backdrop all now use the same glass language, and the main nav groups can glow with category-specific accents without changing routing or interaction behavior.
-
-The home page received the strongest treatment. Its hero, workflow section, ecosystem cards, and learning cards now sit on the reusable glass system while retaining the established component identities: warhead in reddish neon, linker in neon yellow, and E3 recruiter in electric blue. Shared ecosystem cards in `/component-hubs` now inherit matching accent behavior as well.
+The complete ligand list is parsed in the browser once on page load. Each option keeps the raw SMILES as its value, exposes `data-ligand-code` and `data-ligand-name`, and renders as `CODE — ligand name` when a name exists. Selecting one of these options clears the V-LiSEMOD selector, clears stale warhead-related session state, fills the existing warhead SMILES input, opens the SMILES panel, shows the warhead editor container, and loads the molecule through the existing editor-loading path. Selecting a V-LiSEMOD option clears the complete-list dropdown in return.
 
 ## Key Decisions
-- A CSS-first glassmorphism approach was used because the project already had strong shared CSS entry points for content and navigation.
-- `backdrop-filter` was implemented only inside `@supports` blocks so unsupported browsers still get readable opaque/translucent dark panels with borders and shadows.
-- Shared classes and variables were favored over one-off page rewrites to keep the system maintainable and easy to extend.
-- Navigation accents are driven by lightweight `data-nav-group` attributes rather than new JavaScript behavior.
-- `info_card` and `action_link` were safely extended with optional classes instead of duplicating macros or hard-coding tool-specific markup everywhere.
-- A lightweight shine/rim treatment was added with pseudo-elements, but SVG displacement, refraction filters, canvas, and WebGL techniques were intentionally deferred.
-- The custom inline `ecosystem.html` visual language was left alone to avoid a broad unrelated refactor.
+- Ligand parsing happens client-side.
+  The `.smi` file is already served from Flask static assets, so a new backend endpoint was unnecessary. This kept the change scoped and avoided duplicating parsing logic across frontend and backend.
+- The large dropdown is populated once with `DocumentFragment`.
+  The file contains `50,599` valid rows, so the implementation avoids reparsing or repeated DOM mutation during normal use.
+- Stale warhead/session state is cleared before loading complete-list SMILES.
+  The new path removes prior modified warhead data and handoff markers so an older builder state does not override the newly selected ligand.
+- The inline `onchange="loadLigand(this.value)"` was removed from `builder.html`.
+  The builder already had jQuery-based warhead handlers in `COPYscripts.js`; removing the inline handler avoids duplicate loads and keeps the logic in one place.
 
 ## Commands Run
-- `rg --files ...`, `rg -n ...`, `sed -n ...`
-  Inspected templates, stylesheets, macros, and validation clues.
-- `git status --short`
-  Checked the working tree before and after edits.
-- `python app.py`
-  Started the documented local Flask app on `http://127.0.0.1:5069`.
-- `curl -I -s http://127.0.0.1:5069/...`
-  Confirmed `/`, `/component-hubs`, `/what-is-a-protac`, `/examples`, and `/faq` returned `200 OK`.
-- `python - <<'PY' ... app.test_client() ...`
-  Verified the same key routes render through Flask without template errors.
-- `python -m compileall app.py protac_builder`
+- `rg -n ...`, `rg --files`, `sed -n ...`
+  Located the active builder template, served JavaScript, and relevant warhead-loading code paths.
+- `sed -n '1,25p' static/data/Components-smiles-stereo-oe.smi`
+  Confirmed the delimiter is tabs and sampled the new ligand data.
+- `wc -l static/data/Components-smiles-stereo-oe.smi`
+  Confirmed the file has `50,599` rows.
+- `awk -F '\t' ... static/data/Components-smiles-stereo-oe.smi`
+  Quick malformed-row check reported `0` rows missing SMILES or ligand code.
+- `python -m py_compile $(find . -name '*.py' -not -path './venv/*' -not -path './.venv/*')`
   Passed.
-- Playwright via bundled runtime
-  Installed Chromium for the bundled Playwright runtime, captured desktop/mobile previews, and checked overflow, nav drawer behavior, focus outlines, and rendered style values.
+- `python app.py`
+  Started the local Flask app on `http://127.0.0.1:5069`.
+- `curl -I -s http://127.0.0.1:5069/builder`
+  Confirmed the builder page returns `200 OK`.
+- `curl -I -s http://127.0.0.1:5069/static/data/Components-smiles-stereo-oe.smi`
+  Confirmed the static ligand file returns `200 OK`.
+- In-app browser validation against `http://127.0.0.1:5069/builder`
+  Verified dropdown rendering, population, selection behavior, and URL handoff preservation.
 
 ## Validation Results
-- Flask app started successfully with the documented `python app.py` command.
-- Route render checks passed for:
-  - `/`
-  - `/component-hubs`
-  - `/what-is-a-protac`
-  - `/examples`
-  - `/faq`
-- `python -m compileall app.py protac_builder` passed.
-- Desktop Playwright checks confirmed:
-  - shared pages render without horizontal overflow
-  - nav uses translucent dark glass styling with visible border separation
-  - hero cards render with glass border/shadow treatments
-  - home component cards retain distinct warhead/linker/E3 accents
-  - primary CTA buttons render with the new bright cyan gradient
-- Mobile Playwright checks confirmed:
-  - no horizontal overflow on `/`, `/component-hubs`, `/what-is-a-protac`, `/examples`, or `/faq`
-  - mobile nav toggle is visible
-  - mobile drawer and backdrop open successfully
-  - keyboard focus outlines remain visible in the mobile drawer
-- Visual preview screenshots confirmed the home page hero and navigation show the intended glass treatment on desktop and mobile.
+- Python syntax validation passed.
+- Static asset reachability passed for `/static/data/Components-smiles-stereo-oe.smi`.
+- Builder page reachability passed for `/builder`.
+- Browser validation passed for:
+  - stacked warhead control order
+  - complete ligand dropdown population with `Loaded 50,599 ligands`
+  - selecting ligand code `A18` from the complete list
+  - clearing the V-LiSEMOD dropdown when a complete-list ligand is selected
+  - clearing the complete-list dropdown when a V-LiSEMOD option is selected
+  - preserving `?smiles=...` handoff without either dropdown overriding it on load
+- Browser console validation showed no captured `warn` or `error` logs during the tested flows.
 
 ## Known Issues
-- I validated in bundled Chromium, but I did not run a true Safari session in this environment.
-- Some accent refinements use `color-mix()` as progressive enhancement. Base borders/backgrounds are still defined separately, but very old browsers may miss some of the richer accent glow nuance.
-- The shared hover-state verification confirmed visual changes through computed border/shadow values more reliably than transform values in headless mode.
+- A native `<select>` with `50,599` options is functional but still a heavy browser control; if users need faster searching than native keyboard matching provides, an autocomplete/search UI would be the next improvement.
+- The validation confirmed SMILES input, panel visibility, status text, and container visibility for complete-list loading. ChemDoodle itself is initialized through the page’s existing runtime, so visual molecule confirmation remains best checked manually in a regular interactive browser session as well.
+- Malformed-row handling is implemented, but the current dataset inspection found `0` malformed rows to skip.
 
 ## Manual Verification
-1. Start the local app using the documented project command.
-2. Open `/`.
-3. Confirm the hero and navigation have glass styling.
-4. Hover and focus the primary CTA buttons.
-5. Hover and focus Warhead, Linker, and E3 recruiter cards.
-6. Hover and focus ecosystem cards.
-7. Open `/component-hubs`, `/what-is-a-protac`, `/examples`, and `/faq`.
-8. Confirm shared styles did not reduce readability.
-9. Resize to mobile width and confirm no horizontal overflow.
-10. Test in at least one Chromium browser and Safari if available.
+1. Open Builder page.
+2. Confirm stacked warhead dropdown order.
+3. Select known ligand code from complete ligand list.
+4. Confirm ChemDoodle warhead editor updates.
+5. Confirm V-LiSEMOD dropdown and URL handoff still work.
 
 ## Suggested Next Prompt
-Apply the glass/component accent system consistently across `/component-hubs`, `/warheads`, `/linkers`, and `/e3-ligase-recruiters`, including figure callouts and cross-link panels.
+Add a searchable autocomplete or server-backed typeahead for the complete ligand list so users can reach specific ligand codes faster than a native dropdown allows.
