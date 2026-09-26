@@ -1982,20 +1982,75 @@ async function getParameters() {
   // 3) ligaseData loader (safe, idempotent)
   // --------------------------------------------------------------------------
   window.ligaseData = window.ligaseData || {};
+  window.recruiterMap = window.recruiterMap || {};
   let ligaseDataLoading = null;
+
+  function applyRandyRecruiterInventory(records) {
+    const ligaseData = {};
+    const recruiterMap = {};
+
+    (Array.isArray(records) ? records : []).forEach(record => {
+      const ligase = String(record?.ligase || "").trim();
+      const pdbFile = String(record?.pdb_file || "").trim();
+      const pdbId = String(record?.pdb_id || "").trim().toUpperCase();
+      const ligand = normalizeLigandCode(record?.ligand || "");
+      const recruiterCode = String(record?.recruiter_code || "").trim();
+      const recruiterInstanceId = String(record?.recruiter_instance_id || "").trim();
+      if (!ligase || !pdbFile || !pdbId || !ligand) return;
+
+      if (!ligaseData[ligase]) ligaseData[ligase] = [];
+      if (!ligaseData[ligase].includes(pdbFile)) ligaseData[ligase].push(pdbFile);
+
+      // A Ligandalyzer recruiter family can have multiple bound instances.
+      // Keep the instance ID as the select value so none are overwritten.
+      const uniqueCode = recruiterInstanceId || recruiterCode || `${ligase}:${pdbFile.replace(/\.pdb$/i, "")}`;
+      recruiterMap[uniqueCode] = {
+        recruiter_code: recruiterCode || uniqueCode,
+        recruiter_instance_id: recruiterInstanceId,
+        ligase,
+        pdb_id: pdbId,
+        ligand,
+        pdb_file: pdbFile,
+        sdf_file: String(record?.sdf_file || "").trim(),
+        pdb_available: Boolean(record?.pdb_available),
+        sdf_available: Boolean(record?.sdf_available),
+      };
+    });
+
+    Object.values(ligaseData).forEach(files => files.sort((a, b) => a.localeCompare(b)));
+    if (!Object.keys(ligaseData).length) return false;
+    window.ligaseData = ligaseData;
+    window.recruiterMap = recruiterMap;
+    return true;
+  }
 
   async function ensureLigaseDataLoaded() {
     if (Object.keys(window.ligaseData).length) return;
     if (ligaseDataLoading) return ligaseDataLoading;
 
-    ligaseDataLoading = fetch("/static/data/ligases.json")
-      .then(r => r.json())
-      .then(json => {
-        window.ligaseData = json || {};
+    ligaseDataLoading = fetch("/api/e3ligase/recruiters", { cache: "no-store" })
+      .then(async response => {
+        if (!response.ok) throw new Error(`RANDY inventory returned HTTP ${response.status}`);
+        const payload = await response.json();
+        if (!payload?.ok || !applyRandyRecruiterInventory(payload.records)) {
+          throw new Error("RANDY inventory contained no usable recruiter records");
+        }
+        console.log(`Loaded ${payload.count || Object.keys(window.recruiterMap).length} live E3 recruiter records from RANDY.`);
+      })
+      .catch(async err => {
+        console.warn("Live RANDY recruiter inventory unavailable; using bundled fallback.", err);
+        const [ligaseResponse, recruiterResponse] = await Promise.all([
+          fetch("/static/data/ligases.json"),
+          fetch("/static/data/recruiter_pdb_map.json"),
+        ]);
+        if (!ligaseResponse.ok || !recruiterResponse.ok) throw err;
+        window.ligaseData = await ligaseResponse.json() || {};
+        window.recruiterMap = await recruiterResponse.json() || {};
       })
       .catch(err => {
-        console.error("Failed to load /static/data/ligases.json", err);
+        console.error("Failed to load E3 recruiter inventory and bundled fallback.", err);
         window.ligaseData = {};
+        window.recruiterMap = {};
       })
       .finally(() => {
         ligaseDataLoading = null;
@@ -2003,6 +2058,8 @@ async function getParameters() {
 
     return ligaseDataLoading;
   }
+
+  window.recruiterMapPromise = ensureLigaseDataLoaded().then(() => window.recruiterMap);
 
   // --------------------------------------------------------------------------
   // 4) Warhead Source State (RCSB vs Hunter/Local)
@@ -3024,7 +3081,9 @@ window.onLigaseSelected = async function onLigaseSelected() {
       if (entry.ligase === ligase) {
         const opt = document.createElement("option");
         opt.value = code;
-        opt.textContent = `${code} (${entry.pdb_id} – ${entry.ligand})`;
+        const displayCode = entry.recruiter_code || code;
+        const instanceSuffix = entry.recruiter_instance_id ? ` · ${entry.recruiter_instance_id}` : "";
+        opt.textContent = `${displayCode}${instanceSuffix} (${entry.pdb_id} – ${entry.ligand})`;
         recSelect.appendChild(opt);
       }
     }
@@ -3415,21 +3474,9 @@ function validateLigandInput(input) {
 
 
 
-// ✅ Put recruiter map on window so onLigaseSelected can see it
-window.recruiterMap = {};
-
-window.recruiterMapPromise = fetch("/static/data/recruiter_pdb_map.json")
-  .then(r => r.json())
-  .then(data => {
-    window.recruiterMap = data;
-    console.log("Recruiter map loaded", window.recruiterMap);
-    return data;
-  })
-  .catch(err => {
-    console.error("❌ recruiter_pdb_map.json failed to load", err);
-    window.recruiterMap = {};
-    return {};
-  });
+// Ensure direct recruiter selection uses the same live RANDY inventory as the PDB selector.
+window.recruiterMap = window.recruiterMap || {};
+window.recruiterMapPromise = window.recruiterMapPromise || Promise.resolve(window.recruiterMap);
 
 
 

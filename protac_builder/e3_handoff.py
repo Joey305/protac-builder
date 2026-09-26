@@ -187,6 +187,36 @@ def _candidate_remote_bases() -> list[str]:
     return [str(entry["base"]) for entry in _candidate_remote_base_entries()]
 
 
+def fetch_remote_recruiter_inventory(timeout: float = 20.0) -> dict[str, object]:
+    """Fetch RANDY's live E3 inventory without exposing its bearer token to browsers."""
+    base_entries = _candidate_remote_base_entries()
+    if not base_entries:
+        raise FileNotFoundError("No remote E3 ligase data source is configured.")
+
+    first_error: requests.RequestException | None = None
+    for entry in base_entries:
+        base = str(entry["base"])
+        url = f"{base}/recruiters"
+        try:
+            response = requests.get(url, headers=_remote_headers(), timeout=timeout)
+            current_app.logger.info("[e3_handoff] recruiter inventory base=%s status=%s", _base_label(base), response.status_code)
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict) or payload.get("ok") is not True or not isinstance(payload.get("records"), list):
+                raise ValueError("RANDY recruiter inventory payload was invalid.")
+            return payload
+        except requests.RequestException as exc:
+            if first_error is None:
+                first_error = exc
+            current_app.logger.warning("[e3_handoff] recruiter inventory failed base=%s error=%s", _base_label(base), exc)
+        except ValueError as exc:
+            current_app.logger.warning("[e3_handoff] recruiter inventory decode failed base=%s error=%s", _base_label(base), exc)
+
+    if first_error is not None:
+        raise first_error
+    raise FileNotFoundError("No remote E3 recruiter inventory is available.")
+
+
 def resolve_remote_pdb_filename_from_inventory(remote_files: list[str], requested_filename: str) -> str | None:
     if not remote_files:
         return None

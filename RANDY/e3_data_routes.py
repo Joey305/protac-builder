@@ -29,6 +29,10 @@ UNSAFE_SQL_RE = re.compile(
     re.IGNORECASE,
 )
 SAFE_NAME_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
+RECRUITER_ASSET_RE = re.compile(
+    r"^(?P<pdb>[0-9A-Za-z]{4})_(?P<ligand>[A-Za-z0-9]{2,16})(?:_(?P<variant>\d+))?\.(?P<ext>pdb|sdf)$",
+    re.IGNORECASE,
+)
 
 
 def _token() -> str:
@@ -62,6 +66,101 @@ def _table_root() -> Path:
 
 def _shipment_db_path() -> Path:
     return Path(os.environ.get("E3_SHIPMENT_DB_PATH", str(DEFAULT_E3_SHIPMENT_DB_PATH))).expanduser()
+
+
+def _recruiter_map_path() -> Path | None:
+    """Return an optional authoritative recruiter-code map, when deployed with E3 data."""
+    configured = os.environ.get("E3_RECRUITER_MAP_PATH", "").strip()
+    candidates = [Path(configured).expanduser()] if configured else []
+    data_dir = _data_dir()
+    candidates.extend(
+        [
+            data_dir / "recruiter_pdb_map.json",
+            data_dir / "static" / "data" / "recruiter_pdb_map.json",
+            PROJECT_ROOT / "static" / "data" / "recruiter_pdb_map.json",
+        ]
+    )
+    return next((path for path in candidates if path.is_file()), None)
+
+
+def _load_recruiter_code_map() -> dict[tuple[str, str], str]:
+    """Index optional Ligandalyzer recruiter IDs by ligase and PDB filename."""
+    path = _recruiter_map_path()
+    if path is None:
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        current_app.logger.warning("Could not read E3 recruiter map: %s", path)
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+
+    indexed: dict[tuple[str, str], str] = {}
+    for code, item in payload.items():
+        if not isinstance(item, dict):
+            continue
+        ligase = str(item.get("ligase") or "").strip()
+        filename = Path(str(item.get("pdb_file") or "").strip()).name
+        if ligase and filename:
+            recruiter_code = str(item.get("recruiter_code") or code).strip()
+            indexed[(ligase.lower(), filename.lower())] = recruiter_code
+            base_filename = re.sub(r"_\d+(?=\.pdb$)", "", filename, flags=re.IGNORECASE)
+            indexed.setdefault((ligase.lower(), base_filename.lower()), recruiter_code)
+    return indexed
+
+
+def _recruiter_inventory(ligase: str | None = None) -> list[dict[str, Any]]:
+    """Build the live Builder inventory directly from the published E3 assets."""
+    requested_ligase = _validate_ligase_name(ligase) if ligase else ""
+    code_map = _load_recruiter_code_map()
+    records: dict[tuple[str, str], dict[str, Any]] = {}
+
+    for ligase_dir in _list_download_ligase_dirs():
+        if requested_ligase and ligase_dir.name.lower() != requested_ligase.lower():
+            continue
+        for folder_name, extension, availability_key in (
+            ("PDB", "pdb", "pdb_available"),
+            ("SDF_4Download", "sdf", "sdf_available"),
+        ):
+            folder = ligase_dir / folder_name
+            if not folder.is_dir():
+                continue
+            for path in folder.iterdir():
+                if not path.is_file() or path.suffix.lower() != f".{extension}":
+                    continue
+                match = RECRUITER_ASSET_RE.fullmatch(path.name)
+                if not match:
+                    continue
+                pdb_id = match.group("pdb").upper()
+                ligand = match.group("ligand").upper()
+                variant = match.group("variant") or ""
+                stem = f"{pdb_id}_{ligand}{f'_{variant}' if variant else ''}"
+                key = (ligase_dir.name.lower(), stem.lower())
+                record = records.setdefault(
+                    key,
+                    {
+                        "ligase": ligase_dir.name,
+                        "pdb_id": pdb_id,
+                        "ligand": ligand,
+                        "variant": int(variant) if variant else None,
+                        "pdb_file": f"{stem}.pdb",
+                        "sdf_file": f"{stem}.sdf",
+                        "pdb_available": False,
+                        "sdf_available": False,
+                    },
+                )
+                record[availability_key] = True
+
+    for record in records.values():
+        map_key = (str(record["ligase"]).lower(), str(record["pdb_file"]).lower())
+        # The asset identifier is a stable usable code when an LR code is not published.
+        record["recruiter_code"] = code_map.get(map_key) or f"{record['ligase']}:{Path(str(record['pdb_file'])).stem}"
+
+    return sorted(
+        records.values(),
+        key=lambda item: (str(item["ligase"]).lower(), str(item["pdb_file"]).lower()),
+    )
 
 
 def _safe_under(base: Path, path: Path) -> bool:
@@ -447,6 +546,19 @@ def register_e3_routes(app) -> None:
                 "total": _shipment_success_count(),
                 "source": "randy",
                 "backup_ok": True,
+            }
+        )
+
+    @bp.get("/recruiters")
+    def recruiters():
+        ligase = str(request.args.get("ligase") or "").strip()
+        records = _recruiter_inventory(ligase or None)
+        return jsonify(
+            {
+                "ok": True,
+                "source": "randy-e3-assets",
+                "count": len(records),
+                "records": records,
             }
         )
 

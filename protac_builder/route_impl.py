@@ -48,6 +48,7 @@ from .chemistry import (
 )
 from .e3_handoff import (
     E3HandoffRequestError,
+    fetch_remote_recruiter_inventory,
     fetch_remote_ligase_pdb,
     fetch_remote_ligase_sdf,
     inspect_remote_ligase_pdb,
@@ -1602,6 +1603,25 @@ def e3ligase_pdb_file(ligase: str, filename: str):
         return jsonify({"ok": False, "error": str(exc) or "Remote ligase PDB request failed."}), 502
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@bp.route("/api/e3ligase/recruiters", methods=["GET"])
+def e3ligase_recruiters():
+    try:
+        payload = fetch_remote_recruiter_inventory()
+        response = jsonify(payload)
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["X-E3-Ligase-Source"] = "RANDY"
+        return response
+    except FileNotFoundError as exc:
+        return jsonify({"ok": False, "error": str(exc), "source": "RANDY"}), 503
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        return jsonify({"ok": False, "error": f"Remote recruiter inventory fetch failed: HTTP {status}", "source": "RANDY"}), status
+    except requests.RequestException as exc:
+        return jsonify({"ok": False, "error": str(exc) or "Remote recruiter inventory request failed.", "source": "RANDY"}), 502
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc), "source": "RANDY"}), 500
 
 
 def _local_ligase_sdf_candidates(ligase: str, pdb_filename: str) -> list[Path]:
