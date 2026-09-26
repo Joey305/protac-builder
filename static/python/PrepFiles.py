@@ -15,10 +15,12 @@ Clean rewrite of the original workflow:
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import shutil
 import subprocess
 import sys
+import webbrowser
 from pathlib import Path
 from typing import Iterable
 
@@ -28,29 +30,22 @@ from typing import Iterable
 # =========================
 
 def ensure_python_package(pkg_name: str, import_name: str | None = None, pip_name: str | None = None):
-    """Ensure a Python package can be imported, installing via pip if needed."""
+    """Require a Python package without mutating a scientist's environment."""
     import_name = import_name or pkg_name
     pip_name = pip_name or pkg_name
 
     try:
         return importlib.import_module(import_name)
     except ImportError:
-        print(f"⚠️ Python package '{pip_name}' not found. Installing with pip...")
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
-        except subprocess.CalledProcessError as e:
-            sys.exit(f"❌ Failed to install Python package '{pip_name}': {e}")
-
-    try:
-        return importlib.import_module(import_name)
-    except ImportError:
-        sys.exit(f"❌ Installed '{pip_name}' but still cannot import '{import_name}'.")
+        sys.exit(
+            f"❌ Required Python package '{pip_name}' is missing.\n"
+            f"Install it in this environment, then rerun: {sys.executable} -m pip install {pip_name}"
+        )
 
 
 def ensure_executable(exe_name: str, conda_package: str | None = None) -> str:
     """
     Ensure a command-line executable exists on PATH.
-    If missing, try installing via conda-forge when conda is available.
     """
     path = shutil.which(exe_name)
     if path:
@@ -59,19 +54,6 @@ def ensure_executable(exe_name: str, conda_package: str | None = None) -> str:
 
     print(f"⚠️ Executable '{exe_name}' not found on PATH.")
 
-    conda_path = shutil.which("conda")
-    if conda_path and conda_package:
-        print(f"⚠️ Attempting to install '{conda_package}' via conda-forge...")
-        try:
-            subprocess.check_call([conda_path, "install", "-y", "-c", "conda-forge", conda_package])
-        except subprocess.CalledProcessError as e:
-            sys.exit(f"❌ Conda install failed for '{conda_package}': {e}")
-
-        path = shutil.which(exe_name)
-        if path:
-            print(f"✅ Found executable '{exe_name}' after install: {path}")
-            return path
-
     sys.exit(
         f"❌ Required executable '{exe_name}' is missing.\n"
         f"Install it with:\n"
@@ -79,9 +61,17 @@ def ensure_executable(exe_name: str, conda_package: str | None = None) -> str:
     )
 
 
-py3Dmol = ensure_python_package("py3Dmol")
-Chem = ensure_python_package("rdkit", import_name="rdkit.Chem")
-OBABEL = ensure_executable("obabel", conda_package="openbabel")
+py3Dmol = None
+Chem = None
+OBABEL = None
+
+
+def initialize_runtime_dependencies() -> None:
+    """Load optional runtime tooling only when preparation is actually run."""
+    global py3Dmol, Chem, OBABEL
+    py3Dmol = ensure_python_package("py3Dmol")
+    Chem = ensure_python_package("rdkit", import_name="rdkit.Chem")
+    OBABEL = ensure_executable("obabel", conda_package="openbabel")
 
 
 # =========================
@@ -147,6 +137,8 @@ def parse_params_file(params_file: str | Path):
         elif key == "Chains":
             chains = parts
         elif key == "Anchor atoms":
+            if any(value.upper() in {"PENDING", "UNSELECTED"} for value in parts):
+                continue
             try:
                 anchor_atoms = [int(x) for x in parts]
             except ValueError:
@@ -178,6 +170,24 @@ def update_anchor_atoms_in_params(params_file: str | Path, original_lines: list[
     write_lines(params_file, new_lines)
 
 
+def load_manifest(path: str | Path = "package_manifest.json") -> dict:
+    manifest_path = require_file(path)
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        sys.exit(f"❌ Could not read package manifest: {exc}")
+    if manifest.get("schema_version") != 1:
+        sys.exit(f"❌ Unsupported package manifest schema: {manifest.get('schema_version')!r}")
+    if manifest.get("package_type") != "prosettac":
+        sys.exit("❌ package_manifest.json is not a PRosettaC package.")
+    for component_name in ("e3", "warhead"):
+        component = manifest.get(component_name)
+        required = ("pdb_residue_name", "pdb_residue_number", "head_sdf")
+        if not isinstance(component, dict) or any(not str(component.get(key, "")).strip() for key in required):
+            sys.exit(f"❌ Manifest {component_name} structural metadata is incomplete.")
+    return manifest
+
+
 # =========================
 # PDB processing
 # =========================
@@ -205,6 +215,33 @@ def extract_hetatm_by_codes(input_file: str | Path, codes: list[str]) -> list[st
                     filtered_lines.append(line)
 
     return filtered_lines
+
+
+def extract_hetatm_by_identity(input_file: str | Path, identity: dict) -> list[str]:
+    """Extract exactly one PDB residue using explicit manifest structural IDs."""
+    expected = (
+        str(identity.get("pdb_residue_name") or "").strip().upper(),
+        str(identity.get("pdb_chain") or "").strip(),
+        str(identity.get("pdb_residue_number") or "").strip(),
+        str(identity.get("pdb_insertion_code") or "").strip(),
+    )
+    selected: list[str] = []
+    other_groups: set[tuple[str, str, str, str]] = set()
+    with open(input_file, "r") as pdb_file:
+        for line in pdb_file:
+            if not line.startswith("HETATM") or len(line) < 27:
+                continue
+            observed = (line[17:20].strip().upper(), line[21].strip(), line[22:26].strip(), line[26].strip())
+            if observed == expected:
+                selected.append(line)
+            else:
+                other_groups.add(observed)
+    if not selected:
+        sys.exit(
+            "❌ Expected bound residue was not found: "
+            f"{expected[0]} / chain {expected[1] or '[blank]'} / residue {expected[2]}{expected[3]}"
+        )
+    return selected
 
 
 def detect_chains(pdb_file: str | Path) -> list[str]:
@@ -341,7 +378,37 @@ def show_molecule(sdf_file: str | Path) -> None:
     viewer.zoomTo()
     html_file = Path(f"{Path(sdf_file).stem}_viewer.html")
     html_file.write_text(viewer._make_html())
-    os.system(f'open "{html_file}"')
+    try:
+        opened = webbrowser.open(html_file.resolve().as_uri())
+        if not opened:
+            print(f"⚠️ Could not open a browser automatically. Open this file manually: {html_file.resolve()}")
+    except Exception:
+        print(f"⚠️ Could not open a browser automatically. Open this file manually: {html_file.resolve()}")
+
+
+def prompt_anchor_atom(sdf_file: Path) -> int:
+    mols = Chem.SDMolSupplier(str(sdf_file), removeHs=False)
+    mol = mols[0] if mols and len(mols) else None
+    if mol is None:
+        sys.exit(f"❌ Cannot validate atom indices because {sdf_file} cannot be parsed.")
+    atom_count = mol.GetNumAtoms()
+    while True:
+        raw = input(f"Enter attachment atom number for {sdf_file.name} (1-{atom_count}): ").strip()
+        try:
+            atom_index = int(raw)
+        except ValueError:
+            print("⚠️ Enter an integer atom number.")
+            continue
+        if 1 <= atom_index <= atom_count:
+            return atom_index
+        print(f"⚠️ Atom number must be between 1 and {atom_count}.")
+
+
+def update_manifest_anchors(manifest: dict, anchor_atoms: list[int], path: str | Path = "package_manifest.json") -> None:
+    manifest["anchors_selected"] = True
+    manifest["preparation_status"] = "anchors_selected"
+    manifest["anchors"] = {"e3": anchor_atoms[0], "warhead": anchor_atoms[1]}
+    Path(path).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 # =========================
@@ -349,13 +416,19 @@ def show_molecule(sdf_file: str | Path) -> None:
 # =========================
 
 def main() -> None:
+    initialize_runtime_dependencies()
     ligase_file = require_file("Ligase.pdb")
     warhead_file = require_file("Warhead.pdb")
     params_file = require_file("Protac_params.txt")
+    manifest = load_manifest()
 
     first_head, second_head, structures, chains, anchor_atoms, original_param_lines = parse_params_file(params_file)
 
-    print(f"✅ Extracted head codes: {first_head}, {second_head}")
+    print(
+        "✅ Loaded structural identities: "
+        f"E3 {manifest['e3']['pdb_residue_name']} / chain {manifest['e3'].get('pdb_chain') or '[blank]'} / residue {manifest['e3']['pdb_residue_number']}; "
+        f"warhead {manifest['warhead']['pdb_residue_name']} / chain {manifest['warhead'].get('pdb_chain') or '[blank]'} / residue {manifest['warhead']['pdb_residue_number']}"
+    )
     print(f"✅ Structures: {structures if structures else '[none found]'}")
     print(f"✅ Chains from params: {chains if chains else '[none found]'}")
 
@@ -380,23 +453,18 @@ def main() -> None:
     write_lines(warhead_filtered_pdb, warhead_filtered_lines)
     print(f"✅ Wrote {ligase_filtered_pdb} and {warhead_filtered_pdb}")
 
-    first_head_filtered = Path(f"{first_head}_filtered.pdb")
-    second_head_filtered = Path(f"{second_head}_filtered.pdb")
+    first_head_filtered = Path("e3_head_filtered.pdb")
+    second_head_filtered = Path("warhead_head_filtered.pdb")
 
-    ligase_head_lines = extract_hetatm_by_codes(ligase_file, [first_head])
-    warhead_head_lines = extract_hetatm_by_codes(warhead_file, [second_head])
-
-    if not ligase_head_lines:
-        sys.exit(f"❌ Could not find HETATM records for head code '{first_head}' in {ligase_file}")
-    if not warhead_head_lines:
-        sys.exit(f"❌ Could not find HETATM records for head code '{second_head}' in {warhead_file}")
+    ligase_head_lines = extract_hetatm_by_identity(ligase_file, manifest["e3"])
+    warhead_head_lines = extract_hetatm_by_identity(warhead_file, manifest["warhead"])
 
     write_lines(first_head_filtered, ligase_head_lines)
     write_lines(second_head_filtered, warhead_head_lines)
     print(f"✅ Wrote {first_head_filtered} and {second_head_filtered}")
 
-    first_head_sdf = Path(f"{first_head}.sdf")
-    second_head_sdf = Path(f"{second_head}.sdf")
+    first_head_sdf = Path(manifest["e3"]["head_sdf"])
+    second_head_sdf = Path(manifest["warhead"]["head_sdf"])
     run_obabel(first_head_filtered, first_head_sdf)
     run_obabel(second_head_filtered, second_head_sdf)
     print(f"✅ Wrote {first_head_sdf} and {second_head_sdf}")
@@ -412,15 +480,10 @@ def main() -> None:
 
     sdf_files = [first_head_sdf, second_head_sdf]
 
-    if not anchor_atoms:
-        anchor_atoms = [1 for _ in sdf_files]
-    elif len(anchor_atoms) < len(sdf_files):
-        anchor_atoms.extend([1] * (len(sdf_files) - len(anchor_atoms)))
-
-    for i, sdf_file in enumerate(sdf_files):
+    selected_anchor_atoms: list[int] = []
+    for sdf_file in sdf_files:
         if not sdf_file.exists():
-            print(f"⚠️ SDF not found, skipping viewer: {sdf_file}")
-            continue
+            sys.exit(f"❌ Prepared SDF not found: {sdf_file}")
 
         print(f"Displaying {sdf_file} in your browser...")
         show_molecule(sdf_file)
@@ -429,16 +492,11 @@ def main() -> None:
             "then come back here and press Enter to continue..."
         )
 
-        new_anchor_atom = input(f"Enter new anchor atom number for {sdf_file.name} [{anchor_atoms[i]}]: ").strip()
-        if not new_anchor_atom:
-            continue
-        try:
-            anchor_atoms[i] = int(new_anchor_atom)
-        except ValueError:
-            print("⚠️ Invalid input. Keeping previous value.")
+        selected_anchor_atoms.append(prompt_anchor_atom(sdf_file))
 
-    update_anchor_atoms_in_params(params_file, original_param_lines, anchor_atoms)
-    print("✅ Protac_params.txt updated successfully.")
+    update_anchor_atoms_in_params(params_file, original_param_lines, selected_anchor_atoms)
+    update_manifest_anchors(manifest, selected_anchor_atoms)
+    print("✅ Protac_params.txt and package_manifest.json updated successfully.")
 
 
 if __name__ == "__main__":

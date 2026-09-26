@@ -110,6 +110,73 @@ def _load_recruiter_code_map() -> dict[tuple[str, str], str]:
     return indexed
 
 
+def _pdb_hetatm_groups(pdb_path: Path) -> list[dict[str, str]]:
+    """Return distinct ligand residue groups present in an exact PDB asset.
+
+    PDB residue names are fixed-width three-character fields.  This deliberately
+    reads the PDB rather than attempting to infer a residue from the display ID
+    or from an asset filename.
+    """
+    groups: dict[tuple[str, str, str, str], int] = {}
+    try:
+        lines = pdb_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return []
+    for line in lines:
+        if not line.startswith("HETATM") or len(line) < 27:
+            continue
+        residue_name = line[17:20].strip().upper()
+        chain = line[21].strip()
+        residue_number = line[22:26].strip()
+        insertion_code = line[26].strip()
+        if not residue_name or not residue_number:
+            continue
+        key = (residue_name, chain, residue_number, insertion_code)
+        groups[key] = groups.get(key, 0) + 1
+    return [
+        {
+            "pdb_residue_name": name,
+            "pdb_chain": chain,
+            "pdb_residue_number": number,
+            "pdb_insertion_code": insertion,
+            "pdb_residue_atom_count": atom_count,
+        }
+        for (name, chain, number, insertion), atom_count in sorted(groups.items())
+    ]
+
+
+def _apply_prosettac_structural_metadata(record: dict[str, Any], pdb_path: Path | None) -> None:
+    """Populate structural fields or mark a recruiter unavailable for export.
+
+    An inventory record is exportable only when its exact PDB and SDF assets are
+    present and the PDB contains exactly one bound HETATM residue group.  A
+    generic asset inventory has no authoritative way to distinguish multiple
+    groups, so ambiguity intentionally fails closed instead of guessing.
+    """
+    record["display_ligand_id"] = str(record.get("ligand") or "").strip().upper()
+    record["structural_sdf_file"] = str(record.get("sdf_file") or "").strip()
+    record["prosettac_exportable"] = False
+    record["prosettac_export_error"] = ""
+
+    if not record.get("pdb_available") or pdb_path is None or not pdb_path.is_file():
+        record["prosettac_export_error"] = "Selected curated PDB asset is unavailable."
+        return
+    if not record.get("sdf_available"):
+        record["prosettac_export_error"] = "Selected recruiter SDF asset is unavailable."
+        return
+
+    groups = _pdb_hetatm_groups(pdb_path)
+    if len(groups) != 1:
+        record["prosettac_export_error"] = (
+            "Unable to uniquely resolve bound recruiter residue in selected PDB."
+            if groups else "Selected PDB contains no bound HETATM recruiter residue."
+        )
+        return
+
+    record.update(groups[0])
+    record["prosettac_exportable"] = True
+
+
 def _recruiter_inventory(ligase: str | None = None) -> list[dict[str, Any]]:
     """Build the live Builder inventory directly from the published E3 assets."""
     requested_ligase = _validate_ligase_name(ligase) if ligase else ""
@@ -156,6 +223,8 @@ def _recruiter_inventory(ligase: str | None = None) -> list[dict[str, Any]]:
         map_key = (str(record["ligase"]).lower(), str(record["pdb_file"]).lower())
         # The asset identifier is a stable usable code when an LR code is not published.
         record["recruiter_code"] = code_map.get(map_key) or f"{record['ligase']}:{Path(str(record['pdb_file'])).stem}"
+        pdb_path = _resolve_ligase_dir(str(record["ligase"])) / "PDB" / str(record["pdb_file"])
+        _apply_prosettac_structural_metadata(record, pdb_path if pdb_path.is_file() else None)
 
     return sorted(
         records.values(),

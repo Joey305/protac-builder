@@ -1923,6 +1923,7 @@ async function getParameters() {
     sessionStorage.removeItem("ligasePdb");
     sessionStorage.removeItem("ligandHead1");
     sessionStorage.removeItem("ligaseAtom");
+    sessionStorage.removeItem("selectedProsettacE3");
     sessionStorage.removeItem(EXPORT_LIGASE_SDF_KEY);
     sessionStorage.removeItem(EXPORT_LIGASE_PDB_FILE_KEY);
 
@@ -2005,15 +2006,21 @@ async function getParameters() {
       // Keep the instance ID as the select value so none are overwritten.
       const uniqueCode = recruiterInstanceId || recruiterCode || `${ligase}:${pdbFile.replace(/\.pdb$/i, "")}`;
       recruiterMap[uniqueCode] = {
+        ...record,
         recruiter_code: recruiterCode || uniqueCode,
         recruiter_instance_id: recruiterInstanceId,
         ligase,
         pdb_id: pdbId,
-        ligand,
+        // `ligand` remains a compatibility alias.  It is never used as a
+        // structural PDB residue identifier during PRosettaC export.
+        ligand: normalizeLigandCode(record?.display_ligand_id || ligand),
+        display_ligand_id: normalizeLigandCode(record?.display_ligand_id || ligand),
         pdb_file: pdbFile,
-        sdf_file: String(record?.sdf_file || "").trim(),
+        sdf_file: String(record?.structural_sdf_file || record?.sdf_file || "").trim(),
         pdb_available: Boolean(record?.pdb_available),
         sdf_available: Boolean(record?.sdf_available),
+        prosettac_exportable: Boolean(record?.prosettac_exportable),
+        prosettac_export_error: String(record?.prosettac_export_error || "").trim(),
       };
     });
 
@@ -2084,6 +2091,7 @@ async function getParameters() {
     sessionStorage.removeItem(EXPORT_WARHEAD_SDF_KEY);
     sessionStorage.removeItem("warheadHunterJobId");
     sessionStorage.removeItem("warheadSource");
+    sessionStorage.removeItem("selectedProsettacWarhead");
 
     // Clear globals
     delete window.HUNTER_IMPORT;
@@ -2427,6 +2435,7 @@ async function getParameters() {
       const pdbResp = await fetch(pdbUrl);
       if (!pdbResp.ok) throw new Error(`Failed local PDB download (${pdbResp.status})`);
       const pdbBlob = await pdbResp.blob();
+      const pdbText = await pdbBlob.text();
 
       // Revoke previous blob if exists
       const prev = sessionStorage.getItem("warheadPdbFile");
@@ -2439,12 +2448,25 @@ async function getParameters() {
       const sdfResp = await fetch(sdfUrl);
       if (!sdfResp.ok) throw new Error(`Failed local SDF download (${sdfResp.status})`);
       const sdfText = await sdfResp.text();
+      requireUsableSdf(sdfText, "Imported warhead");
       sessionStorage.setItem("savedMolecule", sdfText);
       storeWarheadExportSdfText(sdfText);
 
+      // Preserve the actual import origin and the independently resolved PDB
+      // residue identity used by the package manifest.
+      const provenance = globalStoreKey === "TARGET_IMPORT" ? "target_builder" : "warhead_hunter";
+      setProsettacJson(PROSETTAC_WARHEAD_KEY, normalizeImportedWarheadMetadata({
+        pdbId,
+        displayLigandId: lig,
+        pdbText,
+        provenance,
+        sourcePdbFile: _basename(pdbRel),
+        sourceSdfFile: _basename(sdfRel),
+      }));
+
       // Mark source
       sessionStorage.setItem("warheadHunterJobId", data.job_id);
-      sessionStorage.setItem("warheadSource", "hunter");
+      sessionStorage.setItem("warheadSource", provenance);
 
       if (status) status.innerHTML = `✅ Imported job ${data.job_id}. Local PDB/SDF will be used.`;
 
@@ -2763,6 +2785,214 @@ async function createZipFile(ligaseAtom, warheadAtom, protacParams) {
   // Trigger download (use your helper)
   saveFile(zipBlob, "JARIpcs.zip");
 }
+
+// =========================================================
+// PRosettaC package contract (schema v1)
+// =========================================================
+// The legacy helpers above are retained for unrelated historical callers.  All
+// current walkthroughs use this one awaited, fail-closed package pipeline.
+const PROSETTAC_MANIFEST_KEY = "selectedProsettacE3";
+const PROSETTAC_WARHEAD_KEY = "selectedProsettacWarhead";
+
+function setProsettacJson(key, value) {
+  sessionStorage.setItem(key, JSON.stringify(value));
+}
+
+function getProsettacJson(key) {
+  try { return JSON.parse(sessionStorage.getItem(key) || "null"); }
+  catch (_) { return null; }
+}
+
+function pdbResidueGroups(pdbText) {
+  const groups = new Map();
+  String(pdbText || "").split(/\r?\n/).forEach(line => {
+    if (!line.startsWith("HETATM") || line.length < 27) return;
+    const residue_name = line.slice(17, 20).trim().toUpperCase();
+    const pdb_chain = line.slice(21, 22).trim();
+    const pdb_residue_number = line.slice(22, 26).trim();
+    const pdb_insertion_code = line.slice(26, 27).trim();
+    if (!residue_name || !pdb_residue_number) return;
+    const key = [residue_name, pdb_chain, pdb_residue_number, pdb_insertion_code].join("|");
+    groups.set(key, (groups.get(key) || 0) + 1);
+  });
+  return [...groups.entries()].map(([key, atom_count]) => {
+    const [pdb_residue_name, pdb_chain, pdb_residue_number, pdb_insertion_code] = key.split("|");
+    return { pdb_residue_name, pdb_chain, pdb_residue_number, pdb_insertion_code, pdb_residue_atom_count: atom_count };
+  });
+}
+
+function hasExpectedPdbResidue(pdbText, component) {
+  return pdbResidueGroups(pdbText).some(group =>
+    group.pdb_residue_name === String(component.pdb_residue_name || "").toUpperCase() &&
+    group.pdb_chain === String(component.pdb_chain || "") &&
+    group.pdb_residue_number === String(component.pdb_residue_number || "") &&
+    group.pdb_insertion_code === String(component.pdb_insertion_code || "")
+  );
+}
+
+function requireUsableSdf(sdfText, label) {
+  const text = molBlockToSdfText(sdfText);
+  const lines = text.split(/\r?\n/);
+  const countLine = lines[3] || "";
+  const atomCount = Number.parseInt(countLine.slice(0, 3).trim(), 10);
+  if (!text.trim() || !Number.isInteger(atomCount) || atomCount < 1) {
+    throw new Error(`${label} SDF is blank or does not contain atoms.`);
+  }
+  return text;
+}
+
+function makeInitialProtacParams(manifest) {
+  return `Structures: ${String(manifest.e3.pdb_id).toLowerCase()} ${String(manifest.warhead.pdb_id).toLowerCase()}
+Chains: A B
+Heads: e3_head.sdf warhead_head.sdf
+Anchor atoms: PENDING PENDING
+Protac: JARI.smiles
+Full: True
+RMSD: 4
+cutoff_local: 200
+num_rosetta: 50
+
+RosettaDockMemory: 8000
+ProtacModelMemory: 6000`;
+}
+
+async function fetchBlobOrThrow(url, label) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`${label} could not be retrieved (HTTP ${response.status}).`);
+  return response.blob();
+}
+
+function normalizeImportedWarheadMetadata({ pdbId, displayLigandId, pdbText, provenance, sourcePdbFile, sourceSdfFile }) {
+  const groups = pdbResidueGroups(pdbText);
+  const display = String(displayLigandId || "").trim().toUpperCase();
+  const matching = display.length === 3 ? groups.filter(group => group.pdb_residue_name === display) : [];
+  const resolved = matching.length === 1 ? matching[0] : (groups.length === 1 ? groups[0] : null);
+  if (!resolved) {
+    throw new Error("The imported warhead structure does not uniquely identify its bound ligand residue.");
+  }
+  return {
+    provenance,
+    display_ligand_id: display || resolved.pdb_residue_name,
+    pdb_id: String(pdbId || "").trim().toUpperCase(),
+    source_pdb_file: sourcePdbFile || "imported-warhead.pdb",
+    source_sdf_file: sourceSdfFile || "imported-warhead.sdf",
+    ...resolved,
+  };
+}
+
+async function resolveRcsbWarhead(pdbId, ligandCode) {
+  const cleanPdb = String(pdbId || "").trim().toUpperCase();
+  const cleanLigand = String(ligandCode || "").trim().toUpperCase();
+  if (!/^[A-Z0-9]{4}$/.test(cleanPdb) || !/^[A-Z0-9]{3}$/.test(cleanLigand)) {
+    throw new Error("Manual RCSB warheads require a four-character PDB ID and an actual three-character chemical component code.");
+  }
+  const pdbBlob = await fetchRcsbPdbBlob(cleanPdb, "Warhead");
+  const pdbText = await pdbBlob.text();
+  const matches = pdbResidueGroups(pdbText).filter(group => group.pdb_residue_name === cleanLigand);
+  if (matches.length !== 1) {
+    throw new Error(`The warhead structure does not contain one unambiguous ${cleanLigand} residue.`);
+  }
+  const sdfText = await cacheWarheadExportSdf({ pdbId: cleanPdb, ligandCode: cleanLigand });
+  return {
+    metadata: { provenance: "rcsb", display_ligand_id: cleanLigand, pdb_id: cleanPdb, source_pdb_file: `${cleanPdb}.pdb`, source_sdf_file: `${cleanPdb}_${cleanLigand}.sdf`, ...matches[0] },
+    pdbBlob,
+    pdbText,
+    sdfText: requireUsableSdf(sdfText, "Warhead"),
+  };
+}
+
+async function resolveImportedWarhead() {
+  const metadata = getProsettacJson(PROSETTAC_WARHEAD_KEY);
+  const pdbUrl = sessionStorage.getItem("warheadPdbFile");
+  const sdfText = sessionStorage.getItem(EXPORT_WARHEAD_SDF_KEY) || sessionStorage.getItem("savedMolecule");
+  if (!metadata || !pdbUrl) throw new Error("Imported warhead metadata is incomplete. Re-import the component before exporting.");
+  const pdbBlob = await fetchBlobOrThrow(pdbUrl, "Imported warhead PDB");
+  const pdbText = await pdbBlob.text();
+  if (!hasExpectedPdbResidue(pdbText, metadata)) {
+    throw new Error("The imported warhead structure does not contain the expected bound ligand.");
+  }
+  return { metadata, pdbBlob, pdbText, sdfText: requireUsableSdf(sdfText, "Imported warhead") };
+}
+
+async function resolveSelectedE3() {
+  const e3 = getProsettacJson(PROSETTAC_MANIFEST_KEY);
+  if (!e3) throw new Error("Select a live RANDY E3 recruiter before generating a PRosettaC package.");
+  if (!e3.prosettac_exportable) {
+    throw new Error(e3.prosettac_export_error || "The selected E3 recruiter is not structurally resolved for PRosettaC export.");
+  }
+  if (!e3.ligase || !e3.pdb_file || !e3.pdb_residue_name || !e3.pdb_residue_number) {
+    throw new Error("The selected E3 recruiter is missing required structural metadata.");
+  }
+  const pdbUrl = buildLigaseProxyPath(e3.ligase, e3.pdb_file);
+  const sdfUrl = buildLigaseSdfProxyPath(e3.ligase, e3.structural_sdf_file || e3.sdf_file || e3.pdb_file);
+  // Never substitute generic RCSB coordinates for a curated RANDY instance.
+  const [pdbBlob, sdfBlob] = await Promise.all([
+    fetchBlobOrThrow(pdbUrl, `Curated RANDY structure for ${e3.recruiter_instance_id || e3.recruiter_code}`),
+    fetchBlobOrThrow(sdfUrl, "E3 ligand SDF"),
+  ]);
+  const pdbText = await pdbBlob.text();
+  if (!hasExpectedPdbResidue(pdbText, e3)) {
+    throw new Error("The curated RANDY PDB does not contain the expected recruiter residue. No package was generated.");
+  }
+  return { metadata: e3, pdbBlob, pdbText, sdfText: requireUsableSdf(await sdfBlob.text(), "E3 ligand") };
+}
+
+async function buildPRosettaCPackage({ warheadPdb, warheadLigand }) {
+  const e3 = await resolveSelectedE3();
+  const imported = getProsettacJson(PROSETTAC_WARHEAD_KEY);
+  const warhead = imported ? await resolveImportedWarhead() : await resolveRcsbWarhead(warheadPdb, warheadLigand);
+  const smiles = String(sessionStorage.getItem("generatedSMILES") || "").trim();
+  if (!smiles) throw new Error("Generate the PROTAC SMILES before exporting the package.");
+  if (typeof JSZip === "undefined") throw new Error("JSZip is not loaded on this page.");
+
+  const manifest = {
+    schema_version: 1,
+    package_type: "prosettac",
+    preparation_status: "requires_anchor_selection",
+    anchors_selected: false,
+    e3: {
+      recruiter_code: e3.metadata.recruiter_code,
+      recruiter_instance_id: e3.metadata.recruiter_instance_id,
+      ligase: e3.metadata.ligase,
+      display_ligand_id: e3.metadata.display_ligand_id || e3.metadata.ligand,
+      pdb_id: e3.metadata.pdb_id,
+      pdb_file: "Ligase.pdb",
+      source_pdb_file: e3.metadata.pdb_file,
+      pdb_residue_name: e3.metadata.pdb_residue_name,
+      pdb_chain: e3.metadata.pdb_chain || "",
+      pdb_residue_number: String(e3.metadata.pdb_residue_number),
+      pdb_insertion_code: e3.metadata.pdb_insertion_code || "",
+      source_sdf_file: e3.metadata.structural_sdf_file || e3.metadata.sdf_file,
+      head_sdf: "e3_head.sdf",
+      curated_sdf: "e3_source.sdf",
+    },
+    warhead: {
+      ...warhead.metadata,
+      pdb_file: "Warhead.pdb",
+      head_sdf: "warhead_head.sdf",
+      curated_sdf: "warhead_source.sdf",
+    },
+  };
+  const params = makeInitialProtacParams(manifest);
+  const prepResponse = await fetch("/static/python/PrepFiles.py", { cache: "no-store" });
+  if (!prepResponse.ok) throw new Error(`PrepFiles.py could not be retrieved (HTTP ${prepResponse.status}).`);
+  const zip = new JSZip();
+  zip.file("Ligase.pdb", e3.pdbBlob);
+  zip.file("Warhead.pdb", warhead.pdbBlob);
+  zip.file("e3_source.sdf", e3.sdfText);
+  zip.file("warhead_source.sdf", warhead.sdfText);
+  zip.file("JARI.smiles", `${smiles}\n`);
+  zip.file("Protac_params.txt", params);
+  zip.file("package_manifest.json", `${JSON.stringify(manifest, null, 2)}\n`);
+  zip.file("PrepFiles.py", await prepResponse.text());
+  const blob = await zip.generateAsync({ type: "blob" });
+  if (!blob.size) throw new Error("ZIP generation produced an empty file.");
+  saveFile(blob, "JARIpcs.zip");
+  console.info("[prosettac-package] generated", { stage: "complete", recruiter_instance_id: manifest.e3.recruiter_instance_id, display_ligand_id: manifest.e3.display_ligand_id, pdb_residue_name: manifest.e3.pdb_residue_name, warhead_provenance: manifest.warhead.provenance });
+  return manifest;
+}
+
+window.buildPRosettaCPackage = buildPRosettaCPackage;
 
 
 
@@ -3105,6 +3335,15 @@ window.onLigasePdbChosen = function onLigasePdbChosen() {
 
   if (!pdbFile || !ligase) return;
 
+  const selectedRecord = Object.values(window.recruiterMap || {}).find(entry =>
+    entry.ligase === ligase && entry.pdb_file === pdbFile
+  );
+  if (selectedRecord) {
+    setProsettacJson(PROSETTAC_MANIFEST_KEY, selectedRecord);
+  } else {
+    sessionStorage.removeItem(PROSETTAC_MANIFEST_KEY);
+  }
+
   // ✅ If you have LIGANDALYZER_BASE defined globally, keep this:
   // fullPath like `${LIGANDALYZER_BASE}${ligase}/PDB/${pdbFile}`;
   // Guard for missing constant
@@ -3362,7 +3601,7 @@ window.finalizeProtac = function finalizeProtac() {
 // - Full manual (ligase+warhead typed)
 // - Target/Hunter import first (warhead comes from sessionStorage)
 // - warheadSource === "hunter" uses local blob PDB when available
-async function finalizeManualProtac() {
+async function legacyFinalizeManualProtac() {
   const ligasePdbUI     = (document.getElementById("manual-ligasePdb")?.value || "").trim().toUpperCase();
   const ligaseLigandUI  = normalizeLigandCode(document.getElementById("manual-ligaseLigand")?.value || "");
 
@@ -3443,6 +3682,48 @@ async function finalizeManualProtac() {
   }
 }
 
+async function finalizePRosettaCFromInputs({ ligasePdbId, ligaseLigandId, warheadPdbId, warheadLigandId }) {
+  try {
+    // E3 is always authoritative RANDY inventory data.  The visible text
+    // fields remain display-only and cannot overwrite its structural metadata.
+    const e3 = getProsettacJson(PROSETTAC_MANIFEST_KEY);
+    if (!e3) throw new Error("Select an E3 recruiter from the live RANDY inventory before exporting.");
+    if (!e3.prosettac_exportable) throw new Error(e3.prosettac_export_error || "Selected E3 recruiter is not exportable for PRosettaC.");
+    const importedWarhead = getProsettacJson(PROSETTAC_WARHEAD_KEY);
+    if (!importedWarhead && (!warheadPdbId || !warheadLigandId)) {
+      throw new Error("Select or import a warhead before generating the package.");
+    }
+    await buildPRosettaCPackage({ warheadPdb: warheadPdbId, warheadLigand: warheadLigandId });
+    try { $('#protacModal').modal('hide'); } catch (_) {}
+    alert("✅ PRosettaC package downloaded. Run PrepFiles.py to select attachment atoms.");
+  } catch (error) {
+    console.error("[prosettac-package]", { stage: "failed", error: error?.message || String(error), ligasePdbId, ligaseLigandId, warheadPdbId, warheadLigandId });
+    alert(`❌ PRosettaC package was not generated: ${error?.message || error}`);
+  }
+}
+
+window.finalizeProtac = async function finalizeProtac() {
+  const warheadPdb = (document.getElementById("warheadPdb")?.value || sessionStorage.getItem("warheadPdb") || "").trim().toUpperCase();
+  const warheadLigand = normalizeLigandCode(document.getElementById("warheadLigand")?.value || sessionStorage.getItem("ligandHead2") || "");
+  return finalizePRosettaCFromInputs({
+    ligasePdbId: (document.getElementById("ligasePdb")?.value || "").trim().toUpperCase(),
+    ligaseLigandId: normalizeLigandCode(document.getElementById("ligaseLigand")?.value || ""),
+    warheadPdbId: warheadPdb,
+    warheadLigandId: warheadLigand,
+  });
+};
+
+window.finalizeManualProtac = async function finalizeManualProtac() {
+  const warheadPdb = (document.getElementById("manual-warheadPdb")?.value || sessionStorage.getItem("warheadPdb") || "").trim().toUpperCase();
+  const warheadLigand = normalizeLigandCode(document.getElementById("manual-warheadLigand")?.value || sessionStorage.getItem("ligandHead2") || "");
+  return finalizePRosettaCFromInputs({
+    ligasePdbId: (document.getElementById("manual-ligasePdb")?.value || "").trim().toUpperCase(),
+    ligaseLigandId: normalizeLigandCode(document.getElementById("manual-ligaseLigand")?.value || ""),
+    warheadPdbId: warheadPdb,
+    warheadLigandId: warheadLigand,
+  });
+};
+
 
 
 
@@ -3491,6 +3772,10 @@ function onRecruiterSelected() {
 
     const info = recruiterMap[code];
     if (!info) return;
+    if (!info.prosettac_exportable) {
+        alert(`❌ ${info.prosettac_export_error || "This recruiter is not structurally resolved for PRosettaC export."}`);
+        return;
+    }
 
     // ------------------------------
     //  LOCK PDB SELECT + Glow flash
@@ -3516,7 +3801,7 @@ function onRecruiterSelected() {
     const fullPath = buildLigaseProxyPath(ligase, info.pdb_file);
     sessionStorage.setItem("ligaseLocalPath", fullPath);
     sessionStorage.setItem(EXPORT_LIGASE_PDB_FILE_KEY, info.pdb_file);
-    cacheLigaseExportSdf({ ligase, pdbFile: info.pdb_file });
+    setProsettacJson(PROSETTAC_MANIFEST_KEY, info);
 
     // ------------------------------
     //  SHOW NEXT SECTION
