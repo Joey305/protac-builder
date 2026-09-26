@@ -2924,7 +2924,9 @@ async function resolveSelectedE3() {
     throw new Error("The selected E3 recruiter is missing required structural metadata.");
   }
   const pdbUrl = buildLigaseProxyPath(e3.ligase, e3.pdb_file);
-  const sdfUrl = buildLigaseSdfProxyPath(e3.ligase, e3.structural_sdf_file || e3.sdf_file || e3.pdb_file);
+  // Builder's compatibility proxy takes the selected PDB filename and resolves
+  // its paired curated SDF server-side; do not pass a display SDF filename.
+  const sdfUrl = buildLigaseSdfProxyPath(e3.ligase, e3.pdb_file);
   // Never substitute generic RCSB coordinates for a curated RANDY instance.
   const [pdbBlob, sdfBlob] = await Promise.all([
     fetchBlobOrThrow(pdbUrl, `Curated RANDY structure for ${e3.recruiter_instance_id || e3.recruiter_code}`),
