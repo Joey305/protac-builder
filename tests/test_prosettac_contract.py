@@ -73,6 +73,12 @@ class ProsettacContractTests(unittest.TestCase):
         self.assertTrue(updated["anchors_selected"])
         self.assertEqual(updated["anchors"], {"e3": 17, "warhead": 8})
 
+    def test_anchor_validation_is_one_based_and_fail_closed(self):
+        self.assertEqual(prep.validate_anchor_atom("20", 20), 20)
+        for value in ("0", "-1", "not-an-integer", "21"):
+            with self.assertRaises(ValueError):
+                prep.validate_anchor_atom(value, 20)
+
 
 if __name__ == "__main__":
     unittest.main()

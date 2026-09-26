@@ -395,13 +395,20 @@ def prompt_anchor_atom(sdf_file: Path) -> int:
     while True:
         raw = input(f"Enter attachment atom number for {sdf_file.name} (1-{atom_count}): ").strip()
         try:
-            atom_index = int(raw)
-        except ValueError:
-            print("⚠️ Enter an integer atom number.")
-            continue
-        if 1 <= atom_index <= atom_count:
-            return atom_index
-        print(f"⚠️ Atom number must be between 1 and {atom_count}.")
+            return validate_anchor_atom(raw, atom_count)
+        except ValueError as exc:
+            print(f"⚠️ {exc}")
+
+
+def validate_anchor_atom(raw: str, atom_count: int) -> int:
+    """Validate the one-based PRosettaC atom numbering convention."""
+    try:
+        atom_index = int(str(raw).strip())
+    except ValueError as exc:
+        raise ValueError("Enter an integer atom number.") from exc
+    if not 1 <= atom_index <= atom_count:
+        raise ValueError(f"Atom number must be between 1 and {atom_count}.")
+    return atom_index
 
 
 def update_manifest_anchors(manifest: dict, anchor_atoms: list[int], path: str | Path = "package_manifest.json") -> None:
