@@ -2939,19 +2939,13 @@ async function resolveSelectedE3() {
   return { metadata: e3, pdbBlob, pdbText, sdfText: requireUsableSdf(await sdfBlob.text(), "E3 ligand") };
 }
 
-async function buildPRosettaCPackage({ warheadPdb, warheadLigand }) {
-  const e3 = await resolveSelectedE3();
-  const imported = getProsettacJson(PROSETTAC_WARHEAD_KEY);
-  const warhead = imported ? await resolveImportedWarhead() : await resolveRcsbWarhead(warheadPdb, warheadLigand);
-  const smiles = String(sessionStorage.getItem("generatedSMILES") || "").trim();
-  if (!smiles) throw new Error("Generate the PROTAC SMILES before exporting the package.");
-  if (typeof JSZip === "undefined") throw new Error("JSZip is not loaded on this page.");
-
-  const manifest = {
+function buildPRosettaCManifest(e3, warhead, { candidateName = "", smiles = "" } = {}) {
+  return {
     schema_version: 1,
     package_type: "prosettac",
     preparation_status: "requires_anchor_selection",
     anchors_selected: false,
+    candidate: candidateName ? { name: candidateName, smiles } : undefined,
     e3: {
       recruiter_code: e3.metadata.recruiter_code,
       recruiter_instance_id: e3.metadata.recruiter_instance_id,
@@ -2975,24 +2969,152 @@ async function buildPRosettaCPackage({ warheadPdb, warheadLigand }) {
       curated_sdf: "warhead_source.sdf",
     },
   };
-  const params = makeInitialProtacParams(manifest);
+}
+
+function addPRosettaCPackageFiles(zip, prefix, { e3, warhead, prepText, smiles, manifest }) {
+  const path = name => `${prefix}${name}`;
+  zip.file(path("Ligase.pdb"), e3.pdbBlob);
+  zip.file(path("Warhead.pdb"), warhead.pdbBlob);
+  zip.file(path("e3_source.sdf"), e3.sdfText);
+  zip.file(path("warhead_source.sdf"), warhead.sdfText);
+  zip.file(path("JARI.smiles"), `${smiles}\n`);
+  zip.file(path("Protac_params.txt"), makeInitialProtacParams(manifest));
+  zip.file(path("package_manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+  zip.file(path("PrepFiles.py"), prepText);
+}
+
+async function resolvePRosettaCComponents({ warheadPdb, warheadLigand }) {
+  const e3 = await resolveSelectedE3();
+  const imported = getProsettacJson(PROSETTAC_WARHEAD_KEY);
+  const warhead = imported ? await resolveImportedWarhead() : await resolveRcsbWarhead(warheadPdb, warheadLigand);
   const prepResponse = await fetch("/static/python/PrepFiles.py", { cache: "no-store" });
   if (!prepResponse.ok) throw new Error(`PrepFiles.py could not be retrieved (HTTP ${prepResponse.status}).`);
+  return { e3, warhead, prepText: await prepResponse.text() };
+}
+
+async function buildPRosettaCPackage({ warheadPdb, warheadLigand }) {
+  const smiles = String(sessionStorage.getItem("generatedSMILES") || "").trim();
+  if (!smiles) throw new Error("Generate the PROTAC SMILES before exporting the package.");
+  if (typeof JSZip === "undefined") throw new Error("JSZip is not loaded on this page.");
+  const components = await resolvePRosettaCComponents({ warheadPdb, warheadLigand });
+  const manifest = buildPRosettaCManifest(components.e3, components.warhead);
+  const params = makeInitialProtacParams(manifest);
   const zip = new JSZip();
-  zip.file("Ligase.pdb", e3.pdbBlob);
-  zip.file("Warhead.pdb", warhead.pdbBlob);
-  zip.file("e3_source.sdf", e3.sdfText);
-  zip.file("warhead_source.sdf", warhead.sdfText);
-  zip.file("JARI.smiles", `${smiles}\n`);
-  zip.file("Protac_params.txt", params);
-  zip.file("package_manifest.json", `${JSON.stringify(manifest, null, 2)}\n`);
-  zip.file("PrepFiles.py", await prepResponse.text());
+  addPRosettaCPackageFiles(zip, "", { ...components, smiles, manifest });
   const blob = await zip.generateAsync({ type: "blob" });
   if (!blob.size) throw new Error("ZIP generation produced an empty file.");
   saveFile(blob, "JARIpcs.zip");
   console.info("[prosettac-package] generated", { stage: "complete", recruiter_instance_id: manifest.e3.recruiter_instance_id, display_ligand_id: manifest.e3.display_ligand_id, pdb_residue_name: manifest.e3.pdb_residue_name, warhead_provenance: manifest.warhead.provenance });
   return manifest;
 }
+
+function safeBatchFolderName(name, index, used) {
+  const stem = String(name || `protac_${index + 1}`).trim()
+    .replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^[_ .-]+|[_ .-]+$/g, "") || `protac_${index + 1}`;
+  let candidate = stem;
+  let suffix = 2;
+  while (used.has(candidate.toLowerCase())) candidate = `${stem}_${suffix++}`;
+  used.add(candidate.toLowerCase());
+  return candidate;
+}
+
+function parseCsvRow(line) {
+  const fields = [];
+  let value = "", quoted = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    if (char === '"' && line[i + 1] === '"') { value += '"'; i += 1; }
+    else if (char === '"') quoted = !quoted;
+    else if (char === ',' && !quoted) { fields.push(value.trim()); value = ""; }
+    else value += char;
+  }
+  fields.push(value.trim());
+  return fields;
+}
+
+function parseBatchCandidates(text, filename = "") {
+  const clean = String(text || "").replace(/^\uFEFF/, "");
+  const extension = String(filename).split(".").pop().toLowerCase();
+  if (extension === "sdf") {
+    return clean.split("$$$$").map((block, index) => {
+      const properties = {};
+      const lines = block.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i += 1) {
+        const match = lines[i].match(/^>\s*<([^>]+)>/);
+        if (match) properties[match[1].trim().toUpperCase()] = String(lines[i + 1] || "").trim();
+      }
+      const smiles = properties.SMILES || properties.CANONICAL_SMILES || properties.PROTAC_SMILES || "";
+      return { name: properties.NAME || properties.ID || lines[0].trim() || `protac_${index + 1}`, smiles };
+    }).filter(item => item.name || item.smiles);
+  }
+  const lines = clean.split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith("#"));
+  if (extension === "csv") {
+    if (!lines.length) return [];
+    const header = parseCsvRow(lines.shift()).map(value => value.toLowerCase());
+    const smilesIndex = header.findIndex(value => ["smiles", "protac_smiles", "canonical_smiles"].includes(value));
+    const nameIndex = header.findIndex(value => ["name", "id", "candidate", "candidate_name"].includes(value));
+    if (smilesIndex < 0) throw new Error("CSV must include a smiles column (and may include name).");
+    return lines.map((line, index) => {
+      const row = parseCsvRow(line);
+      return { name: row[nameIndex] || `protac_${index + 1}`, smiles: row[smilesIndex] || "" };
+    });
+  }
+  return lines.map((line, index) => {
+    const [smiles, ...nameParts] = line.split(/\s+/);
+    return { name: nameParts.join(" ") || `protac_${index + 1}`, smiles };
+  });
+}
+
+async function validateBatchSmiles(candidate) {
+  const smiles = String(candidate.smiles || "").trim();
+  if (!smiles) throw new Error(`${candidate.name}: missing SMILES.`);
+  const response = await fetch("/api/molecule/smiles-to-mol", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ smiles }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.mol_block) throw new Error(`${candidate.name}: invalid SMILES.`);
+  return { ...candidate, smiles };
+}
+
+window.generateBatchPRosettaCPackage = async function generateBatchPRosettaCPackage() {
+  const status = document.getElementById("prosettac-batch-status");
+  const file = document.getElementById("prosettac-batch-file")?.files?.[0];
+  const includeCurrent = Boolean(document.getElementById("prosettac-batch-include-current")?.checked);
+  try {
+    if (typeof JSZip === "undefined") throw new Error("JSZip is not loaded on this page.");
+    if (status) status.textContent = "Reading candidates…";
+    const candidates = file ? parseBatchCandidates(await file.text(), file.name) : [];
+    const current = String(sessionStorage.getItem("generatedSMILES") || "").trim();
+    if (includeCurrent && current) candidates.push({ name: "current_builder_candidate", smiles: current });
+    if (!candidates.length) throw new Error("Upload a candidate file or generate a current PROTAC SMILES.");
+    if (candidates.length > 250) throw new Error("Batch export is limited to 250 candidates per ZIP.");
+    if (status) status.textContent = `Validating ${candidates.length} candidate(s)…`;
+    const validated = [];
+    for (const candidate of candidates) validated.push(await validateBatchSmiles(candidate));
+    const warheadPdb = (document.getElementById("warheadPdb")?.value || sessionStorage.getItem("warheadPdb") || "").trim().toUpperCase();
+    const warheadLigand = normalizeLigandCode(document.getElementById("warheadLigand")?.value || sessionStorage.getItem("ligandHead2") || "");
+    if (status) status.textContent = "Resolving the selected E3 and warhead structures…";
+    const components = await resolvePRosettaCComponents({ warheadPdb, warheadLigand });
+    const zip = new JSZip();
+    const usedFolders = new Set();
+    const batchEntries = [];
+    validated.forEach((candidate, index) => {
+      const folder = safeBatchFolderName(candidate.name, index, usedFolders);
+      const manifest = buildPRosettaCManifest(components.e3, components.warhead, { candidateName: candidate.name, smiles: candidate.smiles });
+      addPRosettaCPackageFiles(zip, `${folder}/`, { ...components, smiles: candidate.smiles, manifest });
+      batchEntries.push({ index: index + 1, name: candidate.name, smiles: candidate.smiles, folder: `${folder}/`, manifest: `${folder}/package_manifest.json` });
+    });
+    zip.file("batch_manifest.json", `${JSON.stringify({ schema_version: 1, package_type: "prosettac_batch", candidate_count: batchEntries.length, e3_recruiter_instance_id: components.e3.metadata.recruiter_instance_id, warhead_provenance: components.warhead.metadata.provenance, packages: batchEntries }, null, 2)}\n`);
+    if (status) status.textContent = "Creating batch ZIP…";
+    const blob = await zip.generateAsync({ type: "blob" });
+    if (!blob.size) throw new Error("Batch ZIP generation produced an empty file.");
+    saveFile(blob, "PRosettaC_batch.zip");
+    if (status) status.textContent = `✅ Downloaded ${batchEntries.length} self-contained PRosettaC folders.`;
+  } catch (error) {
+    console.error("[prosettac-batch]", error);
+    if (status) status.textContent = `❌ Batch package was not generated: ${error?.message || error}`;
+  }
+};
 
 window.buildPRosettaCPackage = buildPRosettaCPackage;
 

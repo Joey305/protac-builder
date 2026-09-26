@@ -2707,6 +2707,24 @@ body[data-page="builder"] .modal-content {
                   onclick="finalizeProtac()">
             Confirm & Generate Files
           </button>
+
+          <div class="electric-panel" style="margin-top:18px;">
+            <div class="fw-bold mb-1">Batch PRosettaC Export</div>
+            <div style="font-size:0.9rem; opacity:0.85;">
+              Upload CSV, SMILES/SMI, TXT, or SDF candidates. Each candidate receives a self-contained folder using the selected E3 recruiter and warhead.
+            </div>
+            <input class="form-control" id="prosettac-batch-file" type="file"
+                   accept=".csv,.smi,.smiles,.txt,.sdf" style="margin-top:10px;">
+            <label class="form-check-label" style="margin-top:10px; display:block;">
+              <input class="form-check-input" id="prosettac-batch-include-current" type="checkbox" checked>
+              Include the currently generated PROTAC SMILES as an additional folder
+            </label>
+            <button type="button" class="selection-button assisted" style="margin-top:12px;"
+                    onclick="generateBatchPRosettaCPackage()">
+              Generate Batch ZIP
+            </button>
+            <div id="prosettac-batch-status" style="margin-top:10px; font-size:0.9rem;"></div>
+          </div>
         </div>
 
         <!-- =========================================================
