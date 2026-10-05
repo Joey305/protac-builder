@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}PROTAC Builder Ecosystem | Barcelona 2026{% endblock %}
+{% block meta_description %}Explore a deployed computational ecosystem connecting warhead discovery, E3 ligase selection, PROTAC construction, ternary-complex modeling, and molecular-dynamics refinement.{% endblock %}
+{% block body_class %}protac-page conference-page{% endblock %}
+{% block extra_head %}
+<link rel="canonical" href="{{ public_base_url }}/barcelona-2026">
+<meta property="og:title" content="PROTAC Builder Ecosystem | Barcelona 2026"><meta property="og:description" content="Explore a deployed computational ecosystem for structure-guided degrader design and evaluation."><meta property="og:type" content="website"><meta property="og:url" content="{{ public_base_url }}/barcelona-2026">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/conference.css') }}">
+{% endblock %}
+{% block content %}
+<div class="conference-shell">
+  <header class="conference-hero" id="top">
+    <p class="conference-kicker">Drug Discovery Chemistry Europe · Barcelona · 2026</p>
+    <div class="conference-status"><span aria-hidden="true"></span> LIVE COMPUTATIONAL ECOSYSTEM</div>
+    <h1>PROTAC Builder <em>Ecosystem</em></h1>
+    <p class="conference-subtitle">An Integrated Computational Platform for Structure-Guided Degrader Design and Evaluation</p>
+    <p class="conference-note">All modules are deployed and available online.</p>
+    <a class="conference-primary" href="#tools" data-analytics-cta="explore-live-tools">Explore the live tools <span aria-hidden="true">↓</span></a>
+  </header>
+
+  <section class="workflow-section" aria-labelledby="workflow-title">
+    <div class="section-label">Connected workflow</div><h2 id="workflow-title">From target context to candidate prioritization</h2>
+    <ol class="workflow" aria-label="Iterative PROTAC Builder ecosystem workflow">
+      <li><b>01</b><span>Protein<br>Target</span></li><li><b>02</b><span>Warhead<br>Discovery</span></li><li><b>03</b><span>E3 Ligase<br>Selection</span></li><li><b>04</b><span>PROTAC<br>Construction</span></li><li><b>05</b><span>Ternary<br>Modeling</span></li><li><b>06</b><span>Dynamic<br>Refinement</span></li><li><b>07</b><span>Candidate<br>Prioritization</span></li>
+    </ol>
+    <p class="workflow-feedback">↺ Structural and dynamic evaluation can inform redesigned warheads, E3 choices, attachment vectors, and linkers.</p>
+  </section>
+
+  <section id="tools" class="tool-section" aria-labelledby="tools-title">
+    <div class="section-label">Deployed modules</div><h2 id="tools-title">Choose an entry point</h2>
+    <div class="tool-grid">
+      {% set tools = [
+        ('WarheadHunter', 'Identify and evaluate small-molecule warheads, binding sites, and attachment vectors for degrader design.', 'Warhead Discovery', 'warheadhunter', 'WH'),
+        ('V-LiSEMOD', 'Explore ligandable sites and small-molecule starting points for challenging and emerging protein targets.', 'Warhead Discovery', 'vlisemod', 'VL'),
+        ('E3-Ligandalyzer', 'Evaluate E3 ligase systems, ligand compatibility, exit vectors, and structural geometry.', 'E3 Ligase Selection', 'e3_ligandalyzer', 'E3'),
+        ('PROTAC Builder', 'Construct degrader candidates from target warheads, E3 ligands, attachment sites, and linker designs.', 'PROTAC Construction', 'protac_builder', 'PB'),
+        ('Ternary Complex Modeling', 'Review downstream target–PROTAC–E3 assembly workflows for structural compatibility and productive geometry.', 'Ternary Complex Evaluation', 'ternary_modeling', 'TC'),
+        ('PyMACS', 'Prepare and analyze molecular-dynamics workflows for degrader and ternary-complex refinement.', 'Dynamic Refinement', 'pymacs', 'MD')
+      ] %}
+      {% for name, description, stage, key, mark in tools %}
+      <article class="tool-card {% if not tool_urls[key] %}tool-card--pending{% endif %}">
+        <div class="tool-card-top"><span class="tool-mark" aria-hidden="true">{{ mark }}</span><span class="live-badge">{% if tool_urls[key] %}● LIVE{% else %}○ LINK PENDING{% endif %}</span></div>
+        <p class="tool-stage">{{ stage }}</p><h3>{{ name }}</h3><p>{{ description }}</p>
+        {% if tool_urls[key] %}<a class="tool-link" href="{{ tool_urls[key] }}" {% if key != 'protac_builder' and key != 'ternary_modeling' %}target="_blank" rel="noopener noreferrer"{% endif %} data-analytics-tool="{{ name }}" data-analytics-stage="{{ stage }}">Open tool <span aria-hidden="true">↗</span></a>{% else %}<span class="tool-link tool-link--disabled" aria-disabled="true">Deployment link pending</span>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="explanation" aria-labelledby="explanation-title"><div><div class="section-label">Scientific framing</div><h2 id="explanation-title">From target to experiment-ready design</h2></div><div><p>Targeted protein degrader discovery requires simultaneous consideration of target engagement, ligandability, E3 ligase recruitment, attachment-vector accessibility, linker geometry, ternary-complex formation, protein–protein complementarity, and conformational stability.</p><p>The PROTAC Builder Ecosystem connects these normally fragmented computational decisions into an iterative workflow intended to reduce the design space before synthesis and experimental testing.</p><p class="emphasis">The platform prioritizes structurally plausible candidates for experimental evaluation rather than replacing experimental validation.</p></div></section>
+
+  <section class="resource-section" aria-labelledby="resources-title"><div class="section-label">Conference companion</div><h2 id="resources-title">Barcelona 2026 Poster Resources</h2><div class="resource-grid"><a href="/ecosystem" data-resource-type="ecosystem-overview">Ecosystem overview <span>→</span></a><a href="/downstream-modeling" data-resource-type="modeling-documentation">Downstream modeling guide <span>→</span></a><a href="/api-docs" data-resource-type="api-documentation">API documentation <span>→</span></a><a href="mailto:jxs794@miami.edu?subject=PROTAC%20Builder%20Ecosystem%20Question" data-resource-type="contact">Contact the team <span>→</span></a></div><p class="resource-note">Poster download and publication links will appear here when verified project resources are available.</p></section>
+</div>
+{% endblock %}
+{% block extra_scripts %}<script src="{{ url_for('static', filename='js/conference-analytics.js') }}" defer></script>{% endblock %}

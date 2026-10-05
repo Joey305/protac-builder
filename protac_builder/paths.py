@@ -31,6 +31,7 @@ HUNTER_JOBS_DIR = STATIC_DIR / "hunter_jobs"
 STATIC_PYTHON_DIR = STATIC_DIR / "python"
 _runtime_data_dir_env = os.environ.get("PROTAC_RUNTIME_DATA_DIR", "").strip()
 RUNTIME_DATA_DIR = Path(_runtime_data_dir_env).expanduser() if _runtime_data_dir_env else UPLOADS_DIR / "runtime_data"
+ANALYTICS_DB_PATH = RUNTIME_DATA_DIR / "conference_analytics.sqlite3"
 WARHEAD_HUNTER_IMPORTS_DIR = UPLOADS_DIR / "warhead_hunter_imports"
 
 GENERATED_PROTACS_LOG = RUNTIME_DATA_DIR / "Generated_PROTACs.csv"

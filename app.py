@@ -12,6 +12,7 @@ except ImportError:  # pragma: no cover - optional until requirements are instal
 
 from protac_builder.io_utils import initialize_runtime_files
 from protac_builder.paths import BASE_DIR, LOGS_DIR, ensure_runtime_dirs
+from protac_builder.analytics import initialize_store, remote_enabled
 from protac_builder.api_routes import api_bp
 from protac_builder.legacy_routes import legacy_bp
 from protac_builder.routes import ui_bp
@@ -37,6 +38,19 @@ def create_app() -> Flask:
         MAX_CONTENT_LENGTH=50 * 1024 * 1024,
         PROTAC_PUBLIC_BASE_URL=_env_url("PROTAC_PUBLIC_BASE_URL", "https://protacbuilder.com"),
         PROTAC_LOCAL_BASE_URL=_env_url("PROTAC_LOCAL_BASE_URL", "http://127.0.0.1:5069"),
+        ANALYTICS_DB_PATH=os.environ.get("ANALYTICS_DB_PATH", "").strip() or str(BASE_DIR / "uploads" / "runtime_data" / "conference_analytics.sqlite3"),
+        ADMIN_EMAIL=os.environ.get("ADMIN_EMAIL", "").strip(),
+        ADMIN_PASSWORD=os.environ.get("ADMIN_PASSWORD", ""),
+        ECOSYSTEM_TOOL_URLS={
+            "warheadhunter": _env_url("WARHEAD_HUNTER_URL", "https://warheadhunter.com"),
+            "vlisemod": _env_url("VLISEMOD_URL", "https://vlisemod.com"),
+            "e3_ligandalyzer": _env_url("E3_LIGANDALYZER_URL", "https://e3ligandalyzer.com/explorer"),
+            "protac_builder": _env_url("PROTAC_BUILDER_URL", "https://protacbuilder.com") + "/builder",
+            # No separate deployed URLs are present in this repository. Keep these configurable,
+            # while the conference page accurately points Ternary Modeling to existing guidance.
+            "ternary_modeling": _env_url("TERNARY_MODELING_URL", "https://protacbuilder.com") + "/downstream-modeling",
+            "pymacs": os.environ.get("PYMACS_URL", "").strip(),
+        },
     )
 
     @app.context_processor
@@ -47,6 +61,8 @@ def create_app() -> Flask:
         }
 
     ensure_runtime_dirs()
+    if not remote_enabled():
+        initialize_store(app.config["ANALYTICS_DB_PATH"])
     initialize_runtime_files()
     app.register_blueprint(ui_bp)
     app.register_blueprint(api_bp)

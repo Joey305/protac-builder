@@ -1,11 +1,15 @@
 from __future__ import annotations
 from pathlib import Path
 
-from flask import Blueprint, Response, current_app, jsonify, redirect, render_template, request, url_for
+from functools import wraps
+from hmac import compare_digest
+
+from flask import Blueprint, Response, abort, current_app, jsonify, redirect, render_template, request, url_for
 
 from . import route_impl as impl
 from .io_utils import apply_cors_headers
 from .site_content import OPENAPI_SPEC, SITEMAP_PATHS, get_page_meta, llms_text, yaml_dump
+from .analytics import allow_event, dashboard_summary, record_event, validate_event
 
 
 ui_bp = Blueprint("ui", __name__)
@@ -25,9 +29,58 @@ def _render_page(page_key: str):
     return render_template(page["template"], page=page)
 
 
+def _analytics_admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        username = current_app.config["ADMIN_EMAIL"]
+        password = current_app.config["ADMIN_PASSWORD"]
+        auth = request.authorization
+        if not username or not password:
+            abort(503, "Analytics administration is not configured.")
+        if not auth or not compare_digest(auth.username or "", username) or not compare_digest(auth.password or "", password):
+            return Response("Authentication required.", 401, {"WWW-Authenticate": 'Basic realm="PROTAC Builder analytics"'})
+        return view(*args, **kwargs)
+    return wrapped
+
+
 @ui_bp.get("/")
 def home():
     return _render_page("home")
+
+
+@ui_bp.get("/barcelona-2026")
+def barcelona_2026():
+    return render_template("pages/barcelona_2026.html", tool_urls=current_app.config["ECOSYSTEM_TOOL_URLS"])
+
+
+@ui_bp.post("/api/analytics/event")
+def analytics_event():
+    if request.content_length and request.content_length > 8 * 1024:
+        return jsonify({"ok": False, "error": "Payload too large."}), 413
+    client_key = request.remote_addr or "unknown"
+    if not allow_event(client_key):
+        return jsonify({"ok": False, "error": "Rate limited."}), 429
+    event = validate_event(request.get_json(silent=True))
+    if not event:
+        return jsonify({"ok": False, "error": "Invalid analytics event."}), 400
+    record_event(event)
+    return jsonify({"ok": True}), 202
+
+
+@ui_bp.get("/admin/analytics")
+@_analytics_admin_required
+def analytics_dashboard():
+    return render_template("admin/analytics.html", summary=dashboard_summary(**_analytics_filters()))
+
+
+@ui_bp.get("/admin/analytics/summary")
+@_analytics_admin_required
+def analytics_summary():
+    return jsonify(dashboard_summary(**_analytics_filters()))
+
+
+def _analytics_filters():
+    return {"range_name": request.args.get("range", "30d"), "campaign": request.args.get("campaign", ""), "start": request.args.get("start"), "end": request.args.get("end")}
 
 
 @ui_bp.get("/builder")

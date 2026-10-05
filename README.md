@@ -86,6 +86,18 @@ A practical degrader design tool needs to help answer questions such as:
 
 PROTAC Builder was created to make that workflow more accessible by combining a web builder, curated molecular resources, and public-facing API endpoints in a single Flask application.
 
+## Barcelona 2026 conference page and analytics
+
+`/barcelona-2026` is the QR-friendly conference landing page. Generate the production QR destination as:
+
+`https://protacbuilder.com/barcelona-2026?utm_source=poster&utm_medium=qr&utm_campaign=ddce_barcelona_2026`
+
+Tool destinations are centralized in app configuration and can be overridden with `WARHEAD_HUNTER_URL`, `VLISEMOD_URL`, `E3_LIGANDALYZER_URL`, `PROTAC_BUILDER_URL`, `TERNARY_MODELING_URL`, and `PYMACS_URL`. `PYMACS_URL` deliberately has no default because this repository does not establish a public PyMACS deployment URL.
+
+The page sends the privacy-minimized events `conference_page_view`, `ecosystem_tool_click`, `poster_resource_click`, and `ecosystem_cta_click` to `/api/analytics/event`. In production, set `ANALYTICS_RANDY_URL` to the existing RANDY receiver's `/backup/analytics` base and set `ANALYTICS_RANDY_TOKEN` to its matching bearer token. Events and dashboard aggregates will then use RANDY's persistent `protac_backup.sqlite3` database rather than Heroku's filesystem. Without those variables (local development only), SQLite uses `ANALYTICS_DB_PATH` (default `uploads/runtime_data/conference_analytics.sqlite3`). Records use anonymous browser-session IDs and campaign attribution, never raw IP addresses. The dashboard at `/admin/analytics` requires HTTP Basic credentials configured through Heroku config vars `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+
+For a future conference, reuse the landing-page route and pass a new UTM campaign value; add a small event-specific template/configuration only when its branding or resources need to differ. Do not commit the SQLite database or production admin credentials.
+
 ---
 
 <a id="repository-navigation"></a>

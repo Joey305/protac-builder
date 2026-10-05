@@ -255,6 +255,7 @@ SITEMAP_PATHS = [
     "/benchmarking",
     "/downstream-modeling",
     "/ecosystem",
+    "/barcelona-2026",
     "/faq",
     "/methods",
     "/database-schema",

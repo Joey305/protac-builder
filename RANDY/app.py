@@ -8,7 +8,7 @@ import re
 import sqlite3
 import shutil
 import zipfile
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import quote, unquote
@@ -17,6 +17,9 @@ from flask import Flask, abort, jsonify, request, send_file
 from werkzeug.utils import secure_filename
 
 from backup_receiver.e3_data_routes import register_e3_routes
+from conference_analytics import insert_event as insert_conference_analytics_event
+from conference_analytics import summary as conference_analytics_summary
+from conference_analytics import validate_event as validate_conference_analytics_event
 
 APP = Flask(__name__)
 
@@ -117,6 +120,33 @@ def init_storage() -> None:
                 job_id TEXT,
                 payload_json TEXT NOT NULL
             )
+            """
+        )
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS conference_analytics_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                occurred_at TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                page TEXT,
+                tool_name TEXT,
+                ecosystem_stage TEXT,
+                destination TEXT,
+                resource_type TEXT,
+                utm_source TEXT,
+                utm_medium TEXT,
+                utm_campaign TEXT,
+                utm_content TEXT,
+                referrer TEXT,
+                device_category TEXT,
+                browser_family TEXT,
+                screen_category TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_conference_analytics_timestamp ON conference_analytics_events(occurred_at);
+            CREATE INDEX IF NOT EXISTS idx_conference_analytics_type ON conference_analytics_events(event_type);
+            CREATE INDEX IF NOT EXISTS idx_conference_analytics_campaign ON conference_analytics_events(utm_campaign);
+            CREATE INDEX IF NOT EXISTS idx_conference_analytics_session ON conference_analytics_events(session_id);
             """
         )
         conn.commit()
@@ -391,6 +421,36 @@ def backup_summary():
         message, status_code = error
         return jsonify({"ok": False, "error": message}), status_code
     return jsonify(summarize_events())
+
+
+@APP.post("/backup/analytics/event")
+def backup_analytics_event():
+    ok, error = require_auth()
+    if not ok:
+        message, status_code = error
+        return jsonify({"ok": False, "error": message}), status_code
+    event = validate_conference_analytics_event(request.get_json(silent=True))
+    if not event:
+        return jsonify({"ok": False, "error": "Invalid conference analytics event."}), 400
+    event_id = insert_conference_analytics_event(DB_PATH, event, now_utc())
+    return jsonify({"ok": True, "event_id": event_id}), 202
+
+
+@APP.get("/backup/analytics/summary")
+def backup_analytics_summary():
+    ok, error = require_auth()
+    if not ok:
+        message, status_code = error
+        return jsonify({"ok": False, "error": message}), status_code
+    init_storage()
+    payload = conference_analytics_summary(
+        DB_PATH,
+        range_name=request.args.get("range", "30d"),
+        campaign=request.args.get("campaign", ""),
+        start=request.args.get("start"),
+        end=request.args.get("end"),
+    )
+    return jsonify({"ok": True, "persistence_source": "randy_backup_receiver", **payload})
 
 
 def parse_limit(default: int = 100, maximum: int = 1000) -> int:
