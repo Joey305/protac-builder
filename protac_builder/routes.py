@@ -50,7 +50,11 @@ def home():
 
 @ui_bp.get("/barcelona-2026")
 def barcelona_2026():
-    return render_template("pages/barcelona_2026.html", tool_urls=current_app.config["ECOSYSTEM_TOOL_URLS"])
+    return render_template(
+        "pages/barcelona_2026.html",
+        tool_urls=current_app.config["ECOSYSTEM_TOOL_URLS"],
+        poster_event_label=current_app.config["POSTER_EVENT_LABEL"],
+    )
 
 
 @ui_bp.post("/api/analytics/event")

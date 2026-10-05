@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}PROTAC Builder Ecosystem | Barcelona 2026{% endblock %}
+{% block title %}PROTAC Builder Ecosystem{% endblock %}
 {% block meta_description %}Explore a deployed computational ecosystem connecting warhead discovery, E3 ligase selection, PROTAC construction, ternary-complex modeling, and molecular-dynamics refinement.{% endblock %}
 {% block body_class %}protac-page conference-page{% endblock %}
 {% block extra_head %}
 <link rel="canonical" href="{{ public_base_url }}/barcelona-2026">
-<meta property="og:title" content="PROTAC Builder Ecosystem | Barcelona 2026"><meta property="og:description" content="Explore a deployed computational ecosystem for structure-guided degrader design and evaluation."><meta property="og:type" content="website"><meta property="og:url" content="{{ public_base_url }}/barcelona-2026">
+<meta property="og:title" content="PROTAC Builder Ecosystem"><meta property="og:description" content="Explore a deployed computational ecosystem for structure-guided degrader design and evaluation."><meta property="og:type" content="website"><meta property="og:url" content="{{ public_base_url }}/barcelona-2026">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/conference.css') }}">
 {% endblock %}
 {% block content %}
 <div class="conference-shell">
   <header class="conference-hero" id="top">
-    <p class="conference-kicker">Drug Discovery Chemistry Europe · Barcelona · 2026</p>
+    {% if poster_event_label %}<p class="conference-kicker">{{ poster_event_label }}</p>{% endif %}
     <div class="conference-status"><span aria-hidden="true"></span> LIVE COMPUTATIONAL ECOSYSTEM</div>
     <h1>PROTAC Builder <em>Ecosystem</em></h1>
     <p class="conference-subtitle">An Integrated Computational Platform for Structure-Guided Degrader Design and Evaluation</p>
@@ -49,7 +49,7 @@
 
   <section class="explanation" aria-labelledby="explanation-title"><div><div class="section-label">Scientific framing</div><h2 id="explanation-title">From target to experiment-ready design</h2></div><div><p>Targeted protein degrader discovery requires simultaneous consideration of target engagement, ligandability, E3 ligase recruitment, attachment-vector accessibility, linker geometry, ternary-complex formation, protein–protein complementarity, and conformational stability.</p><p>The PROTAC Builder Ecosystem connects these normally fragmented computational decisions into an iterative workflow intended to reduce the design space before synthesis and experimental testing.</p><p class="emphasis">The platform prioritizes structurally plausible candidates for experimental evaluation rather than replacing experimental validation.</p></div></section>
 
-  <section class="resource-section" aria-labelledby="resources-title"><div class="section-label">Conference companion</div><h2 id="resources-title">Barcelona 2026 Poster Resources</h2><div class="resource-grid"><a href="/ecosystem" data-resource-type="ecosystem-overview">Ecosystem overview <span>→</span></a><a href="/downstream-modeling" data-resource-type="modeling-documentation">Downstream modeling guide <span>→</span></a><a href="/api-docs" data-resource-type="api-documentation">API documentation <span>→</span></a><a href="mailto:jxs794@miami.edu?subject=PROTAC%20Builder%20Ecosystem%20Question" data-resource-type="contact">Contact the team <span>→</span></a></div><p class="resource-note">Poster download and publication links will appear here when verified project resources are available.</p></section>
+  <section class="resource-section" aria-labelledby="resources-title"><div class="section-label">Explore further</div><h2 id="resources-title">Poster Resources</h2><div class="resource-grid"><a href="/ecosystem" data-resource-type="ecosystem-overview">Ecosystem overview <span>→</span></a><a href="/downstream-modeling" data-resource-type="modeling-documentation">Downstream modeling guide <span>→</span></a><a href="/api-docs" data-resource-type="api-documentation">API documentation <span>→</span></a><a href="mailto:jxs794@miami.edu?subject=PROTAC%20Builder%20Ecosystem%20Question" data-resource-type="contact">Contact the team <span>→</span></a></div><p class="resource-note">Poster download and publication links will appear here when verified project resources are available.</p></section>
 </div>
 {% endblock %}
 {% block extra_scripts %}<script src="{{ url_for('static', filename='js/conference-analytics.js') }}" defer></script>{% endblock %}

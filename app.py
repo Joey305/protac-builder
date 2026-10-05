@@ -41,6 +41,7 @@ def create_app() -> Flask:
         ANALYTICS_DB_PATH=os.environ.get("ANALYTICS_DB_PATH", "").strip() or str(BASE_DIR / "uploads" / "runtime_data" / "conference_analytics.sqlite3"),
         ADMIN_EMAIL=os.environ.get("ADMIN_EMAIL", "").strip(),
         ADMIN_PASSWORD=os.environ.get("ADMIN_PASSWORD", ""),
+        POSTER_EVENT_LABEL=os.environ.get("POSTER_EVENT_LABEL", "").strip(),
         ECOSYSTEM_TOOL_URLS={
             "warheadhunter": _env_url("WARHEAD_HUNTER_URL", "https://warheadhunter.com"),
             "vlisemod": _env_url("VLISEMOD_URL", "https://vlisemod.com"),

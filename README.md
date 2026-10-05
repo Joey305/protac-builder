@@ -88,7 +88,7 @@ PROTAC Builder was created to make that workflow more accessible by combining a 
 
 ## Barcelona 2026 conference page and analytics
 
-`/barcelona-2026` is the QR-friendly conference landing page. Generate the production QR destination as:
+`/barcelona-2026` is the QR-friendly reusable poster landing page. It intentionally has no event-specific visible label by default; set `POSTER_EVENT_LABEL` (for example, `Drug Discovery Chemistry Europe · Barcelona · 2026`) when an event context is wanted. Generate the production QR destination as:
 
 `https://protacbuilder.com/barcelona-2026?utm_source=poster&utm_medium=qr&utm_campaign=ddce_barcelona_2026`
 
