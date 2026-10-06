@@ -42,7 +42,7 @@
       <article class="tool-card {% if not tool_urls[key] %}tool-card--pending{% endif %}">
         <div class="tool-card-top"><span class="tool-mark" aria-hidden="true">{{ mark }}</span><span class="live-badge">{% if tool_urls[key] %}● LIVE{% else %}○ LINK PENDING{% endif %}</span></div>
         <p class="tool-stage">{{ stage }}</p><h3>{{ name }}</h3><p>{{ description }}</p>
-        {% if tool_urls[key] %}<a class="tool-link" href="{{ tool_urls[key] }}" {% if key != 'protac_builder' and key != 'ternary_modeling' %}target="_blank" rel="noopener noreferrer"{% endif %} data-analytics-tool="{{ name }}" data-analytics-stage="{{ stage }}">Open tool <span aria-hidden="true">↗</span></a>{% else %}<span class="tool-link tool-link--disabled" aria-disabled="true">Deployment link pending</span>{% endif %}
+        {% if tool_urls[key] %}<a class="tool-link" href="{{ tool_urls[key] }}" {% if key != 'protac_builder' %}target="_blank" rel="noopener noreferrer"{% endif %} data-analytics-tool="{{ name }}" data-analytics-stage="{{ stage }}">Open tool <span aria-hidden="true">↗</span></a>{% else %}<span class="tool-link tool-link--disabled" aria-disabled="true">Deployment link pending</span>{% endif %}
       </article>
       {% endfor %}
     </div>
