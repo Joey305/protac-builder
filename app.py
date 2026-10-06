@@ -47,10 +47,9 @@ def create_app() -> Flask:
             "vlisemod": _env_url("VLISEMOD_URL", "https://vlisemod.com"),
             "e3_ligandalyzer": _env_url("E3_LIGANDALYZER_URL", "https://e3ligandalyzer.com/explorer"),
             "protac_builder": _env_url("PROTAC_BUILDER_URL", "https://protacbuilder.com") + "/builder",
-            # No separate deployed URLs are present in this repository. Keep these configurable,
-            # while the conference page accurately points Ternary Modeling to existing guidance.
-            "ternary_modeling": _env_url("TERNARY_MODELING_URL", "https://protacbuilder.com") + "/downstream-modeling",
-            "pymacs": os.environ.get("PYMACS_URL", "").strip(),
+            "ternary_modeling": _env_url("TERNARY_MODELING_URL", "https://github.com/Joey305/JARI"),
+            "pymacs": _env_url("PYMACS_URL", "https://pymacs.com"),
+            "autodock_vina": _env_url("AUTODOCK_VINA_URL", "https://autodockvina.com"),
         },
     )
 

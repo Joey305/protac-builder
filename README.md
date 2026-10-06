@@ -92,7 +92,7 @@ PROTAC Builder was created to make that workflow more accessible by combining a 
 
 `https://protacbuilder.com/barcelona-2026?utm_source=poster&utm_medium=qr&utm_campaign=ddce_barcelona_2026`
 
-Tool destinations are centralized in app configuration and can be overridden with `WARHEAD_HUNTER_URL`, `VLISEMOD_URL`, `E3_LIGANDALYZER_URL`, `PROTAC_BUILDER_URL`, `TERNARY_MODELING_URL`, and `PYMACS_URL`. `PYMACS_URL` deliberately has no default because this repository does not establish a public PyMACS deployment URL.
+Tool destinations are centralized in app configuration and can be overridden with `WARHEAD_HUNTER_URL`, `VLISEMOD_URL`, `E3_LIGANDALYZER_URL`, `PROTAC_BUILDER_URL`, `TERNARY_MODELING_URL`, `AUTODOCK_VINA_URL`, and `PYMACS_URL`.
 
 The page sends the privacy-minimized events `conference_page_view`, `ecosystem_tool_click`, `poster_resource_click`, and `ecosystem_cta_click` to `/api/analytics/event`. In production, set `ANALYTICS_RANDY_URL` to the existing RANDY receiver's `/backup/analytics` base and set `ANALYTICS_RANDY_TOKEN` to its matching bearer token. Events and dashboard aggregates will then use RANDY's persistent `protac_backup.sqlite3` database rather than Heroku's filesystem. Without those variables (local development only), SQLite uses `ANALYTICS_DB_PATH` (default `uploads/runtime_data/conference_analytics.sqlite3`). Records use anonymous browser-session IDs and campaign attribution, never raw IP addresses. The dashboard at `/admin/analytics` requires HTTP Basic credentials configured through Heroku config vars `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
 
