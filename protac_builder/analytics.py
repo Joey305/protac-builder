@@ -20,6 +20,76 @@ MAX_TEXT_LENGTH = 300
 _rate_lock = Lock()
 _rate_windows: dict[str, deque[float]] = defaultdict(deque)
 
+# The ecosystem receivers return country data in different shapes.  The hub
+# deliberately renders only these fixed country centroids rather than the
+# IP-derived points returned by older receivers.
+COUNTRY_CENTROIDS = {
+    "AR": (-34.0, -64.0), "AT": (47.5, 13.3), "AU": (-25.0, 133.0), "BE": (50.8, 4.5),
+    "BR": (-10.0, -55.0), "CA": (56.1, -106.3), "CH": (46.8, 8.2), "CL": (-35.7, -71.5),
+    "CN": (35.9, 104.2), "CO": (4.6, -74.3), "CZ": (49.8, 15.5), "DE": (51.2, 10.5),
+    "DK": (56.3, 9.5), "ES": (40.5, -3.7), "FI": (61.9, 25.7), "FR": (46.2, 2.2),
+    "GB": (55.4, -3.4), "GR": (39.1, 21.8), "HK": (22.4, 114.1), "HU": (47.2, 19.5),
+    "ID": (-0.8, 113.9), "IE": (53.4, -8.2), "IL": (31.0, 34.9), "IN": (20.6, 78.9),
+    "IT": (41.9, 12.6), "JP": (36.2, 138.3), "KE": (0.0, 37.9), "KR": (35.9, 127.8),
+    "MX": (23.6, -102.6), "MY": (4.2, 101.9), "NL": (52.1, 5.3), "NO": (60.5, 8.5),
+    "NZ": (-40.9, 174.9), "PH": (12.9, 121.8), "PL": (51.9, 19.1), "PT": (39.4, -8.2),
+    "PY": (-23.4, -58.4), "RO": (45.9, 24.9), "RU": (61.5, 105.3), "SE": (60.1, 18.6),
+    "SG": (1.4, 103.8), "TH": (15.9, 100.9), "TN": (33.9, 9.5), "TR": (39.0, 35.2),
+    "TW": (23.7, 121.0), "UA": (48.4, 31.2), "US": (39.8, -98.6), "VN": (14.1, 108.3),
+    "ZA": (-30.6, 22.9),
+}
+COUNTRY_CODES_BY_NAME = {
+    "argentina": "AR", "australia": "AU", "austria": "AT", "belgium": "BE", "brazil": "BR",
+    "canada": "CA", "china": "CN", "colombia": "CO", "czechia": "CZ", "czech republic": "CZ",
+    "denmark": "DK", "france": "FR", "germany": "DE", "hong kong": "HK", "india": "IN",
+    "indonesia": "ID", "italy": "IT", "japan": "JP", "kenya": "KE", "netherlands": "NL",
+    "paraguay": "PY", "singapore": "SG", "south africa": "ZA", "south korea": "KR",
+    "spain": "ES", "switzerland": "CH", "thailand": "TH", "tunisia": "TN", "united kingdom": "GB",
+    "united states": "US", "united states of america": "US",
+}
+
+
+def _normalise_daily(payload: dict[str, Any], period: str) -> None:
+    """Give every receiver a clean, one-row-per-day chart contract."""
+    rows = payload.get("daily") or []
+    by_date: dict[str, dict[str, int]] = {}
+    for row in rows:
+        raw_date = str(row.get("date") or row.get("day") or "")[:10]
+        try:
+            date.fromisoformat(raw_date)
+        except ValueError:
+            continue
+        views = row.get("views", row.get("page_views", row.get("count", 0)))
+        visitors = row.get("visitors", row.get("sessions"))
+        item = by_date.setdefault(raw_date, {"date": raw_date, "views": 0, "visitors": 0})
+        item["views"] += int(views or 0)
+        if visitors is not None:
+            item["visitors"] += int(visitors or 0)
+    if len(by_date) == 1 and not next(iter(by_date.values()))["visitors"]:
+        # Older receivers supplied a daily page-view total but not a daily
+        # session value; a one-day result can safely use its matching total.
+        only = next(iter(by_date.values()))
+        only["visitors"] = int((payload.get("metrics") or {}).get("sessions", 0) or 0)
+    window = {"7d": 7, "30d": 30, "90d": 90, "1y": 365}.get(period)
+    if window:
+        first = date.today() - timedelta(days=window - 1)
+        payload["daily"] = [by_date.get((first + timedelta(days=index)).isoformat(), {"date": (first + timedelta(days=index)).isoformat(), "views": 0, "visitors": 0}) for index in range(window)]
+    else:
+        payload["daily"] = [by_date[key] for key in sorted(by_date)]
+
+
+def _normalise_countries(payload: dict[str, Any]) -> None:
+    """Aggregate country usage and replace legacy precise coordinates."""
+    countries: dict[str, dict[str, Any]] = {}
+    for row in payload.get("countries") or []:
+        name = str(row.get("country_name") or row.get("name") or "Unknown").strip()
+        code = str(row.get("country_code") or row.get("code") or COUNTRY_CODES_BY_NAME.get(name.lower(), "")).upper()
+        if code not in COUNTRY_CENTROIDS:
+            continue
+        item = countries.setdefault(code, {"country_code": code, "country_name": name, "latitude": COUNTRY_CENTROIDS[code][0], "longitude": COUNTRY_CENTROIDS[code][1], "views": 0})
+        item["views"] += int(row.get("views", row.get("count", 0)) or 0)
+    payload["countries"] = sorted(countries.values(), key=lambda item: item["views"], reverse=True)
+
 
 def _remote_base_url() -> str:
     """RANDY's analytics endpoint; intentionally separate from public browser code."""
@@ -155,6 +225,8 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
     period = period if period in {"7d", "30d", "90d", "1y", "all"} else "30d"
     if view == "poster":
         report = dashboard_summary({"7d": "7d", "30d": "30d", "90d": "30d", "1y": "all", "all": "all"}[period], campaign)
+        _normalise_daily(report, period)
+        _normalise_countries(report)
         return report, report.get("persistence_source") != "randy_unavailable"
     root = _remote_base_url().rsplit("/backup/analytics", 1)[0] if "/backup/analytics" in _remote_base_url() else ""
     token = _remote_token()
@@ -180,6 +252,9 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
             payload["pages"] = [{"path": item.get("page", ""), "views": item.get("views", 0)} for item in usage.get("pages", [])]
             payload["countries"] = usage.get("locations", [])
             payload["funnel"] = [{"label": "Jobs analyzed", "sessions": (payload.get("overview") or {}).get("total_jobs", 0)}, {"label": "Completed", "sessions": (payload.get("overview") or {}).get("completed_jobs", 0)}]
+        if payload.get("ok"):
+            _normalise_daily(payload, period)
+            _normalise_countries(payload)
         return payload, bool(payload.get("ok"))
     except (requests.RequestException, ValueError):
         return {}, False
