@@ -36,7 +36,8 @@
         ('PROTAC Builder', 'Construct degrader candidates from target warheads, E3 ligands, attachment sites, and linker designs.', 'PROTAC Construction', 'protac_builder', 'PB'),
         ('Ternary Complex Modeling', 'Explore the JARI framework for evaluating target–PROTAC–E3 assemblies, structural compatibility, and productive geometry.', 'Ternary Complex Evaluation', 'ternary_modeling', 'TC'),
         ('AutoDock Vina', 'Dock small molecules and protein–ligand systems as a practical starting point for structure-guided hypothesis generation.', 'Molecular Docking', 'autodock_vina', 'AV'),
-        ('PyMACS', 'Prepare and analyze molecular-dynamics workflows for degrader and ternary-complex refinement.', 'Dynamic Refinement', 'pymacs', 'MD')
+        ('PyMACS', 'Prepare and analyze molecular-dynamics workflows for degrader and ternary-complex refinement.', 'Dynamic Refinement', 'pymacs', 'MD'),
+        ('Digital Drug Training', 'Follow upcoming walkthroughs, demonstrations, and practical training for using the connected computational tools.', 'Training & Tutorials', 'digital_drug_training', '▶')
       ] %}
       {% for name, description, stage, key, mark in tools %}
       <article class="tool-card {% if not tool_urls[key] %}tool-card--pending{% endif %}">

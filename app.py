@@ -50,6 +50,7 @@ def create_app() -> Flask:
             "ternary_modeling": _env_url("TERNARY_MODELING_URL", "https://github.com/Joey305/JARI"),
             "pymacs": _env_url("PYMACS_URL", "https://pymacs.com"),
             "autodock_vina": _env_url("AUTODOCK_VINA_URL", "https://autodockvina.com"),
+            "digital_drug_training": _env_url("DIGITAL_DRUG_TRAINING_URL", "https://www.youtube.com/@DigitalDrugTraining"),
         },
     )
 

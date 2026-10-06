@@ -35,6 +35,7 @@ class ConferenceAnalyticsTests(unittest.TestCase):
         self.assertIn(b"https://pymacs.com", response.data)
         self.assertIn(b"https://autodockvina.com", response.data)
         self.assertIn(b"https://github.com/Joey305/JARI", response.data)
+        self.assertIn(b"https://www.youtube.com/@DigitalDrugTraining", response.data)
 
     def test_event_validation_and_campaign_summary(self):
         self.assertEqual(self.client.post("/api/analytics/event", json=self._event()).status_code, 202)
