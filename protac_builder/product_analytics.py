@@ -15,6 +15,20 @@ COOKIE_VISITOR = "protac_vid"
 COOKIE_SESSION = "protac_sid"
 EXCLUDED_PREFIXES = ("/admin", "/api", "/static", "/health", "/robots", "/sitemap", "/llms", "/openapi")
 
+# These events describe workflow progress only.  They intentionally never carry
+# structures, SMILES, identifiers, filenames, or user-entered scientific data.
+EVENTS_BY_REQUEST = {
+    ("POST", "/api/protac/generate"): ("candidate_constructed", "candidate_construction"),
+    ("POST", "/copy/generate_protac"): ("candidate_constructed", "candidate_construction"),
+    ("POST", "/api/protac/download-smiles"): ("candidate_exported", "smiles_export"),
+    ("POST", "/copy/download_smiles"): ("candidate_exported", "smiles_export"),
+    ("POST", "/api/protac/builder/batch"): ("batch_constructed", "batch_builder"),
+    ("POST", "/copy/api/protac/builder/batch"): ("batch_constructed", "batch_builder"),
+    ("POST", "/api/deeppk/run"): ("deeppk_completed", "deeppk"),
+    ("POST", "/run-drug-analysis"): ("deeppk_completed", "deeppk"),
+    ("POST", "/api/admet/run"): ("admet_completed", "admet"),
+}
+
 
 def _base_url() -> str:
     explicit = os.environ.get("PROTAC_ANALYTICS_RANDY_URL", "").strip().rstrip("/")
@@ -49,7 +63,13 @@ def _browser() -> str:
 
 
 def _referrer() -> str:
-    return (urlparse(request.referrer or "").hostname or "direct").lower()[:255]
+    hostname = (urlparse(request.referrer or "").hostname or "").lower()
+    if not hostname:
+        return "direct"
+    public_hostname = (urlparse(os.environ.get("PROTAC_PUBLIC_BASE_URL", "https://protacbuilder.com")).hostname or "").lower()
+    current_hostname = (request.host or "").split(":", 1)[0].lower()
+    internal_hosts = {public_hostname, f"www.{public_hostname}" if public_hostname else "", current_hostname}
+    return "internal" if hostname in internal_hosts else hostname[:255]
 
 
 def _ids(response):
@@ -85,6 +105,12 @@ def track_response(response):
         _emit("page_view", visitor, session)
         if request.path == "/builder":
             _emit("builder_opened", visitor, session)
-    elif request.method == "POST" and request.path in {"/api/protac/generate", "/copy/generate_protac"} and response.status_code < 300:
-        _emit("candidate_constructed", visitor, session, "protac_construction")
+    else:
+        event = EVENTS_BY_REQUEST.get((request.method, request.path))
+        if event and response.status_code < 300:
+            _emit(event[0], visitor, session, event[1])
+        elif request.method == "GET" and request.path.startswith(("/api/deeppk/download/", "/api/admet/download/")):
+            _emit("report_downloaded", visitor, session, "analysis_report")
+        elif request.method == "GET" and request.path in {"/api/protac/builder/template/linkers", "/copy/api/protac/builder/template/linkers"}:
+            _emit("template_downloaded", visitor, session, "linker_template")
     return response
