@@ -5,7 +5,7 @@ import sqlite3
 from datetime import date, timedelta
 from typing import Any
 
-EVENT_TYPES = {"conference_page_view", "ecosystem_tool_click", "poster_resource_click", "ecosystem_cta_click"}
+EVENT_TYPES = {"conference_page_view", "poster_tools_viewed", "ecosystem_tool_click", "poster_resource_click", "ecosystem_cta_click"}
 TEXT_FIELDS = {"page", "tool_name", "ecosystem_stage", "destination", "resource_type", "referrer", "device_category", "browser_family", "screen_category"}
 UTM_FIELDS = {"utm_source", "utm_medium", "utm_campaign", "utm_content"}
 MAX_TEXT_LENGTH = 300
@@ -95,5 +95,6 @@ def summary(db_path, range_name: str = "30d", campaign: str = "", start: str | N
         sources = [dict(row) for row in connection.execute("SELECT COALESCE(NULLIF(utm_source, ''), 'direct / other') AS label, COUNT(*) AS count FROM conference_analytics_events" + where + " GROUP BY label ORDER BY count DESC", params)]
         devices = [dict(row) for row in connection.execute("SELECT COALESCE(NULLIF(device_category, ''), 'unknown') AS label, COUNT(*) AS count FROM conference_analytics_events" + where + " GROUP BY label ORDER BY count DESC", params)]
         engaged = query("SELECT COUNT(DISTINCT session_id) FROM conference_analytics_events" + event_where("ecosystem_tool_click"))
+        tools_viewed = query("SELECT COUNT(DISTINCT session_id) FROM conference_analytics_events" + event_where("poster_tools_viewed"))
         multi = query("SELECT COUNT(*) FROM (SELECT session_id FROM conference_analytics_events" + event_where("ecosystem_tool_click") + " GROUP BY session_id HAVING COUNT(*) > 1)")
-    return {"filters": {"range": range_name, "campaign": campaign, "start": start or "", "end": end or ""}, "views": views, "unique_sessions": sessions, "tool_clicks": tool_clicks, "resources": resources, "ctr": round(tool_clicks / views * 100, 1) if views else 0, "most_used_tool": tools[0]["label"] if tools else "—", "engaged_sessions": engaged, "engagement_rate": round(engaged / sessions * 100, 1) if sessions else 0, "average_tools_per_engaged": round(tool_clicks / engaged, 2) if engaged else 0, "multi_tool_rate": round(multi / engaged * 100, 1) if engaged else 0, "tools": tools, "daily": daily, "sources": sources, "devices": devices}
+    return {"filters": {"range": range_name, "campaign": campaign, "start": start or "", "end": end or ""}, "views": views, "unique_sessions": sessions, "tool_clicks": tool_clicks, "resources": resources, "ctr": round(tool_clicks / views * 100, 1) if views else 0, "most_used_tool": tools[0]["label"] if tools else "—", "engaged_sessions": engaged, "tools_viewed": tools_viewed, "multi_tool_sessions": multi, "engagement_rate": round(engaged / sessions * 100, 1) if sessions else 0, "average_tools_per_engaged": round(tool_clicks / engaged, 2) if engaged else 0, "multi_tool_rate": round(multi / engaged * 100, 1) if engaged else 0, "tools": tools, "daily": daily, "sources": sources, "devices": devices}

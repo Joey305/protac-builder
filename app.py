@@ -43,6 +43,7 @@ def create_app() -> Flask:
         ADMIN_EMAIL=os.environ.get("ADMIN_EMAIL", "").strip(),
         ADMIN_PASSWORD=os.environ.get("ADMIN_PASSWORD", ""),
         POSTER_EVENT_LABEL=os.environ.get("POSTER_EVENT_LABEL", "").strip(),
+        POSTER_ANALYTICS_CAMPAIGN=os.environ.get("POSTER_ANALYTICS_CAMPAIGN", "ecosystem_poster").strip() or "ecosystem_poster",
         ECOSYSTEM_TOOL_URLS={
             "warheadhunter": _env_url("WARHEAD_HUNTER_URL", "https://warheadhunter.com"),
             "vlisemod": _env_url("VLISEMOD_URL", "https://vlisemod.com"),

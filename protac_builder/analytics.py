@@ -13,7 +13,7 @@ from typing import Any
 from flask import current_app
 import requests
 
-EVENT_TYPES = {"conference_page_view", "ecosystem_tool_click", "poster_resource_click", "ecosystem_cta_click"}
+EVENT_TYPES = {"conference_page_view", "poster_tools_viewed", "ecosystem_tool_click", "poster_resource_click", "ecosystem_cta_click"}
 TEXT_FIELDS = {"page", "tool_name", "ecosystem_stage", "destination", "resource_type", "referrer", "device_category", "browser_family", "screen_category"}
 UTM_FIELDS = {"utm_source", "utm_medium", "utm_campaign", "utm_content"}
 MAX_TEXT_LENGTH = 300
@@ -241,6 +241,14 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
     period = period if period in {"7d", "30d", "90d", "1y", "all"} else "30d"
     if view == "poster":
         report = dashboard_summary({"7d": "7d", "30d": "30d", "90d": "30d", "1y": "all", "all": "all"}[period], campaign)
+        report["metrics"] = {"visitors": report.get("unique_sessions", 0), "sessions": report.get("unique_sessions", 0), "page_views": report.get("views", 0)}
+        report["funnel"] = [
+            {"label": "Poster visits", "sessions": report.get("unique_sessions", 0)},
+            {"label": "Tools section viewed", "sessions": report.get("tools_viewed", 0)},
+            {"label": "Tool click-through", "sessions": report.get("engaged_sessions", 0)},
+            {"label": "Multi-tool explorers", "sessions": report.get("multi_tool_sessions", 0)},
+        ]
+        report["pages"] = [{"path": item.get("label", "Tool"), "views": item.get("count", 0)} for item in report.get("tools", [])]
         _normalise_daily(report, period)
         _normalise_countries(report)
         _normalise_referrers(report)
@@ -298,7 +306,7 @@ def dashboard_summary(range_name: str = "30d", campaign: str = "", start: str | 
         return remote
     if remote_enabled():
         # Avoid silently presenting an empty ephemeral Heroku database as production data.
-        return {"filters": {"range": range_name, "campaign": campaign, "start": start or "", "end": end or ""}, "views": 0, "unique_sessions": 0, "tool_clicks": 0, "resources": 0, "ctr": 0, "most_used_tool": "Unavailable", "engaged_sessions": 0, "engagement_rate": 0, "average_tools_per_engaged": 0, "multi_tool_rate": 0, "tools": [], "daily": [], "sources": [], "devices": [], "persistence_source": "randy_unavailable"}
+        return {"filters": {"range": range_name, "campaign": campaign, "start": start or "", "end": end or ""}, "views": 0, "unique_sessions": 0, "tool_clicks": 0, "resources": 0, "ctr": 0, "most_used_tool": "Unavailable", "engaged_sessions": 0, "tools_viewed": 0, "multi_tool_sessions": 0, "engagement_rate": 0, "average_tools_per_engaged": 0, "multi_tool_rate": 0, "tools": [], "daily": [], "sources": [], "devices": [], "persistence_source": "randy_unavailable"}
     start, end = _range_start(range_name, start, end)
     conditions, params = [], []
     if start: conditions.append("occurred_at >= ?"); params.append(start)
@@ -316,5 +324,6 @@ def dashboard_summary(range_name: str = "30d", campaign: str = "", start: str | 
         sources = [dict(row) for row in connection.execute("SELECT COALESCE(NULLIF(utm_source, ''), 'direct / other') AS label, COUNT(*) AS count FROM analytics_events" + where + " GROUP BY label ORDER BY count DESC", params)]
         devices = [dict(row) for row in connection.execute("SELECT COALESCE(NULLIF(device_category, ''), 'unknown') AS label, COUNT(*) AS count FROM analytics_events" + where + " GROUP BY label ORDER BY count DESC", params)]
         engaged = connection.execute("SELECT COUNT(DISTINCT session_id) FROM analytics_events" + where + (" AND " if where else " WHERE ") + "event_type = 'ecosystem_tool_click'", params).fetchone()[0]
+        tools_viewed = connection.execute("SELECT COUNT(DISTINCT session_id) FROM analytics_events" + where + (" AND " if where else " WHERE ") + "event_type = 'poster_tools_viewed'", params).fetchone()[0]
         multi = connection.execute("SELECT COUNT(*) FROM (SELECT session_id FROM analytics_events" + where + (" AND " if where else " WHERE ") + "event_type = 'ecosystem_tool_click' GROUP BY session_id HAVING COUNT(*) > 1)", params).fetchone()[0]
-    return {"filters": {"range": range_name, "campaign": campaign, "start": start or "", "end": end or ""}, "views": views, "unique_sessions": sessions, "tool_clicks": tool_clicks, "resources": resources, "ctr": round((tool_clicks / views * 100), 1) if views else 0, "most_used_tool": tools[0]["label"] if tools else "—", "engaged_sessions": engaged, "engagement_rate": round((engaged / sessions * 100), 1) if sessions else 0, "average_tools_per_engaged": round(tool_clicks / engaged, 2) if engaged else 0, "multi_tool_rate": round((multi / engaged * 100), 1) if engaged else 0, "tools": tools, "daily": daily, "sources": sources, "devices": devices}
+    return {"filters": {"range": range_name, "campaign": campaign, "start": start or "", "end": end or ""}, "views": views, "unique_sessions": sessions, "tool_clicks": tool_clicks, "resources": resources, "ctr": round((tool_clicks / views * 100), 1) if views else 0, "most_used_tool": tools[0]["label"] if tools else "—", "engaged_sessions": engaged, "tools_viewed": tools_viewed, "multi_tool_sessions": multi, "engagement_rate": round((engaged / sessions * 100), 1) if sessions else 0, "average_tools_per_engaged": round(tool_clicks / engaged, 2) if engaged else 0, "multi_tool_rate": round((multi / engaged * 100), 1) if engaged else 0, "tools": tools, "daily": daily, "sources": sources, "devices": devices}

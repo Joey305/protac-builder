@@ -54,6 +54,7 @@ def barcelona_2026():
         "pages/barcelona_2026.html",
         tool_urls=current_app.config["ECOSYSTEM_TOOL_URLS"],
         poster_event_label=current_app.config["POSTER_EVENT_LABEL"],
+        poster_analytics_campaign=current_app.config["POSTER_ANALYTICS_CAMPAIGN"],
     )
 
 
