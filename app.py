@@ -13,6 +13,7 @@ except ImportError:  # pragma: no cover - optional until requirements are instal
 from protac_builder.io_utils import initialize_runtime_files
 from protac_builder.paths import BASE_DIR, LOGS_DIR, ensure_runtime_dirs
 from protac_builder.analytics import initialize_store, remote_enabled
+from protac_builder.product_analytics import track_response as track_product_analytics_response
 from protac_builder.api_routes import api_bp
 from protac_builder.legacy_routes import legacy_bp
 from protac_builder.routes import ui_bp
@@ -68,6 +69,10 @@ def create_app() -> Flask:
     app.register_blueprint(ui_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(legacy_bp)
+
+    @app.after_request
+    def track_product_analytics(response):
+        return track_product_analytics_response(response)
 
     @app.errorhandler(Exception)
     def api_json_error(exc):

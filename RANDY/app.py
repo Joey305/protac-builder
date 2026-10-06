@@ -20,6 +20,9 @@ from backup_receiver.e3_data_routes import register_e3_routes
 from conference_analytics import insert_event as insert_conference_analytics_event
 from conference_analytics import summary as conference_analytics_summary
 from conference_analytics import validate_event as validate_conference_analytics_event
+from product_analytics import insert as insert_product_analytics_event
+from product_analytics import summary as product_analytics_summary
+from product_analytics import validate as validate_product_analytics_event
 
 APP = Flask(__name__)
 
@@ -451,6 +454,27 @@ def backup_analytics_summary():
         end=request.args.get("end"),
     )
     return jsonify({"ok": True, "persistence_source": "randy_backup_receiver", **payload})
+
+
+@APP.post("/backup/product-analytics/event")
+def backup_product_analytics_event():
+    ok, error = require_auth()
+    if not ok:
+        message, status_code = error
+        return jsonify({"ok": False, "error": message}), status_code
+    event = validate_product_analytics_event(request.get_json(silent=True))
+    if not event:
+        return jsonify({"ok": False, "error": "Invalid product analytics event."}), 400
+    return jsonify({"ok": True, "stored": insert_product_analytics_event(DB_PATH, event)}), 202
+
+
+@APP.get("/backup/product-analytics/summary")
+def backup_product_analytics_summary():
+    ok, error = require_auth()
+    if not ok:
+        message, status_code = error
+        return jsonify({"ok": False, "error": message}), status_code
+    return jsonify(product_analytics_summary(DB_PATH, request.args.get("period", "30d")))
 
 
 def parse_limit(default: int = 100, maximum: int = 1000) -> int:

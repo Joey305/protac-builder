@@ -149,6 +149,34 @@ def _remote_dashboard_summary(range_name: str, campaign: str, start: str | None,
     return None
 
 
+def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dict[str, Any], bool]:
+    """Fetch aggregate-only reports from the existing RANDY tool receivers."""
+    view = view if view in {"protac", "poster", "warhead", "e3", "vlismod"} else "protac"
+    period = period if period in {"7d", "30d", "90d", "1y", "all"} else "30d"
+    if view == "poster":
+        report = dashboard_summary({"7d": "7d", "30d": "30d", "90d": "30d", "1y": "all", "all": "all"}[period], campaign)
+        return report, report.get("persistence_source") != "randy_unavailable"
+    root = _remote_base_url().rsplit("/backup/analytics", 1)[0] if "/backup/analytics" in _remote_base_url() else ""
+    token = _remote_token()
+    if not root or not token:
+        return {}, False
+    routes = {
+        "protac": ("/backup/product-analytics/summary", {"period": period}),
+        "warhead": ("/backup/analytics/hunter/overview", {"days": {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "all": 3650}[period]}),
+        "e3": ("/backup/e3/analytics/rollup", {"days": {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "all": "all"}[period]}),
+        "vlismod": ("/backup/vlismod/analytics/rollup", {"period": period}),
+    }
+    headers = {"Authorization": f"Bearer {os.environ.get('VLISMOD_ANALYTICS_TOKEN', '').strip() if view == 'vlismod' else token}", "User-Agent": "protac-builder-analytics-hub/1.0"}
+    if view == "vlismod" and not os.environ.get("VLISMOD_ANALYTICS_TOKEN", "").strip():
+        return {}, False
+    try:
+        response = requests.get(root + routes[view][0], params=routes[view][1], headers=headers, timeout=5)
+        payload = response.json() if response.ok else {}
+        return payload, bool(payload.get("ok"))
+    except (requests.RequestException, ValueError):
+        return {}, False
+
+
 def _range_start(range_name: str, start: str | None, end: str | None) -> tuple[str | None, str | None]:
     today = date.today()
     if range_name == "today": return today.isoformat(), (today + timedelta(days=1)).isoformat()

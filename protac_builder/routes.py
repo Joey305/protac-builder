@@ -9,7 +9,7 @@ from flask import Blueprint, Response, abort, current_app, jsonify, redirect, re
 from . import route_impl as impl
 from .io_utils import apply_cors_headers
 from .site_content import OPENAPI_SPEC, SITEMAP_PATHS, get_page_meta, llms_text, yaml_dump
-from .analytics import allow_event, dashboard_summary, record_event, validate_event
+from .analytics import allow_event, dashboard_summary, ecosystem_dashboard, record_event, validate_event
 
 
 ui_bp = Blueprint("ui", __name__)
@@ -74,7 +74,11 @@ def analytics_event():
 @ui_bp.get("/admin/analytics")
 @_analytics_admin_required
 def analytics_dashboard():
-    return render_template("admin/analytics.html", summary=dashboard_summary(**_analytics_filters()))
+    analytics_view = request.args.get("view", "protac")
+    period = request.args.get("period", "30d")
+    campaign = request.args.get("campaign", "")
+    report, available = ecosystem_dashboard(analytics_view, period, campaign)
+    return render_template("admin/analytics.html", report=report, available=available, analytics_view=analytics_view, period=period, campaign=campaign)
 
 
 @ui_bp.get("/admin/analytics/summary")
