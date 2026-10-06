@@ -172,6 +172,14 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
     try:
         response = requests.get(root + routes[view][0], params=routes[view][1], headers=headers, timeout=5)
         payload = response.json() if response.ok else {}
+        if view == "warhead" and payload.get("ok"):
+            usage = payload.get("usage") or {}
+            payload["metrics"] = {"visitors": usage.get("unique_visitors", 0), "sessions": usage.get("sessions", 0), "page_views": usage.get("page_views", 0)}
+            payload["daily"] = usage.get("trend", [])
+            payload["referrers"] = [{"label": item.get("name", "direct"), "value": item.get("count", 0)} for item in usage.get("referrers", [])]
+            payload["pages"] = [{"path": item.get("page", ""), "views": item.get("views", 0)} for item in usage.get("pages", [])]
+            payload["countries"] = usage.get("locations", [])
+            payload["funnel"] = [{"label": "Jobs analyzed", "sessions": (payload.get("overview") or {}).get("total_jobs", 0)}, {"label": "Completed", "sessions": (payload.get("overview") or {}).get("completed_jobs", 0)}]
         return payload, bool(payload.get("ok"))
     except (requests.RequestException, ValueError):
         return {}, False

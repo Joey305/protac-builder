@@ -96,6 +96,8 @@ Tool destinations are centralized in app configuration and can be overridden wit
 
 The page sends the privacy-minimized events `conference_page_view`, `ecosystem_tool_click`, `poster_resource_click`, and `ecosystem_cta_click` to `/api/analytics/event`. In production, set `ANALYTICS_RANDY_URL` to the existing RANDY receiver's `/backup/analytics` base and set `ANALYTICS_RANDY_TOKEN` to its matching bearer token. Events and dashboard aggregates will then use RANDY's persistent `protac_backup.sqlite3` database rather than Heroku's filesystem. Without those variables (local development only), SQLite uses `ANALYTICS_DB_PATH` (default `uploads/runtime_data/conference_analytics.sqlite3`). Records use anonymous browser-session IDs and campaign attribution, never raw IP addresses. The dashboard at `/admin/analytics` requires HTTP Basic credentials configured through Heroku config vars `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
 
+The same dashboard is an ecosystem hub: its tabs display aggregate RANDY rollups for PROTAC Builder, the poster landing page, WarheadHunter, E3 Ligandalyzer, and V-LiSEMOD. Set `VLISMOD_ANALYTICS_TOKEN` only when V-LiSEMOD uses a distinct receiver token. PROTAC Builder product page/build events are stored separately as `protac_product_events`; country-level maps are optional (`PROTAC_USAGE_GEOIP=1` on RANDY) and use the source address only for immediate GeoIP enrichment—never as retained data.
+
 For a future conference, reuse the landing-page route and pass a new UTM campaign value; add a small event-specific template/configuration only when its branding or resources need to differ. Do not commit the SQLite database or production admin credentials.
 
 ---
