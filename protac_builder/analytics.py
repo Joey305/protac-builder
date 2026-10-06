@@ -91,6 +91,22 @@ def _normalise_countries(payload: dict[str, Any]) -> None:
     payload["countries"] = sorted(countries.values(), key=lambda item: item["views"], reverse=True)
 
 
+def _normalise_referrers(payload: dict[str, Any]) -> None:
+    """Convert receiver-specific acquisition rows into label/value dictionaries."""
+    source = payload.get("referrers") or payload.get("sources") or []
+    rows = []
+    for item in source:
+        if isinstance(item, (list, tuple)) and len(item) >= 2:
+            label, value = item[0], item[1]
+        elif isinstance(item, dict):
+            label = item.get("label", item.get("name", item.get("source", "direct")))
+            value = item.get("value", item.get("count", item.get("views", 0)))
+        else:
+            continue
+        rows.append({"label": str(label or "direct"), "value": int(value or 0)})
+    payload["referrers"] = rows
+
+
 def _remote_base_url() -> str:
     """RANDY's analytics endpoint; intentionally separate from public browser code."""
     return os.environ.get("ANALYTICS_RANDY_URL", "").strip().rstrip("/")
@@ -227,6 +243,7 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
         report = dashboard_summary({"7d": "7d", "30d": "30d", "90d": "30d", "1y": "all", "all": "all"}[period], campaign)
         _normalise_daily(report, period)
         _normalise_countries(report)
+        _normalise_referrers(report)
         return report, report.get("persistence_source") != "randy_unavailable"
     root = _remote_base_url().rsplit("/backup/analytics", 1)[0] if "/backup/analytics" in _remote_base_url() else ""
     token = _remote_token()
@@ -255,6 +272,7 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
         if payload.get("ok"):
             _normalise_daily(payload, period)
             _normalise_countries(payload)
+            _normalise_referrers(payload)
         return payload, bool(payload.get("ok"))
     except (requests.RequestException, ValueError):
         return {}, False
