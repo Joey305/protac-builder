@@ -235,10 +235,91 @@ def _remote_dashboard_summary(range_name: str, campaign: str, start: str | None,
     return None
 
 
+TOOL_LABELS = {
+    "protac": "PROTAC Builder",
+    "poster": "Poster Landing",
+    "warhead": "Warhead Hunter",
+    "e3": "E3 Ligandalyzer",
+    "vlismod": "V-LiSEMOD",
+}
+
+
+def _period_days(period: str) -> int:
+    return {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "all": 3650}[period]
+
+
+def _funnel_value(report: dict[str, Any], *needles: str) -> int:
+    """Read compatible funnel rows without exposing an individual event stream."""
+    for row in report.get("funnel") or []:
+        label = str(row.get("label") or row.get("name") or "").lower()
+        if any(needle in label for needle in needles):
+            return int(row.get("sessions", row.get("count", 0)) or 0)
+    return 0
+
+
+def _ecosystem_tool_row(key: str, report: dict[str, Any], available: bool) -> dict[str, Any]:
+    metrics = report.get("metrics") or report.get("summary") or report.get("audience") or {}
+    pipeline = report.get("pipeline") or {}
+    engagement = report.get("engagement") or {}
+    visitors = int(metrics.get("visitors", metrics.get("unique_visitors", 0)) or 0)
+    sessions = int(metrics.get("sessions", visitors) or 0)
+    views = int(metrics.get("page_views", metrics.get("views", metrics.get("meaningful_events", 0))) or 0)
+    actions = 0
+    action_label = "Meaningful actions"
+    handoffs = int(engagement.get("builder_handoffs", 0) or 0)
+    if key == "protac":
+        actions, action_label = int(metrics.get("candidate_constructed", 0) or 0), "Candidates constructed"
+    elif key == "poster":
+        actions, action_label = int(report.get("tool_clicks", 0) or 0), "Tool click-throughs"
+    elif key == "warhead":
+        actions, action_label = int(pipeline.get("completed", 0) or 0), "Analyses completed"
+        handoffs = int(engagement.get("builder_handoffs", 0) or _funnel_value(report, "builder handoff"))
+    else:
+        actions = _funnel_value(report, "analysis completed", "completed")
+        action_label = "Workflow completions"
+        handoffs = int(engagement.get("builder_handoffs", 0) or _funnel_value(report, "builder handoff", "handoff"))
+    return {
+        "key": key, "label": TOOL_LABELS[key], "available": available,
+        "visitors": visitors, "sessions": sessions, "views": views,
+        "actions": actions, "action_label": action_label, "handoffs": handoffs,
+    }
+
+
+def _ecosystem_overview(period: str, campaign: str) -> tuple[dict[str, Any], bool]:
+    reports: dict[str, dict[str, Any]] = {}
+    rows = []
+    for key in TOOL_LABELS:
+        report, available = ecosystem_dashboard(key, period, campaign)
+        reports[key] = report
+        rows.append(_ecosystem_tool_row(key, report, available))
+    connected = [row for row in rows if row["available"]]
+    return {
+        "ok": bool(connected),
+        "metrics": {
+            # Visitors are intentionally not summed: identifiers are scoped to
+            # each product, so this dashboard avoids a misleading cross-tool
+            # "unique people" claim.
+            "connected_tools": len(connected),
+            "tool_sessions": sum(row["sessions"] for row in connected),
+            "tool_views": sum(row["views"] for row in connected),
+            "builder_handoffs": sum(row["handoffs"] for row in connected),
+        },
+        "tools": rows,
+        "reports": reports,
+        "funnel": [
+            {"label": "Poster click-throughs", "sessions": next((row["actions"] for row in rows if row["key"] == "poster"), 0)},
+            {"label": "Upstream Builder handoffs", "sessions": sum(row["handoffs"] for row in rows if row["key"] in {"warhead", "e3", "vlismod"})},
+            {"label": "Builder candidates constructed", "sessions": next((row["actions"] for row in rows if row["key"] == "protac"), 0)},
+        ],
+    }, bool(connected)
+
+
 def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dict[str, Any], bool]:
     """Fetch aggregate-only reports from the existing RANDY tool receivers."""
-    view = view if view in {"protac", "poster", "warhead", "e3", "vlismod"} else "protac"
+    view = view if view in {"ecosystem", *TOOL_LABELS} else "ecosystem"
     period = period if period in {"7d", "30d", "90d", "1y", "all"} else "30d"
+    if view == "ecosystem":
+        return _ecosystem_overview(period, campaign)
     if view == "poster":
         report = dashboard_summary({"7d": "7d", "30d": "30d", "90d": "30d", "1y": "all", "all": "all"}[period], campaign)
         report["metrics"] = {"visitors": report.get("unique_sessions", 0), "sessions": report.get("unique_sessions", 0), "page_views": report.get("views", 0)}
@@ -259,7 +340,7 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
         return {}, False
     routes = {
         "protac": ("/backup/product-analytics/summary", {"period": period}),
-        "warhead": ("/backup/analytics/hunter/overview", {"days": {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "all": 3650}[period]}),
+        "warhead": ("/backup/warhead-hunter/analytics/rollup", {"days": _period_days(period)}),
         "e3": ("/backup/e3/analytics/rollup", {"days": {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "all": "all"}[period]}),
         "vlismod": ("/backup/vlismod/analytics/rollup", {"period": period}),
     }
@@ -270,13 +351,13 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
         response = requests.get(root + routes[view][0], params=routes[view][1], headers=headers, timeout=5)
         payload = response.json() if response.ok else {}
         if view == "warhead" and payload.get("ok"):
-            usage = payload.get("usage") or {}
-            payload["metrics"] = {"visitors": usage.get("unique_visitors", 0), "sessions": usage.get("sessions", 0), "page_views": usage.get("page_views", 0)}
-            payload["daily"] = usage.get("trend", [])
-            payload["referrers"] = [{"label": item.get("name", "direct"), "value": item.get("count", 0)} for item in usage.get("referrers", [])]
-            payload["pages"] = [{"path": item.get("page", ""), "views": item.get("views", 0)} for item in usage.get("pages", [])]
-            payload["countries"] = usage.get("locations", [])
-            payload["funnel"] = [{"label": "Jobs analyzed", "sessions": (payload.get("overview") or {}).get("total_jobs", 0)}, {"label": "Completed", "sessions": (payload.get("overview") or {}).get("completed_jobs", 0)}]
+            audience = payload.get("audience") or {}
+            payload["metrics"] = {"visitors": audience.get("visitors", 0), "sessions": audience.get("sessions", 0), "page_views": audience.get("meaningful_events", 0)}
+            payload["daily"] = []
+            payload["referrers"] = [{"label": item.get("name", "direct"), "value": item.get("count", 0)} for item in audience.get("referrers", [])]
+            payload["pages"] = [{"path": item.get("name", ""), "views": item.get("count", 0)} for item in (payload.get("engagement") or {}).get("exports", [])]
+            payload["countries"] = audience.get("countries", [])
+            payload["funnel"] = [{"label": item.get("name", ""), "sessions": item.get("count", 0)} for item in payload.get("funnel", [])]
         if payload.get("ok"):
             _normalise_daily(payload, period)
             _normalise_countries(payload)

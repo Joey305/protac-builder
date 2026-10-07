@@ -75,7 +75,7 @@ def analytics_event():
 @ui_bp.get("/admin/analytics")
 @_analytics_admin_required
 def analytics_dashboard():
-    analytics_view = request.args.get("view", "protac")
+    analytics_view = request.args.get("view", "ecosystem")
     period = request.args.get("period", "30d")
     campaign = request.args.get("campaign", "")
     report, available = ecosystem_dashboard(analytics_view, period, campaign)
