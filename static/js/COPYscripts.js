@@ -841,6 +841,10 @@ $("#ligase").on("change", function () {
     }
 });
 
+$("#linker").on("change", function () {
+    if ($(this).val()) window.trackProductAnalyticsEvent?.("linker_selected", "curated");
+});
+
 // Function to save ligase with V -> R2 conversion
 
 
@@ -861,6 +865,7 @@ function saveLigand() {
             return;
         }
 
+        const attachmentPrepared = molecule.atoms.some(atom => atom.label === "U");
         molecule.atoms.forEach(atom => {
             if (atom.label === "U") {
                 atom.label = "R1";
@@ -873,6 +878,8 @@ function saveLigand() {
         console.log("✅ Warhead MOL Block saved.");
 
         saveClicks.warhead = true; // Mark warhead as saved
+        window.trackProductAnalyticsEvent?.("component_saved", "warhead");
+        if (attachmentPrepared) window.trackProductAnalyticsEvent?.("attachment_prepared", "warhead");
         saveButtonFeedback("ligandSaveButton");
         checkAllSaved(); 
 
@@ -899,6 +906,7 @@ function saveLinker() {
             return;
         }
 
+        const attachmentPrepared = molecule.atoms.some(atom => atom.label === "U" || atom.label === "V");
         molecule.atoms.forEach(atom => {
             if (atom.label === "U") {
                 atom.label = "R1";
@@ -915,6 +923,8 @@ function saveLinker() {
         console.log("✅ Linker MOL Block saved.");
 
         saveClicks.linker = true; // Mark linker as saved
+        window.trackProductAnalyticsEvent?.("component_saved", "linker");
+        if (attachmentPrepared) window.trackProductAnalyticsEvent?.("attachment_prepared", "linker");
         saveButtonFeedback("linkerSaveButton");
         checkAllSaved(); 
 
@@ -939,6 +949,7 @@ function saveLigase() {
             return;
         }
 
+        const attachmentPrepared = molecule.atoms.some(atom => atom.label === "V");
         molecule.atoms.forEach(atom => {
             if (atom.label === "V") {
                 atom.label = "R2";
@@ -951,6 +962,8 @@ function saveLigase() {
         console.log("✅ Ligase MOL Block saved.");
 
         saveClicks.ligase = true; // Mark ligase as saved
+        window.trackProductAnalyticsEvent?.("component_saved", "recruiter");
+        if (attachmentPrepared) window.trackProductAnalyticsEvent?.("attachment_prepared", "recruiter");
         saveButtonFeedback("ligaseSaveButton");
         checkAllSaved(); 
 

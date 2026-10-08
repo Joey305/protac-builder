@@ -14,9 +14,23 @@ import requests
 EVENTS = {
     "page_view", "builder_opened", "candidate_constructed", "candidate_exported",
     "batch_constructed", "deeppk_completed", "admet_completed", "report_downloaded",
-    "template_downloaded",
+    "template_downloaded", "component_saved", "attachment_prepared", "linker_selected",
+    "builder_handoff_arrived",
 }
 SAFE_ID = re.compile(r"^[A-Za-z0-9_-]{12,100}$")
+HANDOFF_ID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.I)
+SAFE_HANDOFF_SOURCES = {"warhead_hunter", "e3_ligandalyzer", "vlisemod"}
+FEATURES_BY_EVENT = {
+    "page_view": {""}, "builder_opened": {""},
+    "candidate_constructed": {"candidate_construction"}, "candidate_exported": {"smiles_export"},
+    "batch_constructed": {"batch_builder"}, "deeppk_completed": {"deeppk"},
+    "admet_completed": {"admet"}, "report_downloaded": {"analysis_report"},
+    "template_downloaded": {"linker_template"},
+    "component_saved": {"warhead", "linker", "recruiter"},
+    "attachment_prepared": {"warhead", "linker", "recruiter"},
+    "linker_selected": {"curated", "custom"},
+    "builder_handoff_arrived": SAFE_HANDOFF_SOURCES,
+}
 
 # Country-level reporting must not expose a visitor's IP-derived city or precise
 # location.  GeoIP is used only to derive a country code, then this fixed public
@@ -50,6 +64,9 @@ def _schema(connection):
     CREATE INDEX IF NOT EXISTS idx_protac_product_type ON protac_product_events(event_type);
     CREATE INDEX IF NOT EXISTS idx_protac_product_session ON protac_product_events(session_id);
     """)
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(protac_product_events)")}
+    if "handoff_id" not in columns:
+        connection.execute("ALTER TABLE protac_product_events ADD COLUMN handoff_id TEXT")
     # Scrub coordinates recorded by the first analytics version.  This is
     # idempotent and ensures an upgrade removes any historic precision too.
     connection.execute("UPDATE protac_product_events SET latitude = NULL, longitude = NULL")
@@ -80,10 +97,19 @@ def validate(payload: Any) -> dict[str, Any] | None:
         return None
     if not all(SAFE_ID.fullmatch(str(payload.get(key, ""))) for key in ("event_id", "visitor_id", "session_id")):
         return None
+    event_type = str(payload["event_type"])
+    feature = str(payload.get("feature") or "")
+    if feature not in FEATURES_BY_EVENT[event_type]:
+        return None
     path = str(payload.get("path") or "")[:240]
     if not path.startswith("/") or "?" in path or "#" in path:
         return None
-    return {"event_id": payload["event_id"], "event_type": payload["event_type"], "visitor_id": payload["visitor_id"], "session_id": payload["session_id"], "path": path, "referrer": str(payload.get("referrer") or "direct")[:255], "device": str(payload.get("device") if payload.get("device") in {"desktop", "mobile", "tablet"} else "desktop"), "browser": str(payload.get("browser") or "other")[:32], "feature": str(payload.get("feature") or "")[:80], "ip_address": str(payload.get("ip_address") or "")}
+    handoff_id = str(payload.get("handoff_id") or "")
+    if handoff_id and not HANDOFF_ID.fullmatch(handoff_id):
+        return None
+    if event_type == "builder_handoff_arrived" and not handoff_id:
+        return None
+    return {"event_id": payload["event_id"], "event_type": event_type, "visitor_id": payload["visitor_id"], "session_id": payload["session_id"], "path": path, "referrer": str(payload.get("referrer") or "direct")[:255], "device": str(payload.get("device") if payload.get("device") in {"desktop", "mobile", "tablet"} else "desktop"), "browser": str(payload.get("browser") or "other")[:32], "feature": feature, "handoff_id": handoff_id, "ip_address": str(payload.get("ip_address") or "")}
 
 
 def insert(db_path: Path, event: dict[str, Any]) -> bool:
@@ -91,7 +117,7 @@ def insert(db_path: Path, event: dict[str, Any]) -> bool:
     with sqlite3.connect(db_path) as connection:
         _schema(connection)
         before = connection.total_changes
-        connection.execute("INSERT OR IGNORE INTO protac_product_events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (event["event_id"], datetime.now(timezone.utc).isoformat(), event["event_type"], event["visitor_id"], event["session_id"], event["path"], event["referrer"], event["device"], event["browser"], country_code, country_name, latitude, longitude, event["feature"]))
+        connection.execute("INSERT OR IGNORE INTO protac_product_events (event_id, occurred_at, event_type, visitor_id, session_id, path, referrer, device, browser, country_code, country_name, latitude, longitude, feature, handoff_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (event["event_id"], datetime.now(timezone.utc).isoformat(), event["event_type"], event["visitor_id"], event["session_id"], event["path"], event["referrer"], event["device"], event["browser"], country_code, country_name, latitude, longitude, event["feature"], event["handoff_id"]))
         return connection.total_changes > before
 
 
@@ -131,5 +157,6 @@ def summary(db_path: Path, period: str = "30d") -> dict[str, Any]:
         pages = [dict(row) for row in connection.execute("SELECT path, COUNT(*) views, COUNT(DISTINCT visitor_id) visitors FROM protac_product_events" + clause + (" AND" if clause else " WHERE") + " event_type='page_view' GROUP BY path ORDER BY views DESC LIMIT 30", params)]
         countries = [dict(row) for row in connection.execute("SELECT country_code, country_name, latitude, longitude, COUNT(*) views FROM protac_product_events" + clause + (" AND" if clause else " WHERE") + " event_type='page_view' AND country_code IS NOT NULL GROUP BY country_code ORDER BY views DESC", params)]
         counts = {row["event_type"]: row["sessions"] for row in connection.execute("SELECT event_type, COUNT(DISTINCT session_id) sessions FROM protac_product_events" + clause + " GROUP BY event_type", params)}
-    funnel = [{"label": label, "sessions": counts.get(event, 0)} for label, event in (("Landing page", "page_view"), ("Builder opened", "builder_opened"), ("Candidate constructed", "candidate_constructed"), ("Candidate exported", "candidate_exported"), ("Analysis completed", "deeppk_completed"), ("Report downloaded", "report_downloaded"))]
-    return {"ok": True, "period": period, "metrics": {"visitors": visitors, "sessions": sessions, "page_views": page_views, "internal_navigation": internal_navigation, "candidate_constructed": counts.get("candidate_constructed", 0), "candidate_exported": counts.get("candidate_exported", 0), "deeppk_completed": counts.get("deeppk_completed", 0), "admet_completed": counts.get("admet_completed", 0), "report_downloaded": counts.get("report_downloaded", 0)}, "daily": _daily_buckets(daily, start), "referrers": referrers, "devices": grouped("device"), "pages": pages, "countries": countries, "funnel": funnel}
+    funnel = [{"label": label, "sessions": counts.get(event, 0)} for label, event in (("Landing page", "page_view"), ("Builder opened", "builder_opened"), ("Attributed handoff arrived", "builder_handoff_arrived"), ("Components saved", "component_saved"), ("Attachment points prepared", "attachment_prepared"), ("Linker selected", "linker_selected"), ("Candidate constructed", "candidate_constructed"), ("Candidate exported", "candidate_exported"), ("Analysis completed", "deeppk_completed"), ("Report downloaded", "report_downloaded"))]
+    features = [dict(row) for row in connection.execute("SELECT event_type || ':' || feature label, COUNT(DISTINCT session_id) value FROM protac_product_events" + clause + (" AND" if clause else " WHERE") + " event_type IN ('component_saved','attachment_prepared','linker_selected','builder_handoff_arrived') GROUP BY event_type, feature ORDER BY value DESC", params)]
+    return {"ok": True, "period": period, "metrics": {"visitors": visitors, "sessions": sessions, "page_views": page_views, "internal_navigation": internal_navigation, "candidate_constructed": counts.get("candidate_constructed", 0), "candidate_exported": counts.get("candidate_exported", 0), "deeppk_completed": counts.get("deeppk_completed", 0), "admet_completed": counts.get("admet_completed", 0), "report_downloaded": counts.get("report_downloaded", 0), "handoff_arrivals": counts.get("builder_handoff_arrived", 0)}, "daily": _daily_buckets(daily, start), "referrers": referrers, "devices": grouped("device"), "pages": pages, "countries": countries, "funnel": funnel, "features": features}

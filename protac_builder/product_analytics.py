@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 import secrets
 import threading
 from datetime import datetime, timezone
@@ -28,6 +29,16 @@ EVENTS_BY_REQUEST = {
     ("POST", "/run-drug-analysis"): ("deeppk_completed", "deeppk"),
     ("POST", "/api/admet/run"): ("admet_completed", "admet"),
 }
+
+# Browser events are deliberately narrow: they record a completed interface
+# action, never a structure, atom index, form value, or scientific identifier.
+CLIENT_EVENTS = {
+    "component_saved": {"warhead", "linker", "recruiter"},
+    "attachment_prepared": {"warhead", "linker", "recruiter"},
+    "linker_selected": {"curated", "custom"},
+}
+HANDOFF_ID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.I)
+HANDOFF_SOURCES = {"warhead_hunter", "e3_ligandalyzer", "vlisemod"}
 
 
 def _base_url() -> str:
@@ -89,11 +100,11 @@ def _deliver(payload: dict[str, Any]) -> None:
         pass
 
 
-def _emit(event_type: str, visitor_id: str, session_id: str, feature: str = "") -> None:
+def _emit(event_type: str, visitor_id: str, session_id: str, feature: str = "", handoff_id: str = "") -> None:
     if not enabled():
         return
     # Raw IP is transmitted only for optional immediate GeoIP enrichment on RANDY; it is never persisted.
-    payload = {"event_id": secrets.token_urlsafe(24), "event_type": event_type, "occurred_at": datetime.now(timezone.utc).isoformat(), "visitor_id": visitor_id, "session_id": session_id, "path": request.path[:240], "referrer": _referrer(), "device": _device(), "browser": _browser(), "feature": feature[:80], "ip_address": request.headers.get("X-Forwarded-For", "").split(",", 1)[0].strip() or request.remote_addr or ""}
+    payload = {"event_id": handoff_id or secrets.token_urlsafe(24), "event_type": event_type, "occurred_at": datetime.now(timezone.utc).isoformat(), "visitor_id": visitor_id, "session_id": session_id, "path": request.path[:240], "referrer": _referrer(), "device": _device(), "browser": _browser(), "feature": feature[:80], "handoff_id": handoff_id, "ip_address": request.headers.get("X-Forwarded-For", "").split(",", 1)[0].strip() or request.remote_addr or ""}
     threading.Thread(target=_deliver, args=(payload,), daemon=True, name="protac-product-analytics").start()
 
 
@@ -105,6 +116,10 @@ def track_response(response):
         _emit("page_view", visitor, session)
         if request.path == "/builder":
             _emit("builder_opened", visitor, session)
+            handoff_id = request.args.get("handoff_id", "").strip()
+            source = request.args.get("utm_source", "").strip().lower()
+            if HANDOFF_ID.fullmatch(handoff_id) and source in HANDOFF_SOURCES:
+                _emit("builder_handoff_arrived", visitor, session, source, handoff_id)
     else:
         event = EVENTS_BY_REQUEST.get((request.method, request.path))
         if event and response.status_code < 300:
@@ -114,3 +129,13 @@ def track_response(response):
         elif request.method == "GET" and request.path in {"/api/protac/builder/template/linkers", "/copy/api/protac/builder/template/linkers"}:
             _emit("template_downloaded", visitor, session, "linker_template")
     return response
+
+
+def track_client_event(response, event_type: str, feature: str) -> bool:
+    """Record an allow-listed browser milestone without accepting user data."""
+    allowed_features = CLIENT_EVENTS.get(event_type)
+    if not allowed_features or feature not in allowed_features:
+        return False
+    visitor, session = _ids(response)
+    _emit(event_type, visitor, session, feature)
+    return True

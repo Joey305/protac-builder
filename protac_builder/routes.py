@@ -10,6 +10,7 @@ from . import route_impl as impl
 from .io_utils import apply_cors_headers
 from .site_content import OPENAPI_SPEC, SITEMAP_PATHS, get_page_meta, llms_text, yaml_dump
 from .analytics import allow_event, dashboard_summary, ecosystem_dashboard, record_event, validate_event
+from .product_analytics import track_client_event
 
 
 ui_bp = Blueprint("ui", __name__)
@@ -70,6 +71,21 @@ def analytics_event():
         return jsonify({"ok": False, "error": "Invalid analytics event."}), 400
     record_event(event)
     return jsonify({"ok": True}), 202
+
+
+@ui_bp.post("/api/product-analytics/event")
+def product_analytics_event():
+    """Accept a tiny allow-listed Builder milestone; never scientific content."""
+    if request.content_length and request.content_length > 1024:
+        return jsonify({"ok": False, "error": "Payload too large."}), 413
+    client_key = request.remote_addr or "unknown"
+    if not allow_event(client_key):
+        return jsonify({"ok": False, "error": "Rate limited."}), 429
+    payload = request.get_json(silent=True) or {}
+    response = jsonify({"ok": True})
+    if not track_client_event(response, str(payload.get("event_type") or ""), str(payload.get("feature") or "")):
+        return jsonify({"ok": False, "error": "Invalid product analytics event."}), 400
+    return response, 202
 
 
 @ui_bp.get("/admin/analytics")
