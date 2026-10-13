@@ -316,7 +316,7 @@ def _ecosystem_overview(period: str, campaign: str) -> tuple[dict[str, Any], boo
 
 def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dict[str, Any], bool]:
     """Fetch aggregate-only reports from the existing RANDY tool receivers."""
-    view = view if view in {"ecosystem", *TOOL_LABELS} else "ecosystem"
+    view = view if view in {"ecosystem", "warhead_runs", *TOOL_LABELS} else "ecosystem"
     period = period if period in {"7d", "30d", "90d", "1y", "all"} else "30d"
     if view == "ecosystem":
         return _ecosystem_overview(period, campaign)
@@ -338,19 +338,20 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
     token = _remote_token()
     if not root or not token:
         return {}, False
+    receiver_view = "warhead" if view == "warhead_runs" else view
     routes = {
         "protac": ("/backup/product-analytics/summary", {"period": period}),
         "warhead": ("/backup/warhead-hunter/analytics/rollup", {"days": _period_days(period)}),
         "e3": ("/backup/e3/analytics/rollup", {"days": {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "all": "all"}[period]}),
         "vlismod": ("/backup/vlismod/analytics/rollup", {"period": period}),
     }
-    headers = {"Authorization": f"Bearer {os.environ.get('VLISMOD_ANALYTICS_TOKEN', '').strip() if view == 'vlismod' else token}", "User-Agent": "protac-builder-analytics-hub/1.0"}
-    if view == "vlismod" and not os.environ.get("VLISMOD_ANALYTICS_TOKEN", "").strip():
+    headers = {"Authorization": f"Bearer {os.environ.get('VLISMOD_ANALYTICS_TOKEN', '').strip() if receiver_view == 'vlismod' else token}", "User-Agent": "protac-builder-analytics-hub/1.0"}
+    if receiver_view == "vlismod" and not os.environ.get("VLISMOD_ANALYTICS_TOKEN", "").strip():
         return {}, False
     try:
-        response = requests.get(root + routes[view][0], params=routes[view][1], headers=headers, timeout=5)
+        response = requests.get(root + routes[receiver_view][0], params=routes[receiver_view][1], headers=headers, timeout=5)
         payload = response.json() if response.ok else {}
-        if view == "warhead" and payload.get("ok"):
+        if receiver_view == "warhead" and payload.get("ok"):
             audience = payload.get("audience") or {}
             payload["metrics"] = {"visitors": audience.get("visitors", 0), "sessions": audience.get("sessions", 0), "page_views": audience.get("meaningful_events", 0)}
             payload["daily"] = []
