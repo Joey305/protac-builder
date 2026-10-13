@@ -14,6 +14,7 @@ from flask import request
 
 COOKIE_VISITOR = "protac_vid"
 COOKIE_SESSION = "protac_sid"
+COOKIE_HANDOFF = "protac_handoff"
 EXCLUDED_PREFIXES = ("/admin", "/api", "/static", "/health", "/robots", "/sitemap", "/llms", "/openapi")
 
 # These events describe workflow progress only.  They intentionally never carry
@@ -100,11 +101,16 @@ def _deliver(payload: dict[str, Any]) -> None:
         pass
 
 
+def _active_handoff_id() -> str:
+    handoff_id = request.cookies.get(COOKIE_HANDOFF, "").strip()
+    return handoff_id if HANDOFF_ID.fullmatch(handoff_id) else ""
+
+
 def _emit(event_type: str, visitor_id: str, session_id: str, feature: str = "", handoff_id: str = "") -> None:
     if not enabled():
         return
     # Raw IP is transmitted only for optional immediate GeoIP enrichment on RANDY; it is never persisted.
-    payload = {"event_id": handoff_id or secrets.token_urlsafe(24), "event_type": event_type, "occurred_at": datetime.now(timezone.utc).isoformat(), "visitor_id": visitor_id, "session_id": session_id, "path": request.path[:240], "referrer": _referrer(), "device": _device(), "browser": _browser(), "feature": feature[:80], "handoff_id": handoff_id, "ip_address": request.headers.get("X-Forwarded-For", "").split(",", 1)[0].strip() or request.remote_addr or ""}
+    payload = {"event_id": secrets.token_urlsafe(24), "event_type": event_type, "occurred_at": datetime.now(timezone.utc).isoformat(), "visitor_id": visitor_id, "session_id": session_id, "path": request.path[:240], "referrer": _referrer(), "device": _device(), "browser": _browser(), "feature": feature[:80], "handoff_id": handoff_id, "ip_address": request.headers.get("X-Forwarded-For", "").split(",", 1)[0].strip() or request.remote_addr or ""}
     threading.Thread(target=_deliver, args=(payload,), daemon=True, name="protac-product-analytics").start()
 
 
@@ -120,10 +126,11 @@ def track_response(response):
             source = request.args.get("utm_source", "").strip().lower()
             if HANDOFF_ID.fullmatch(handoff_id) and source in HANDOFF_SOURCES:
                 _emit("builder_handoff_arrived", visitor, session, source, handoff_id)
+                response.set_cookie(COOKIE_HANDOFF, handoff_id, max_age=60 * 60 * 24, secure=request.is_secure, httponly=True, samesite="Lax")
     else:
         event = EVENTS_BY_REQUEST.get((request.method, request.path))
         if event and response.status_code < 300:
-            _emit(event[0], visitor, session, event[1])
+            _emit(event[0], visitor, session, event[1], _active_handoff_id())
         elif request.method == "GET" and request.path.startswith(("/api/deeppk/download/", "/api/admet/download/")):
             _emit("report_downloaded", visitor, session, "analysis_report")
         elif request.method == "GET" and request.path in {"/api/protac/builder/template/linkers", "/copy/api/protac/builder/template/linkers"}:
@@ -137,5 +144,5 @@ def track_client_event(response, event_type: str, feature: str) -> bool:
     if not allowed_features or feature not in allowed_features:
         return False
     visitor, session = _ids(response)
-    _emit(event_type, visitor, session, feature)
+    _emit(event_type, visitor, session, feature, _active_handoff_id())
     return True
