@@ -61,10 +61,17 @@ def _normalise_daily(payload: dict[str, Any], period: str) -> None:
             continue
         views = row.get("views", row.get("page_views", row.get("count", 0)))
         visitors = row.get("visitors", row.get("sessions"))
-        item = by_date.setdefault(raw_date, {"date": raw_date, "views": 0, "visitors": 0})
+        item = by_date.setdefault(raw_date, {
+            "date": raw_date, "views": 0, "visitors": 0,
+            "workflow_starts": 0, "completed": 0, "exports": 0, "handoffs": 0,
+        })
         item["views"] += int(views or 0)
         if visitors is not None:
             item["visitors"] += int(visitors or 0)
+        # V-LiSEMOD's richer rollup exposes outcome series in addition to
+        # traffic. Keep them when present; other tools simply remain zero.
+        for key in ("workflow_starts", "completed", "exports", "handoffs"):
+            item[key] += int(row.get(key, 0) or 0)
     if len(by_date) == 1 and not next(iter(by_date.values()))["visitors"]:
         # Older receivers supplied a daily page-view total but not a daily
         # session value; a one-day result can safely use its matching total.
@@ -73,7 +80,10 @@ def _normalise_daily(payload: dict[str, Any], period: str) -> None:
     window = {"7d": 7, "30d": 30, "90d": 90, "1y": 365}.get(period)
     if window:
         first = date.today() - timedelta(days=window - 1)
-        payload["daily"] = [by_date.get((first + timedelta(days=index)).isoformat(), {"date": (first + timedelta(days=index)).isoformat(), "views": 0, "visitors": 0}) for index in range(window)]
+        payload["daily"] = [by_date.get((first + timedelta(days=index)).isoformat(), {
+            "date": (first + timedelta(days=index)).isoformat(), "views": 0, "visitors": 0,
+            "workflow_starts": 0, "completed": 0, "exports": 0, "handoffs": 0,
+        }) for index in range(window)]
     else:
         payload["daily"] = [by_date[key] for key in sorted(by_date)]
 

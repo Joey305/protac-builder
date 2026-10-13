@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from base64 import b64encode
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 
 class ConferenceAnalyticsTests(unittest.TestCase):
@@ -16,7 +17,7 @@ class ConferenceAnalyticsTests(unittest.TestCase):
 
     def tearDown(self):
         self.tmp.cleanup()
-        for name in ("ANALYTICS_DB_PATH", "ANALYTICS_RANDY_URL", "ANALYTICS_RANDY_TOKEN", "ADMIN_EMAIL", "ADMIN_PASSWORD"):
+        for name in ("ANALYTICS_DB_PATH", "ANALYTICS_RANDY_URL", "ANALYTICS_RANDY_TOKEN", "VLISMOD_ANALYTICS_TOKEN", "ADMIN_EMAIL", "ADMIN_PASSWORD"):
             os.environ.pop(name, None)
 
     def _event(self, **extra):
@@ -57,6 +58,28 @@ class ConferenceAnalyticsTests(unittest.TestCase):
         self.assertTrue(app.config["ANALYTICS_DB_PATH"])
         os.environ.pop("ANALYTICS_RANDY_URL", None)
         os.environ.pop("ANALYTICS_RANDY_TOKEN", None)
+
+    def test_vlismod_detail_rollup_preserves_workflow_daily_series(self):
+        os.environ["ANALYTICS_RANDY_URL"] = "https://randy.example/backup/analytics"
+        os.environ["ANALYTICS_RANDY_TOKEN"] = "builder-token"
+        os.environ["VLISMOD_ANALYTICS_TOKEN"] = "vlismod-token"
+        payload = {
+            "ok": True,
+            "summary": {"unique_visitors": 2, "sessions": 3, "page_views": 4},
+            "daily": [{"date": "2026-10-13", "page_views": 4, "sessions": 3, "workflow_starts": 2, "completed": 1, "exports": 1, "handoffs": 1}],
+            "operations": {"submitted": 2, "completed": 1, "failed": 0, "empty_results": [], "performance": [], "segmentation": [], "alerts": []},
+            "engagement": {"new_visitors": 2, "returning_visitors": 0, "engaged_sessions": 1, "research_sessions": 1},
+            "handoffs": {"total": 1, "cross_tool": {"initiated": 1, "builder_arrived": None}},
+            "workflows": [], "funnel": [], "countries": [], "referrers": [], "pages": [],
+        }
+        response = Mock(ok=True)
+        response.json.return_value = payload
+        with patch("protac_builder.analytics.requests.get", return_value=response):
+            from protac_builder.analytics import ecosystem_dashboard
+            report, available = ecosystem_dashboard("vlismod", "all")
+        self.assertTrue(available)
+        self.assertEqual(report["daily"][0]["workflow_starts"], 2)
+        self.assertEqual(report["daily"][0]["handoffs"], 1)
 
 
 if __name__ == "__main__":
