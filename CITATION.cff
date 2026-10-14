@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use PROTAC Builder in academic work, please cite this software."
+title: "PROTAC Builder"
+type: software
+authors:
+  - name: "The Schürer Lab"
+    affiliation: "University of Miami"
+license: "PolyForm-Noncommercial-1.0.0"
+repository-code: "https://github.com/Joey305/protac-builder"
+date-released: 2026-10-13
+version: "2026.10"
