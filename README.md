@@ -690,13 +690,13 @@ Potential development directions:
 
 ## 🧬 Citation
 
-A versioned software release is prepared for archival through Zenodo. Until its DOI is issued, cite the exact tagged repository release and access date. The repository includes `CITATION.cff` for GitHub's citation panel and `.zenodo.json` for release metadata.
+A versioned Zenodo software release is available. Please cite the published DOI below; the hosted citation page also provides a one-click RIS download.
 
 ```text
-The Schürer Lab. (2026). PROTAC Builder (Version 2026.10) [Computer software]. https://github.com/Joey305/protac-builder
+The Schürer Lab. (2026). PROTAC Builder (Version v2026.10) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23374603
 ```
 
-After the Zenodo release is created, replace the repository URL above with the version DOI and add that DOI to `CITATION.cff`.
+Visit [protacbuilder.com/citation](https://protacbuilder.com/citation) to copy the citation or download it as RIS. `CITATION.cff` contains the same release metadata for GitHub.
 
 <p align="center">
   <a href="https://protacbuilder.com">
