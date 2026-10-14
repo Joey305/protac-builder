@@ -1,15 +1,67 @@
 {% extends "base.html" %}
 {% block title %}Cite PROTAC Builder{% endblock %}
+{% block meta_description %}Cite PROTAC Builder using its version-specific Zenodo software record, DOI, or downloadable RIS reference file.{% endblock %}
+{% block body_class %}protac-content-page{% endblock %}
+
 {% block content %}
-<section class="container py-5" style="max-width:900px">
-  <p class="text-uppercase text-info font-weight-bold mb-2">Research software</p>
-  <h1>How to cite PROTAC Builder</h1>
-  <p class="lead">Please cite the version-specific Zenodo record whenever PROTAC Builder contributes to a result, workflow, figure, or dataset.</p>
-  <div class="card shadow-sm my-4"><div class="card-body">
-    <h2 class="h4">Recommended citation</h2>
-    <p class="mb-0">The Schürer Lab. (2026). <em>PROTAC Builder</em> (Version v2026.10) [Computer software]. Zenodo. <a href="https://doi.org/10.5281/zenodo.23374603">https://doi.org/10.5281/zenodo.23374603</a></p>
-  </div></div>
-  <p><a class="btn btn-primary mr-2" href="https://doi.org/10.5281/zenodo.23374603">Open Zenodo DOI</a><a class="btn btn-outline-primary" href="{{ url_for('static', filename='citations/protac-builder-v2026.10.ris') }}" download>Download RIS</a></p>
-  <p class="text-muted small">The RIS file imports directly into Zotero, EndNote, Mendeley, and similar reference managers.</p>
-</section>
+<div class="protac-content-shell">
+  <section class="protac-hero-card">
+    <span class="protac-page-kicker">Zenodo software record</span>
+    <h1>How to cite PROTAC Builder</h1>
+    <p class="protac-hero-copy">Use this version-specific software record whenever PROTAC Builder contributes to a result, workflow, figure, or dataset.</p>
+    <div class="protac-pill-row" aria-label="Citation record details">
+      <span class="protac-pill">Version v2026.10</span>
+      <span class="protac-pill">Published 2026</span>
+      <span class="protac-pill">DOI: 10.5281/zenodo.23374603</span>
+    </div>
+  </section>
+
+  <section class="protac-section-card" aria-labelledby="recommended-citation">
+    <div class="protac-section-head">
+      <h2 id="recommended-citation">Recommended citation</h2>
+    </div>
+    <article class="protac-info-card">
+      <p class="protac-card-kicker">Copy-ready reference</p>
+      <p class="protac-section-copy" id="citation-text">The Schürer Lab. (2026). <em>PROTAC Builder</em> (Version v2026.10) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23374603</p>
+    </article>
+    <div class="protac-action-row">
+      <a class="protac-action-button is-primary" href="https://doi.org/10.5281/zenodo.23374603" target="_blank" rel="noopener noreferrer">Open Zenodo record ↗</a>
+      <a class="protac-action-button is-secondary" href="{{ url_for('static', filename='citations/protac-builder-v2026.10.ris') }}" download>Download RIS</a>
+      <button class="protac-action-button is-secondary" type="button" id="copy-citation">Copy citation</button>
+    </div>
+    <p class="protac-section-copy" id="copy-feedback" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="protac-section-card" aria-labelledby="citation-notes">
+    <div class="protac-section-head">
+      <h2 id="citation-notes">Using the record</h2>
+    </div>
+    <div class="protac-card-grid">
+      <article class="protac-info-card">
+        <h3>Reference managers</h3>
+        <p>Download the RIS file to import the reference directly into Mendeley, Zotero, EndNote, or similar software.</p>
+      </article>
+      <article class="protac-info-card">
+        <h3>Version-specific citation</h3>
+        <p>For reproducibility, cite this released version and retain the DOI with your manuscript, notebook, or deposited workflow.</p>
+      </article>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.getElementById("copy-citation")?.addEventListener("click", async () => {
+    const citation = document.getElementById("citation-text")?.innerText;
+    const feedback = document.getElementById("copy-feedback");
+    if (!citation || !feedback) return;
+    try {
+      await navigator.clipboard.writeText(citation);
+      feedback.textContent = "Citation copied to your clipboard.";
+    } catch (error) {
+      feedback.textContent = "Copying is unavailable in this browser. Please select and copy the citation above.";
+    }
+  });
+</script>
 {% endblock %}
