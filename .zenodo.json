@@ -1,0 +1,13 @@
+{
+  "title": "PROTAC Builder",
+  "description": "A Flask-based web and API platform for PROTAC-like molecule construction, recruiter/linker exploration, RDKit descriptors, and DeepPK report generation.",
+  "creators": [
+    {
+      "name": "The Schürer Lab",
+      "affiliation": "University of Miami"
+    }
+  ],
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "access_right": "open",
+  "keywords": ["PROTAC", "molecular design", "cheminformatics", "drug discovery", "research software"]
+}

@@ -690,13 +690,13 @@ Potential development directions:
 
 ## 🧬 Citation
 
-A formal manuscript or software citation for PROTAC Builder can be added here when available.
-
-For now, cite the GitHub repository and web platform:
+A versioned software release is prepared for archival through Zenodo. Until its DOI is issued, cite the exact tagged repository release and access date. The repository includes `CITATION.cff` for GitHub's citation panel and `.zenodo.json` for release metadata.
 
 ```text
-Schulz, J.-M. PROTAC Builder: A Flask-Based Web and API Platform for PROTAC-Like Molecule Construction, Recruiter/Linker Exploration, RDKit Descriptors, and DeepPK Report Generation. GitHub repository: https://github.com/Joey305/protac-builder. Web platform: https://protacbuilder.com.
+The Schürer Lab. (2026). PROTAC Builder (Version 2026.10) [Computer software]. https://github.com/Joey305/protac-builder
 ```
+
+After the Zenodo release is created, replace the repository URL above with the version DOI and add that DOI to `CITATION.cff`.
 
 <p align="center">
   <a href="https://protacbuilder.com">
