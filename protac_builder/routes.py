@@ -141,6 +141,11 @@ def about():
     return render_template("about.html")
 
 
+@ui_bp.get("/citation")
+def citation():
+    return render_template("citation.html")
+
+
 @ui_bp.get("/what-is-a-protac")
 def what_is_a_protac():
     return _render_page("what_is_a_protac")
