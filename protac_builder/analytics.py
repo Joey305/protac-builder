@@ -251,6 +251,8 @@ TOOL_LABELS = {
     "warhead": "Warhead Hunter",
     "e3": "E3 Ligandalyzer",
     "vlismod": "V-LiSEMOD",
+    "autodock": "AutoDock-Vina PrepServer",
+    "pymacs": "PyMACS",
 }
 
 
@@ -284,6 +286,10 @@ def _ecosystem_tool_row(key: str, report: dict[str, Any], available: bool) -> di
     elif key == "warhead":
         actions, action_label = int(pipeline.get("completed", 0) or 0), "Analyses completed"
         handoffs = int(engagement.get("builder_handoffs", 0) or _funnel_value(report, "builder handoff"))
+    elif key == "autodock":
+        actions, action_label = int(pipeline.get("completed", 0) or 0), "Packages completed"
+    elif key == "pymacs":
+        actions, action_label = int(pipeline.get("completed", 0) or 0), "CGenFF requests completed"
     else:
         actions = _funnel_value(report, "analysis completed", "completed")
         action_label = "Workflow completions"
@@ -354,9 +360,17 @@ def ecosystem_dashboard(view: str, period: str, campaign: str = "") -> tuple[dic
         "warhead": ("/backup/warhead-hunter/analytics/rollup", {"days": _period_days(period)}),
         "e3": ("/backup/e3/analytics/rollup", {"days": {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "all": "all"}[period]}),
         "vlismod": ("/backup/vlismod/analytics/rollup", {"period": period}),
+        "autodock": ("/backup/autodock/analytics/rollup", {"period": period}),
+        "pymacs": ("/backup/pymacs/analytics/rollup", {"period": period}),
     }
-    headers = {"Authorization": f"Bearer {os.environ.get('VLISMOD_ANALYTICS_TOKEN', '').strip() if receiver_view == 'vlismod' else token}", "User-Agent": "protac-builder-analytics-hub/1.0"}
-    if receiver_view == "vlismod" and not os.environ.get("VLISMOD_ANALYTICS_TOKEN", "").strip():
+    receiver_tokens = {
+        "vlismod": os.environ.get("VLISMOD_ANALYTICS_TOKEN", "").strip(),
+        "autodock": os.environ.get("AUTODOCK_ANALYTICS_TOKEN", "").strip(),
+        "pymacs": os.environ.get("PYMACS_ANALYTICS_TOKEN", "").strip(),
+    }
+    receiver_token = receiver_tokens.get(receiver_view, token)
+    headers = {"Authorization": f"Bearer {receiver_token}", "User-Agent": "protac-builder-analytics-hub/1.0"}
+    if receiver_view in receiver_tokens and not receiver_token:
         return {}, False
     try:
         response = requests.get(root + routes[receiver_view][0], params=routes[receiver_view][1], headers=headers, timeout=5)
