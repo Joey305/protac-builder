@@ -1,0 +1,110 @@
+{% extends "pages/_page_base.html" %}
+{% from "pages/_macros.html" import action_link, info_card %}
+
+{% block page_content %}
+<section class="protac-hero-card protac-linker-hero">
+  <div class="protac-linker-hero__copy">
+    <span class="protac-page-kicker">Ternary-Complex Analysis</span>
+    <h1>JARI-PROTACS</h1>
+    <p class="protac-hero-copy">
+      JARI — <strong>Joint Analysis for Reproducible Interface clustering</strong> — turns folders of
+      PRosettaC-derived ternary-complex models into a reviewable similarity dataset, structural clusters, UMAP view,
+      and hierarchical dendrogram.
+    </p>
+    <p class="protac-hero-copy">
+      It is the “what patterns survive across my model sets?” step after ternary modeling. JARI does not prove that a
+      candidate degrades a protein; it makes pose-family comparison and reporting more reproducible.
+    </p>
+    <div class="protac-pill-row">
+      <span class="protac-pill">PRosettaC model folders</span>
+      <span class="protac-pill">Pairwise DockQ</span>
+      <span class="protac-pill">DBSCAN + UMAP</span>
+      <span class="protac-pill">Reproducible figures</span>
+    </div>
+    <div class="protac-action-row">
+      {{ action_link('/jari-walkthrough', 'Run the walkthrough', primary=True) }}
+      {{ action_link('https://github.com/Joey305/JARI', 'Open JARI on GitHub', external=True) }}
+      {{ action_link('/downstream-modeling-tools', 'Modeling handoff guide') }}
+    </div>
+  </div>
+  <div class="protac-detail-card">
+    <span class="protac-card-kicker">The workflow</span>
+    <ol class="protac-step-list">
+      <li>Start with PRosettaC model folders organized by ligand, linker, design, or pose family.</li>
+      <li>Compare models within and across those folders with DockQ.</li>
+      <li>Aggregate and average structural similarity scores.</li>
+      <li>Cluster models using distance = <code>1 − Average_DockQ</code>.</li>
+      <li>Review clusters and figures alongside chemistry, biology, and experimental data.</li>
+    </ol>
+  </div>
+</section>
+
+<section class="protac-section-card" id="where-jari-fits">
+  <div class="protac-section-head"><h2>Where JARI fits in PROTAC Builder</h2></div>
+  <div class="protac-comparison-grid">
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">1 · Assemble</span>
+      <p>Use PROTAC Builder to define a candidate from a POI warhead, linker, and E3 recruiter, preserving attachment-vector context.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">2 · Model</span>
+      <p>Generate ternary-complex hypotheses with PRosettaC or another appropriate structure-based workflow.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">3 · Compare</span>
+      <p>Use JARI to quantify whether model families are structurally similar, distinct, or internally inconsistent.</p>
+    </article>
+    <article class="protac-info-panel">
+      <span class="protac-card-kicker">4 · Decide</span>
+      <p>Use cluster membership as a prioritization signal, then validate promising designs experimentally.</p>
+    </article>
+  </div>
+  <div class="protac-callout">
+    <strong>Keep the boundary clear:</strong> JARI analyzes structural similarity among model outputs. It is not a degradation predictor and it cannot replace cellular degradation experiments.
+  </div>
+</section>
+
+<section class="protac-section-card" id="outputs">
+  <div class="protac-section-head"><h2>What you get from a run</h2></div>
+  <div class="protac-card-grid">
+    {{ info_card('Cross-model DockQ scores', 'Pairwise comparisons across different ligand, linker, design, or pose families.', 'https://github.com/Joey305/JARI#workflow-overview', kicker='Stage 02', cta='See the scoring stage', external=True) }}
+    {{ info_card('Self-similarity scores', 'Within-family comparisons that reveal whether a model set is structurally coherent.', 'https://github.com/Joey305/JARI#workflow-overview', kicker='Stage 03', cta='See the scoring stage', external=True) }}
+    {{ info_card('Averaged score table', 'A compact input table for clustering where higher DockQ means closer structural similarity.', 'https://github.com/Joey305/JARI#clustering-outputs', kicker='Stage 07', cta='See output details', external=True) }}
+    {{ info_card('Clusters and figures', 'DBSCAN assignments, a UMAP visualization, and a hierarchical dendrogram for transparent review.', 'https://github.com/Joey305/JARI#clustering-outputs', kicker='Stages 11–12', cta='See output details', external=True) }}
+  </div>
+</section>
+
+<section class="protac-section-card" id="starter-inputs">
+  <div class="protac-section-head"><h2>Three available structure-first starting points</h2></div>
+  <p class="protac-section-copy">
+    These are saved Warhead Hunter handoff sets, not JARI clustering results. They demonstrate the upstream record
+    you should preserve before building PROTACs and generating ternary-model ensembles for JARI.
+  </p>
+  <div class="science-figure-grid science-figure-grid--three">
+    {% set examples = [
+      {'job': 'c5ef7733', 'title': '2GJ6 · chain C · 3IB', 'svg': '2gj6_C_3IB_10_exposed.svg', 'sdf': '2gj6_C_3IB_10.sdf', 'pdb': '2gj6_C_3IB.pdb'},
+      {'job': 'b2ba2abd', 'title': '6HSK · chain A · GOK', 'svg': '6hsk_A_GOK_404_exposed.svg', 'sdf': '6hsk_A_GOK_404.sdf', 'pdb': '6hsk_A_GOK.pdb'},
+      {'job': 'b281996d', 'title': '4CI3 · chain B · Y70', 'svg': '4ci3_B_Y70_1429_exposed.svg', 'sdf': '4ci3_B_Y70_1429.sdf', 'pdb': '4ci3_B_Y70.pdb'}
+    ] %}
+    {% for example in examples %}
+    <figure class="protac-figure-card science-figure">
+      <img src="{{ url_for('static', filename='hunter_jobs/' ~ example.job ~ '/' ~ example.svg) }}" alt="Exposed-atom map for {{ example.title }}." loading="lazy">
+      <figcaption><strong>{{ example.title }}</strong><br>Keep this target-bound context with the later model family so comparisons remain traceable.</figcaption>
+      <div class="protac-figure-card__actions">
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='hunter_jobs/' ~ example.job ~ '/' ~ example.sdf) }}" download>Download SDF</a>
+        <a class="protac-figure-card__zoom" href="{{ url_for('static', filename='hunter_jobs/' ~ example.job ~ '/' ~ example.pdb) }}" download>Download PDB</a>
+      </div>
+    </figure>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="protac-section-card" id="next-step">
+  <div class="protac-section-head"><h2>Ready to run it?</h2></div>
+  <p class="protac-section-copy">The walkthrough is intentionally copy-pasteable: set up Python, point JARI at a correctly organized model directory, run the numbered pipeline, and inspect the output files in order.</p>
+  <div class="protac-action-row">
+    {{ action_link('/jari-walkthrough', 'Open JARI walkthrough', primary=True) }}
+    {{ action_link('/builder', 'Return to PROTAC Builder') }}
+  </div>
+</section>
+{% endblock %}

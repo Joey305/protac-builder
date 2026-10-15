@@ -161,6 +161,16 @@ def examples():
     return _render_page("examples")
 
 
+@ui_bp.get("/jari")
+def jari():
+    return _render_page("jari")
+
+
+@ui_bp.get("/jari-walkthrough")
+def jari_walkthrough():
+    return _render_page("jari_walkthrough")
+
+
 @ui_bp.get("/component-hubs")
 def component_hubs():
     return _render_page("component_hubs")
